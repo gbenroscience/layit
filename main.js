@@ -586,7 +586,7 @@ View.prototype.makeVFL = function () {
         }
 
         if(maxHei && minHei){
-            parent.directChildConstraints.push('H:|~[' + this.id + ',<='+maxHeight+',>='+minHeight+')]~|\n');
+            parent.directChildConstraints.push('V:|~[' + this.id + ',<='+maxHeight+',>='+minHeight+')]~|\n');
         }else if(!maxHei && !minHei){
             parent.directChildConstraints.push('V:|~[' + this.id + '(==' + this.height + ')]~|\n');
         }else if(maxHei){
