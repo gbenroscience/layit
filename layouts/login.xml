@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<ConstraintLayout
+    id="root"
+    layout_width="match_parent"
+    layout_height="match_parent">
+
+
+
+
+    <ImageView
+        id="imgview"
+        layout_width="200"
+        layout_height="200"
+        src="splash.png"
+        layout_constraintStart_toStartOf="parent"
+        layout_constraintEnd_toEndOf="parent"
+        layout_constraintTop_toTopOf="parent"
+        layout_constraintBottom_toBottomOf="parent"
+        />
+
+    <Guideline
+        id="guide"
+        layout_width="1"
+        layout_height="1"
+        orientation="horizontal"
+        layout_constraintGuide_percent="5"
+        />
+
+
+    <ImageView
+        id="logo"
+        layout_width="200"
+        layout_height="200"
+        layout_constraintStart_toStartOf="parent"
+        layout_constraintEnd_toEndOf="parent"
+        layout_constraintTop_toTopOf="guide"
+        src="logo_small.png"
+        />
+
+
+
+    <Guideline
+        id="guideline1"
+        layout_width="1"
+        layout_height="match_parent"
+        orientation="vertical"
+        layout_constraintGuide_percent="5" />
+
+    <Guideline
+        id="guideline2"
+        layout_width="1"
+        layout_height="match_parent"
+        orientation="vertical"
+        layout_constraintGuide_percent="30" />
+
+    <Guideline
+        id="guideline3"
+        layout_width="1"
+        layout_height="match_parent"
+        orientation="vertical"
+        layout_constraintGuide_percent="33" />
+
+    <Guideline
+        id="guideline4"
+        layout_width="1"
+        layout_height="match_parent"
+        orientation="vertical"
+        layout_constraintGuide_percent="95" />
+
+
+    <Guideline
+        id="guideline5"
+        layout_width="1"
+        layout_height="1"
+        orientation="horizontal"
+        layout_constraintGuide_percent="5" />
+
+
+    <TextArea
+        id="top_header"
+        layout_width="230"
+        layout_height="50"
+        layout_marginStart="24"
+        layout_marginBottom="24"
+        layout_marginTop="48"
+        text="apply_as_agent"
+        textSize="20px"
+        layout_constraintBottom_toTopOf="mini_heading"
+        layout_constraintStart_toStartOf="guideline1" />
+
+
+    <TextArea
+        id="mini_heading"
+        layout_width="230"
+        layout_height="50"
+        layout_marginBottom="24"
+        layout_marginTop="32"
+        fontFamily="Arial"
+        textStyle="italic"
+        text="agent_apply_notif"
+        textColor="dark_gray_color"
+        textSize="20px"
+        layout_constraintBottom_toTopOf="top_header"
+        layout_constraintStart_toStartOf="top_header" />
+
+ 
+    <TextArea
+        id="phone_view"
+        layout_width="230"
+        layout_height="80"
+        inputType="phone"
+        maxLines="1"
+        maxLength="13"
+        paddingStart="form_padding"
+        paddingEnd="form_padding"
+        textSize="20px"
+        layout_constraintBottom_toBottomOf="top_header"
+        layout_constraintStart_toStartOf="guideline3"
+        layout_constraintEnd_toStartOf="continue_btn"
+        layout_constraintTop_toBottomOf="continue_btn" />
+
+
+
+
+    <Button
+        id="continue_btn"
+        layout_width="210"
+        layout_height="45"
+        layout_marginTop="20"
+        layout_marginStart="20"
+        padding="8"
+        text="apply"
+        value="Apply Now"
+        textColor="white"
+        textSize="form_padding"
+        layout_constraintStart_toStartOf="parent"
+        layout_constraintTop_toTopOf="parent"
+
+        />
+
+ 
+
+</ConstraintLayout>

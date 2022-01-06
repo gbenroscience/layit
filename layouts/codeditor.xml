@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+
+
+<ConstraintLayout
+    layout_width="30%"
+    layout_height="45%"
+    border="1px dashed brown"
+>
+    
+    <Label
+        id="block_title"
+        layout_width="wrap_content"
+        layout_height="wrap_content"
+        layout_constraintCenterXAlign='parent'
+        layout_constraintTop_toTopOf="parent"
+        layout_marginTop="16"
+        textColor="black"
+        value="Enter details"
+        textSize="1.2em"
+        textStyle="bold"
+        fontFamily="Arial"
+    />
+    
+        
+    
+    <TextField
+        id="phone_input"
+        layout_width="150px"
+        layout_height="32px"
+        layout_constraintStart_toStartOf="parent"
+        layout_constraintEnd_toEndOf="parent"
+        layout_constraintTop_toBottomOf="block_title"
+        layout_margin="8"
+        placeholder="Phone"
+        background="white"
+        fontFamily="Avenir"
+        layout_padding="8px"
+        inputType="phone"
+        text=""
+        value=""
+        textColor="black"
+        textSize="1.2em"
+        textStyle="bold"
+        borderRadius="10px"
+    />
+    
+    <TextField
+        id="passcode_input"
+        layout_width="150px"
+        layout_height="32px"
+        layout_constraintStart_toStartOf="phone_input"
+        layout_constraintEnd_toEndOf="phone_input"
+        layout_constraintTop_toBottomOf="phone_input"
+        layout_marginTop='8px'
+        placeholder="Password"
+        inputType="password"
+        background="white"
+        fontFamily="Avenir"
+        layout_padding="8px"
+        text=""
+        value=""
+        textColor="black"
+        textSize="1.2em"
+        textStyle="bold"
+        borderRadius="10px"
+    />
+        
+    <Button
+        id="submit"
+        layout_width="64px"
+        layout_height="24px"
+        layout_constraintStart_toStartOf="phone_input"
+        layout_constraintEnd_toEndOf="phone_input"
+        layout_constraintTop_toBottomOf="passcode_input"
+        layout_marginTop='14px'
+        background="btn_dark_green"
+        fontFamily="Avenir"
+        layout_padding="0px"
+        text="Submit"
+        textColor="black"
+        textSize="1.2em"
+        textStyle="bold"
+        borderRadius="10px"
+    />
+    
+    
+    
+    
+    
+</ConstraintLayout>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+
+<ConstraintLayout
+        layout_width="match_parent"
+        layout_height="match_parent">
+
+    <include
+            layout="included1"
+            id="basic_details"
+            layout_width="18%"
+            layout_height="220"
+            layout_constraintStart_toStartOf="parent"
+            layout_constraintCenterYAlign="parent"
+            border="1px solid darkred"
+            borderRadius="1em"
+    />
+
+
+    <include
+            layout="included2"
+            id="more_details"
+            layout_width="18%"
+            layout_height="220"
+            layout_marginStart="32px"
+            layout_constraintStart_toEndOf="basic_details"
+            layout_constraintCenterYAlign="basic_details"
+            border="1px solid black"
+            borderRadius="1em"
+    />
+
+    <include
+            layout="included3"
+            id="yet_more_details"
+            layout_width="18%"
+            layout_height="220"
+            layout_marginStart="32px"
+            layout_constraintStart_toEndOf="more_details"
+            layout_constraintCenterYAlign="more_details"
+            border="1px solid black"
+            borderRadius="1em"
+    />
+    <include
+            layout="included4"
+            id="leisure_details"
+            layout_width="18%"
+            layout_height="220"
+            layout_marginTop="0px"
+            layout_marginStart="32px"
+            layout_constraintStart_toEndOf="yet_more_details"
+            layout_constraintCenterYAlign="yet_more_details"
+            border="1px solid black"
+            borderRadius="1em"
+    />
+
+    <include
+            layout="included5"
+            id="church_details"
+            layout_width="18%"
+            layout_height="220"
+            layout_marginTop="0px"
+            layout_marginStart="32px"
+            layout_constraintCenterXAlign="leisure_details"
+            layout_constraintTop_toTopOf="parent"
+            layout_constraintStart_toEndOf="leisure_details"
+            border="1px solid black"
+            borderRadius="1em"
+    />
+
+</ConstraintLayout>
