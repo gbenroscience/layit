@@ -113,7 +113,7 @@ Progress.prototype.setValue = function (value , description){
     }
     this.value = value;
     this.render();
-}
+};
 
 
 /**
@@ -142,7 +142,7 @@ Progress.prototype.setValueDelayed = function (value , description, delayedMS){
 
     }, delayedMS);
 
-}
+};
 
 
 

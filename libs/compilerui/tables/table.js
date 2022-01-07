@@ -2173,8 +2173,14 @@ function addClass(element, className) {
 
     var arr = element.className.split(" ");
     if (arr.indexOf(className) === -1) {
-        element.className += " " + className;
+        if(element.className.length === 0){
+            element.className = className;
+        }else{
+            element.className += " " + className;
+        }
+        
     }
+    element.className.trim();
 }
 
 

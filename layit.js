@@ -10,6 +10,11 @@ let SCRIPTS_BASE = getScriptBaseUrl();
 const PATH_TO_LAYOUTS_FOLDER = SCRIPTS_BASE + 'layouts/';
 const PATH_TO_COMPILER_SCRIPTS = SCRIPTS_BASE;
 
+document.currentScript = document.currentScript || (function() {
+  var scripts = document.getElementsByTagName('script');
+  return scripts[scripts.length - 1];
+})();
+
 
 
 let nativeScripts = [
@@ -33,7 +38,7 @@ let nativeScripts = [
     SCRIPTS_BASE + 'libs/compilerui/tables/table.js',
     SCRIPTS_BASE + 'libs/compilerui/tables/inputtable.js',
     SCRIPTS_BASE + 'libs/compilerui/tables/growabletable.js',
-    SCRIPTS_BASE + 'libs/compilerui/tables/searchabletable.js',
+    SCRIPTS_BASE + 'libs/compilerui/tables/searchabletable.js'
 
 ];
 /**
@@ -85,6 +90,11 @@ const xmlKeys = {
     dropDownOpen: "DropDown",
     guideOpen: "Guideline",
     tableOpen: "Table",
+    inputTable: "InputTable",
+    growableTable: "GrowableTable",
+    searchableTable: "SearchableTable",
+    customTable: "CustomTable",
+    popup: "Popup",
     listOpen: "List",
     labelOpen: "Label",
     multiLabelOpen: "MultiLineLabel",
@@ -271,7 +281,7 @@ let parseImports = function (scriptsText) {
         throw new Error('Please remove the empty import tag in xml layout file');
     }
     if (scriptsText.substring(scrLen - 1) !== ";") {
-        throw new Error('each js file definition in an import tag must end with a `;`')
+        throw new Error('each js file definition in an import tag must end with a `;`');
     }
     let files = scriptsText.split(';');
 
@@ -431,7 +441,7 @@ function prefetchAllLayouts(rootLayout, onPreStart, onload) {
                         let worker = workersMap[m][i];
                         let workerName = worker.name;
                         stopFetchWorker(workerName);
-                        console.log('closed: ' + workerName)
+                        console.log('closed: ' + workerName);
                     }
                 }
             }
@@ -447,6 +457,17 @@ function prefetchAllLayouts(rootLayout, onPreStart, onload) {
 
 }
 
+function findHtmlViewById(viewId){
+    let view = viewMap.get(viewId);
+    if(view){
+         return view.htmlElement;   
+    }
+   return null;
+}
+
+function findViewById(viewId){
+   return viewMap.get(viewId);
+}
 
 /**
  *
@@ -822,3 +843,7 @@ WorkerBot.prototype.recreate = function () {
     this.worker.onerror = this.onerror;
 };
 
+
+
+setContentView(document.currentScript.getAttribute('data-launcher'));
+console.log(document.currentScript.getAttribute('data-launcher'));

@@ -10,7 +10,7 @@
         id="section_top"
         layout_width="match_parent"
         layout_height="128px"
-        backgroundColor="purple"
+        backgroundColor="#000044"
         layout_constraintTop_toTopOf='parent'
         layout_constraintStart_toStartOf='parent'
         layout_constraintEnd_toEndOf='parent'
@@ -222,7 +222,7 @@
         clockSecondsColor="brown"
         clockMinutesColor="black"
         clockHoursColor="black"
-        clockCenterSpotWidth="8"
+        clockCenterSpotWidth="22"
         clockOuterCircleAsFractionOfFrameSize="1"
         clockShowBaseText="true"
         
@@ -232,18 +232,19 @@
             id="progress"
             layout_width="300"
             layout_height="40"
-            layout_constraintTop_toBottomOf="yes"
-            layout_constraintEnd_toEndOf="check_btn"
+            layout_constraintCenterYAlign="check_btn"
+            layout_constraintStart_toEndOf="check_btn"
+            layout_marginStart="32px"
             layout_marginTop="32px"
-            progressColor="red"
+            progressColor="green"
             backgroundColor="lightblue"
-            textColor="white"
+            textColor="darkred"
             value="32"
 
     />
 
     <include
-            layout=      "includer"
+            layout="includer"
             id="included_details"
             layout_width="100%"
             layout_height="220"

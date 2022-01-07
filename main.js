@@ -83,7 +83,7 @@ function setAbsoluteSizeAndPosition(elm, left, top, width, height) {
 }
 
 
-/* global AutoLayout, attrKeys, xmlKeys, viewMap, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount */
+/* global AutoLayout, attrKeys, xmlKeys, viewMap, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits */
 /**
  *
  * @param {type} node The node that represents this View in the android style xml document
@@ -1217,7 +1217,7 @@ ProgressBar.prototype.createElement = function (node) {
         fontName: fontName,
         fontSize: fontSize,
         sizeUnits: CssSizeUnits.PX,
-        fontStyle: fontStyle,
+        fontStyle: fontStyle
     };
 
     this.assignId();
