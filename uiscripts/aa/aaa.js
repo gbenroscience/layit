@@ -1,16 +1,15 @@
 function check(){
   let view = findHtmlViewById('site_title');
     //alert(view.textContent);
-    view.style.color = 'red';
-    view.style.fontWeight ='normal';
+    view.style.color = 'white';
     let loginBtn = findHtmlViewById('login_btn');
     loginBtn.onclick = function(){
             let progress = findViewById('progress').progress;
-    
-    
+            
     let val = 0;
     let int = setInterval(function(){
                val+=0.8;
+               val = Math.round(val,2);
         if(val < 10){
            progress.setValue(val , "Starting..." ); 
         }else if(val >= 10 && val < 20){

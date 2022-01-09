@@ -26,15 +26,13 @@ const LIST_HORIZONTAL = 2;
  */
 function List(options) {
         var self = this;
-    this.validObject = false;
+  
     if (typeof options === 'undefined') {
-        console.log("Please define list parameters");
-        return;
+         throw new Error("Please define list parameters");
     }
 
     if (typeof options.id === "undefined") {
-        console.log("List id not specified");
-        return;
+        throw new Error("List id not specified");
     }
     this.id = options.id;
     if (Object.prototype.toString.call(options.data) !== '[object Array]') {
@@ -64,6 +62,7 @@ function List(options) {
         }
     }
     this.height = options.height;
+    
     if (!options.viewmodel || {}.toString.call(options.viewmodel) !== '[object Function]') {
 
         options.viewmodel = function (index) {
@@ -72,6 +71,11 @@ function List(options) {
             li.appendChild(document.createTextNode(modelItem));
             return li;
         };
+    }
+    if(options.viewmodel && {}.toString.call(options.viewmodel) === '[object Function]' ){
+        if(options.viewmodel.length !== 1){
+            throw new Error('Your viewmodel should have only 1 argument, please.');
+        }
     }
     this.viewmodel = options.viewmodel;
     if (typeof options["background-color"] === 'undefined') {
@@ -198,7 +202,7 @@ function List(options) {
 
 
 
-    this.validObject = true;
+   
     var a1 = this.getListItemClass();
     var a2 = this.getContainerDivClass();
     var a3 = this.getNavClass();

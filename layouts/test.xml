@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ConstraintLayout
-    layout_width="match_parent"
-    layout_height="match_parent">
+    width="match_parent"
+    height="match_parent">
 
     <imports
-            files="aa/aaa.js;kkk/mmm.js;"
+        files="aa/aaa.js;kkk/mmm.js;"
     />
     <View
         id="section_top"
-        layout_width="match_parent"
-        layout_height="128px"
+        width="match_parent"
+        height="128px"
         backgroundColor="#000044"
-        layout_constraintTop_toTopOf='parent'
-        layout_constraintStart_toStartOf='parent'
-        layout_constraintEnd_toEndOf='parent'
+        top_top='parent'
+        start_start='parent'
+        end_end='parent'
 
     />
     <Label
         id="site_title"
-        layout_width="wrap_content"
-        layout_height="wrap_content"
-        layout_constraintStart_toStartOf='section_top'
-        layout_constraintCenterYAlign="section_top"
-        layout_marginStart="16"
+        width="wrap_content"
+        height="wrap_content"
+        start_start='section_top'
+        cy_align="section_top"
+        marginStart="16"
         textColor="#eee"
-        value="Web-Constraints CPanel"
+        value="Layit Framework By Example"
         textSize="1.5em"
-        textStyle="bold"
+        textStyle="bold italic"
         fontFamily="Kartika"
     
     />
@@ -34,19 +34,19 @@
      
     <Guideline
         id="guide_menu"
-        layout_width="1"
-        layout_height="1"
+        width="1"
+        height="1"
         orientation="vertical"
-        layout_constraintGuide_percent="0.5"
+        guide_percent="0.5"
     />
     <Label
         id="home"
-        layout_width="wrap_content"
-        layout_height="wrap_content"
-        layout_constraintEnd_toStartOf='people'
-        layout_constraintBottom_toBottomOf="section_top"
-        layout_marginStart="6"
-        layout_marginBottom="16"
+        width="wrap_content"
+        height="wrap_content"
+        end_start='people'
+        bottom_bottom="section_top"
+        marginStart="6"
+        marginBottom="16"
         textColor="white"
         value="Home"
         textSize="1.2em"
@@ -55,12 +55,12 @@
     />
     <Label
         id="people"
-        layout_width="wrap_content"
-        layout_height="wrap_content"
-        layout_constraintEnd_toStartOf='lifestyle'
-        layout_constraintBottom_toBottomOf="section_top"
-        layout_marginStart="6"
-        layout_marginBottom="16"
+        width="wrap_content"
+        height="wrap_content"
+        end_start='lifestyle'
+        bottom_bottom="section_top"
+        marginStart="6"
+        marginBottom="16"
         textColor="white"
         value="People and Positions"
         textSize="1.2em"
@@ -69,12 +69,12 @@
     />    
     <Label
         id="lifestyle"
-        layout_width="wrap_content"
-        layout_height="wrap_content"
-        layout_constraintCenterXAlign='guide_menu'
-        layout_constraintBottom_toBottomOf="section_top"
-        layout_marginStart="6"
-        layout_marginBottom="16"
+        width="wrap_content"
+        height="wrap_content"
+        cx_align='guide_menu'
+        bottom_bottom="section_top"
+        marginStart="6"
+        marginBottom="16"
         textColor="white"
         value="Lifestyle"
         textSize="1.2em"
@@ -83,12 +83,12 @@
     />
     <Label
         id="about_us"
-        layout_width="wrap_content"
-        layout_height="wrap_content"
-        layout_constraintStart_toEndOf='lifestyle'
-        layout_constraintBottom_toBottomOf="section_top"
-        layout_marginStart="6"
-        layout_marginBottom="16"
+        width="wrap_content"
+        height="wrap_content"
+        start_end='lifestyle'
+        bottom_bottom="section_top"
+        marginStart="6"
+        marginBottom="16"
         textColor="white"
         value="About Us"
         textSize="1.2em"
@@ -99,12 +99,12 @@
 
     <Label
         id="help"
-        layout_width="wrap_content"
-        layout_height="wrap_content"
-        layout_constraintStart_toEndOf='about_us'
-        layout_constraintBottom_toBottomOf="section_top"
-        layout_marginStart="6"
-        layout_marginBottom="16"
+        width="wrap_content"
+        height="wrap_content"
+        start_end='about_us'
+        bottom_bottom="section_top"
+        marginStart="6"
+        marginBottom="16"
         textColor="white"
         value="Help"
         textSize="1.2em"
@@ -114,34 +114,35 @@
 
     <Button
         id="login_btn"
-        layout_width="wrap_content"
-        layout_height="36px"
-        layout_constraintEnd_toEndOf="section_top"
-        layout_constraintCenterYAlign="login_input"
-        layout_marginEnd="80"
+        width="wrap_content"
+        height="36px"
+        end_end="section_top"
+        cy_align="login_input"
+        marginEnd="80"
         background="btn_dark_green"
         fontFamily="Avenir"
-        layout_padding="8px"
+        padding="8px"
         value="LOGIN NOW"
         textColor="black"
         textSize="1.2em"
         textStyle="bold"
+        borderRadius="8px"
 
     />
     
       
     <TextField
         id="login_input"
-        layout_width="220px"
-        layout_height="42px"
-        layout_constraintEnd_toStartOf="login_btn"
-        layout_constraintCenterYAlign="section_top"
-        layout_marginTop="16"
-        layout_marginEnd="18"
+        width="220px"
+        height="36px"
+        end_start="login_btn"
+        cy_align="section_top"
+        marginTop="16"
+        marginEnd="18"
         placeholder="Login"
         background="btn_dark_green"
         fontFamily="Avenir"
-        layout_padding="8px"
+        padding="8px"
         text="apply"
         value="LOGIN"
         textColor="black"
@@ -154,36 +155,37 @@
     
     <TextArea
         id="notes_area"
-        layout_width="32%"
-        layout_height="25%"
-        layout_constraintStart_toStartOf="parent"
-        layout_constraintEnd_toEndOf="parent"
-        layout_constraintTop_toBottomOf="section_top"
-        layout_marginTop="80"
-        layout_marginEnd="8"
+        width="32%"
+        height="25%"
+        start_start="parent"
+        end_end="parent"
+        top_bottom="section_top"
+        marginTop="80"
+        marginEnd="8"
         placeholder="Login"
         background="white"
         fontFamily="Avenir"
-        layout_padding="8px"
+        padding="8px"
         text=""
         value="lol!!!!"
         textColor="black"
         textSize="1.2em"
         textStyle="bold"
-        border="1px solid blue"
+        border="2px solid blue"
+        borderRadius="12px"
         resize="none"
     />
     
     <Button
         id="check_btn"
-        layout_width="120px"
-        layout_height="36px"
-        layout_constraintStart_toEndOf="notes_area"
-        layout_constraintCenterYAlign="notes_area"
-        layout_marginStart="8"
+        width="120px"
+        height="36px"
+        start_end="notes_area"
+        cy_align="notes_area"
+        marginStart="8"
         background="lightgray"
         fontFamily="Avenir"
-        layout_padding="0px"
+        padding="0px"
         value="CHECK"
         textColor="black"
         textSize="1.5em"
@@ -192,15 +194,15 @@
        
     <DropDown
         id="drop_down"
-        layout_width="220px"
-        layout_height="32px"
-        layout_constraintEnd_toStartOf="notes_area"
-        layout_constraintCenterYAlign="notes_area"
-        layout_marginEnd="8"
+        width="220px"
+        height="32px"
+        end_start="notes_area"
+        cy_align="notes_area"
+        marginEnd="8"
         items="['Nigeria','The United States','The United Kingdom','France','South Africa','Republic of Ireland','South Korea','Japan','Brazil','Chile','Argentina','Ecuador']"
         background="#ddd"
         fontFamily="Avenir"
-        layout_padding="0px"
+        padding="0px"
         value="CHECK"
         textColor="black"
         textSize="1.5em"
@@ -209,12 +211,12 @@
 
     <Clock
         id="clock_1"
-        layout_width="90"
-        layout_height="90"
-        layout_constraintStart_toEndOf="site_title"
-        layout_constraintTop_toTopOf="site_title"
-        layout_constraintBottom_toBottomOf="site_title"
-        layout_marginTop="0"
+        width="90"
+        height="90"
+        start_end="site_title"
+        top_top="site_title"
+        bottom_bottom="site_title"
+        marginTop="0"
         clockOuterColor="transparent"
         clockMiddleColor="black"
         clockInnerColor="white"
@@ -229,56 +231,70 @@
     />
 
     <ProgressBar
-            id="progress"
-            layout_width="300"
-            layout_height="40"
-            layout_constraintCenterYAlign="check_btn"
-            layout_constraintStart_toEndOf="check_btn"
-            layout_marginStart="32px"
-            layout_marginTop="32px"
-            progressColor="green"
-            backgroundColor="lightblue"
-            textColor="darkred"
-            value="32"
+        id="progress"
+        width="300"
+        height="40"
+        cy_align="check_btn"
+        start_end="check_btn"
+        marginStart="32px"
+        marginTop="32px"
+        progressColor="darkgreen"
+        backgroundColor="gray"
+        textColor="white"
+        value="32"
 
     />
 
     <include
-            layout="includer"
-            id="included_details"
-            layout_width="100%"
-            layout_height="220"
-            layout_marginTop="88"
-            layout_constraintCenterXAlign="parent"
-            layout_constraintTop_toBottomOf="notes_area"
-            border="1px solid black"
-            borderRadius="1em"
+        layout="includer"
+        id="included_details"
+        width="100%"
+        height="220"
+        marginTop="88"
+        cx_align="parent"
+        top_bottom="notes_area"
+        border="1px solid black"
+        borderRadius="1em"
     />
 
     <Radio
         id='yes'
-        layout_width="20"
-        layout_height="20"
+        width="20"
+        height="20"
         name='question'
         checked='false'
-        layout_constraintCenterXAlign="notes_area"
-        layout_constraintTop_toBottomOf="included_details"
-        layout_marginTop='16'
+        cx_align="notes_area"
+        top_bottom="included_details"
+        marginTop='16'
         
-        />
+    />
     <Radio
         id='no'
-        layout_width="20"
-        layout_height="20"
+        width="20"
+        height="20"
         name='question'
         checked='true'
-        layout_constraintTop_toTopOf="yes"
-        layout_constraintStart_toEndOf="yes"
-        layout_marginStart='16'
+        top_top="yes"
+        start_end="yes"
+        marginStart='16'
         cssClass="funny_radio"
         
         
-        />
+    />
+    
+    
+    <Table
+        id="table_one"
+        width="wrap_content"
+        height="wrap_content"
+        end_start="drop_down"
+        cy_align="notes_area"
+        hasHeader="true"
+        hasFooter="true"
+        tableItems="[row[23,44,90],row[1001,873,202],row[34,98,188]]"
+    
+    
+    />
 
         
 </ConstraintLayout>

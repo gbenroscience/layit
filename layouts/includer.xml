@@ -6,16 +6,16 @@ and open the template in the editor.
 -->
 
 <ConstraintLayout
-        layout_width="match_parent"
-        layout_height="match_parent">
+        width="match_parent"
+        height="match_parent">
 
     <include
             layout="included1"
             id="basic_details"
-            layout_width="18%"
-            layout_height="220"
-            layout_constraintStart_toStartOf="parent"
-            layout_constraintCenterYAlign="parent"
+            width="18%"
+            height="220"
+            start_start="parent"
+            cy_align="parent"
             border="1px solid darkred"
             borderRadius="1em"
     />
@@ -24,11 +24,11 @@ and open the template in the editor.
     <include
             layout="included2"
             id="more_details"
-            layout_width="18%"
-            layout_height="220"
-            layout_marginStart="32px"
-            layout_constraintStart_toEndOf="basic_details"
-            layout_constraintCenterYAlign="basic_details"
+            width="18%"
+            height="220"
+            marginStart="32px"
+            start_end="basic_details"
+            cy_align="basic_details"
             border="1px solid black"
             borderRadius="1em"
     />
@@ -36,23 +36,23 @@ and open the template in the editor.
     <include
             layout="included3"
             id="yet_more_details"
-            layout_width="18%"
-            layout_height="220"
-            layout_marginStart="32px"
-            layout_constraintStart_toEndOf="more_details"
-            layout_constraintCenterYAlign="more_details"
+            width="18%"
+            height="220"
+            marginStart="32px"
+            start_end="more_details"
+            cy_align="more_details"
             border="1px solid black"
             borderRadius="1em"
     />
     <include
             layout="included4"
             id="leisure_details"
-            layout_width="18%"
-            layout_height="220"
-            layout_marginTop="0px"
-            layout_marginStart="32px"
-            layout_constraintStart_toEndOf="yet_more_details"
-            layout_constraintCenterYAlign="yet_more_details"
+            width="18%"
+            height="220"
+            marginTop="0px"
+            marginStart="32px"
+            start_end="yet_more_details"
+            cy_align="yet_more_details"
             border="1px solid black"
             borderRadius="1em"
     />
@@ -60,13 +60,13 @@ and open the template in the editor.
     <include
             layout="included5"
             id="church_details"
-            layout_width="18%"
-            layout_height="220"
-            layout_marginTop="0px"
-            layout_marginStart="32px"
-            layout_constraintCenterXAlign="leisure_details"
-            layout_constraintTop_toTopOf="parent"
-            layout_constraintStart_toEndOf="leisure_details"
+            width="18%"
+            height="220"
+            marginTop="0px"
+            marginStart="32px"
+            cx_align="leisure_details"
+            top_top="parent"
+            start_end="leisure_details"
             border="1px solid black"
             borderRadius="1em"
     />

@@ -76,30 +76,30 @@ const orientations = {
 
 const xmlKeys = {
     imports: "imports",
-    rootOpen: "ConstraintLayout",
-    viewOpen: "View",
-    buttonOpen: "Button",
-    fieldOpen: "TextField",
-    areaOpen: "TextArea",
-    imageViewOpen: "ImageView",
-    progressOpen: "ProgressBar",
-    checkOpen: "CheckBox",
-    radiogroupOpen: "RadioGroup",
-    radioOpen: "Radio",
-    separatorOpen: "Separator",
-    dropDownOpen: "DropDown",
-    guideOpen: "Guideline",
-    tableOpen: "Table",
+    root: "ConstraintLayout",
+    view: "View",
+    button: "Button",
+    field: "TextField",
+    area: "TextArea",
+    imageView: "ImageView",
+    progress: "ProgressBar",
+    check: "CheckBox",
+    radiogroup: "RadioGroup",
+    radio: "Radio",
+    separator: "Separator",
+    dropDown: "DropDown",
+    guide: "Guideline",
+    table: "Table",
     inputTable: "InputTable",
     growableTable: "GrowableTable",
     searchableTable: "SearchableTable",
     customTable: "CustomTable",
     popup: "Popup",
-    listOpen: "List",
-    labelOpen: "Label",
-    multiLabelOpen: "MultiLineLabel",
+    list: "List",
+    label: "Label",
+    multiLabel: "MultiLineLabel",
     clock: "Clock",
-    canvasOpen: "Canvas",
+    canvas: "Canvas",
     include: "include"
 };
 
@@ -107,47 +107,51 @@ const xmlKeys = {
 const attrKeys = {
     id: "id",
     layout: "layout", //specifies the layout file to use with an include tag
-    layout_width: "layout_width",
-    layout_height: "layout_height",
+    layout_width: "width",
+    layout_height: "height",
 
-    layout_maxWidth: "layout_maxWidth",
-    layout_maxHeight: "layout_maxHeight",
-    layout_minWidth: "layout_minWidth",
-    layout_minHeight: "layout_minHeight",
+    layout_maxWidth: "maxWidth",
+    layout_maxHeight: "maxHeight",
+    layout_minWidth: "minWidth",
+    layout_minHeight: "minHeight",
 
     width: "width",//on canvas element
     height: "height",//on canvas element
     translationZ: "translationZ", //the z index
-    layout_margin: "layout_margin",
-    layout_marginStart: "layout_marginStart",
-    layout_marginEnd: "layout_marginEnd",
-    layout_marginTop: "layout_marginTop",
-    layout_marginBottom: "layout_marginBottom",
-    layout_marginHorizontal: "layout_marginHorizontal",
-    layout_marginVertical: "layout_marginVertical",
-    layout_padding: "layout_padding",
-    layout_paddingStart: "layout_paddingStart",
-    layout_paddingEnd: "layout_paddingEnd",
-    layout_paddingTop: "layout_paddingTop",
-    layout_paddingBottom: "layout_paddingBottom",
-    layout_paddingHorizontal: "layout_paddingHorizontal",
-    layout_paddingVertical: "layout_paddingVertical",
-    layout_constraintTop_toTopOf: "layout_constraintTop_toTopOf",
-    layout_constraintBottom_toBottomOf: "layout_constraintBottom_toBottomOf",
-    layout_constraintStart_toStartOf: "layout_constraintStart_toStartOf",
-    layout_constraintEnd_toEndOf: "layout_constraintEnd_toEndOf",
-    layout_constraintTop_toBottomOf: "layout_constraintTop_toBottomOf",
-    layout_constraintStart_toEndOf: "layout_constraintStart_toEndOf",
-    layout_constraintEnd_toStartOf: "layout_constraintEnd_toStartOf",
-    layout_constraintBottom_toTopOf: "layout_constraintBottom_toTopOf",
-    layout_constraintCenterXAlign: "layout_constraintCenterXAlign",
-    layout_constraintCenterYAlign: "layout_constraintCenterYAlign",
-    layout_constraintGuide_percent: "layout_constraintGuide_percent",
+    layout_margin: "margin",
+    layout_marginStart: "marginStart",
+    layout_marginEnd: "marginEnd",
+    layout_marginTop: "marginTop",
+    layout_marginBottom: "marginBottom",
+    layout_marginHorizontal: "marginHorizontal",
+    layout_marginVertical: "marginVertical",
+    layout_padding: "padding",
+    layout_paddingStart: "paddingStart",
+    layout_paddingEnd: "paddingEnd",
+    layout_paddingTop: "paddingTop",
+    layout_paddingBottom: "paddingBottom",
+    layout_paddingHorizontal: "paddingHorizontal",
+    layout_paddingVertical: "paddingVertical",
+    layout_constraintTop_toTopOf: "top_top",
+    layout_constraintBottom_toBottomOf: "bottom_bottom",
+    layout_constraintStart_toStartOf: "start_start",
+    layout_constraintEnd_toEndOf: "end_end",
+    layout_constraintTop_toBottomOf: "top_bottom",
+    layout_constraintStart_toEndOf: "start_end",
+    layout_constraintEnd_toStartOf: "end_start",
+    layout_constraintBottom_toTopOf: "bottom_top",
+    layout_constraintCenterXAlign: "cx_align",
+    layout_constraintCenterYAlign: "cy_align",
+    layout_constraintGuide_percent: "guide_percent",
     orientation: "orientation", //
-    entries: 'entries', // an array of items to display in a list or a dropdown
+    
+    items: "items", // an array of items to display in a list or a dropdown
     tableItems: 'tableItems', //a 2d array of items to display on a table
+    hasHeader: "hasHeader",//check if a native html table node must have an header row
+    hasFooter: "hasFooter",//check if a native html table node must have a footer row
     cssClass: "cssClass",
     resize: "resize",
+    progressColor: "progressColor",
 
     files: "files",
     src: "src",
@@ -161,7 +165,6 @@ const attrKeys = {
     boxShadow: "boxShadow",
     inputType: "inputType", //text or password
     text: "text",
-    items: "items",
     textColor: "textColor",
     textSize: "textSize",
     textStyle: "textStyle",
@@ -498,7 +501,7 @@ Parser.prototype.nodeProcessor = function (node) {
     let view = null;
     const nodeName = node.nodeName;
     switch (nodeName) {
-        case xmlKeys.rootOpen:
+        case xmlKeys.root:
             let nodeId = node.getAttribute(attrKeys.id);
             if (!nodeId || nodeId === '') {
                 rootCount += 1;
@@ -530,72 +533,72 @@ Parser.prototype.nodeProcessor = function (node) {
             let scripts = parseImports(files);
             loadScripts(scripts);
             break;
-        case xmlKeys.viewOpen:
+        case xmlKeys.view:
             view = new View(node);
             break;
-        case xmlKeys.buttonOpen:
+        case xmlKeys.button:
             view = new Button(node);
             break;
-        case xmlKeys.imageViewOpen:
+        case xmlKeys.imageView:
             view = new ImageView(node);
             break;
-        case xmlKeys.progressOpen:
+        case xmlKeys.progress:
             view = new ProgressBar(node);
             break;
 
-        case xmlKeys.fieldOpen:
+        case xmlKeys.field:
             view = new TextField(node);
 
             break;
-        case xmlKeys.areaOpen:
+        case xmlKeys.area:
             view = new TextArea(node);
             break;
 
-        case xmlKeys.checkOpen:
+        case xmlKeys.check:
             view = new CheckBox(node);
 
             break;
 
-        case xmlKeys.radiogroupOpen:
+        case xmlKeys.radiogroup:
             view = new RadioGroup(node);
             break;
 
-        case xmlKeys.radioOpen:
+        case xmlKeys.radio:
             view = new Radio(node);
             break;
 
-        case xmlKeys.separatorOpen:
+        case xmlKeys.separator:
             view = new Separator(node);
             break;
 
-        case xmlKeys.guideOpen:
+        case xmlKeys.guide:
             view = new Guideline(node);
             break;
 
-        case xmlKeys.tableOpen:
-            view = new Table(node);
+        case xmlKeys.table:
+            view = new NativeTable(node);
             break;
 
-        case xmlKeys.listOpen:
+        case xmlKeys.list:
             view = new List(node);
 
             break;
 
-        case xmlKeys.labelOpen:
+        case xmlKeys.label:
             view = new Label(node);
             break;
 
-        case xmlKeys.dropDownOpen:
+        case xmlKeys.dropDown:
             view = new DropDown(node);
             break;
 
-        case xmlKeys.multiLabelOpen:
+        case xmlKeys.multiLabel:
             view = new MultiLineLabel(node);
             break;
         case xmlKeys.clock:
             view = new ClockView(node);
             break;
-        case xmlKeys.canvasOpen:
+        case xmlKeys.canvas:
             view = new CanvasView(node);
             break;
         default:

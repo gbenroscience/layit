@@ -107,7 +107,7 @@ function endsWith(str, endItem) {
         } else if (len < otherLen) {
             return false;
         } else {
-            return str.indexOf(endItem, 0) === len - otherLen;
+            return str.lastIndexOf(endItem) === len - otherLen;
         }
     } else {
         return false;

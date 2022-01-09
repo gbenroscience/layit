@@ -103,7 +103,7 @@ function View(node) {
     let nodeName = node.nodeName;
 
     this.nodeName = nodeName;
-    this.root = nodeName === xmlKeys.rootOpen || nodeName === xmlKeys.include;
+    this.root = nodeName === xmlKeys.root || nodeName === xmlKeys.include;
 
     //The main ConstraintLayout tag in the original layout file
     this.topLevelRoot = this.root === true && viewMap.size === 0;
@@ -370,6 +370,7 @@ function View(node) {
                     this.refIds.set(attrKeys.resize, attrValue);
                     this.style.addStyleElement(attrKeys.resize, attrValue);
 
+                    break;
 //paddings saved
                 default:
                     break;
@@ -460,7 +461,7 @@ View.prototype.getWrapSize = function (text) {
     this.wrapWidth = sz.width + paddingLeft + paddingRight;
     this.wrapHeight = sz.height + paddingTop + paddingBottom;
 
-    return {width: this.wrapWidth, height: this.wrapHeight}
+    return {width: this.wrapWidth, height: this.wrapHeight};
 };
 
 /**
@@ -506,7 +507,7 @@ View.prototype.makeVFL = function () {
     let minHei = this.refIds.get(attrKeys.layout_minHeight);
 
 
-    let maxWidth , maxHeight, minWidth, minHeight
+    let maxWidth , maxHeight, minWidth, minHeight;
 
 
     if(endsWith(maxWid , '%') === false){
@@ -969,8 +970,8 @@ Button.prototype = Object.create(View.prototype);
 Button.prototype.constructor = Button;
 
 
-Table.prototype = Object.create(View.prototype);
-Table.prototype.constructor = Table;
+NativeTable.prototype = Object.create(View.prototype);
+NativeTable.prototype.constructor = NativeTable;
 
 
 TextField.prototype = Object.create(View.prototype);
@@ -1108,16 +1109,101 @@ Button.prototype.calculateWrapContentSizes = function (node) {
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function Table(node) {
+function NativeTable(node) {
     View.call(this, node);
 }
 
-Table.prototype.createElement = function (node) {
+NativeTable.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('table');
     this.assignId();
+    
+    
+    let thead = document.createElement('thead');
+    let tbody = document.createElement('tbody');
+    let tfoot = document.createElement('tfoot');
+    
+    
+    let entries = node.getAttribute(attrKeys.tableItems);
+    let hasHeader = node.getAttribute(attrKeys.hasHeader);
+    let hasFooter = node.getAttribute(attrKeys.hasFooter);
+    
+    
+    if(!attributeNotEmpty(hasHeader)){
+        hasHeader = false;
+    }
+    if(!attributeNotEmpty(hasFooter)){
+        hasFooter = false;
+    }
+
+    if (attributeNotEmpty(entries)) {
+        let array = parseTableItems(entries);
+        let tableSize = array.length;
+        for (var i = 0; i < tableSize; i++) {
+             let tr = document.createElement('tr');
+            for(var j=0;j<array[i].length;j++){
+               let td = document.createElement('td');
+               td.innerHTML = array[i][j];
+               tr.appendChild(td);
+            }
+            if(tableSize === 1){
+                   tbody.appendChild(tr);
+                   break;
+            }
+            else if(tableSize === 2){
+               if(i === 0){
+                if(hasHeader){
+                     thead.appendChild(tr);
+                }else{
+                       tbody.appendChild(tr);
+                }
+            }
+            
+            else if(i === array.length - 1){
+                if(hasFooter){
+                     tfoot.appendChild(tr);
+                }else{
+                       tbody.appendChild(tr);
+                }
+            }
+            }
+            else if(tableSize > 2){
+             if(i === 0){
+                if(hasHeader){
+                     thead.appendChild(tr);
+                }else{
+                       tbody.appendChild(tr);
+                }
+            }
+            
+             else if(i === array.length - 1){
+                if(hasFooter){
+                     tfoot.appendChild(tr);
+                }else{
+                       tbody.appendChild(tr);
+                }
+             }
+             else{
+                   tbody.appendChild(tr);
+             }
+            }
+            
+         
+         
+        }
+        
+    this.htmlElement.appendChild(tbody);
+    if(hasHeader){
+         this.htmlElement.appendChild(thead);
+    }
+        if(hasFooter){
+         this.htmlElement.appendChild(tfoot);
+    }
+    this.calculateWrapContentSizes(node);
+    }
+
 };
 
-Table.prototype.calculateWrapContentSizes = function (node) {
+NativeTable.prototype.calculateWrapContentSizes = function (node) {
     this.wrapWidth = 200;
     this.wrapHeight = 250;
 };
@@ -1317,8 +1403,8 @@ DropDown.prototype.createElement = function (node) {
     var items = node.getAttribute(attrKeys.items);
 
     if (attributeNotEmpty(items)) {
-        var scanner = new Scanner(items, false, new Array('\'', '\"', '[', ']', ','));
-        var data = scanner.scan();
+        let scanner = new Scanner(items, false, new Array('\'', '\"', '[', ']', ','));
+        let data = scanner.scan();
         for (var i = 0; i < data.length; i++) {
             this.htmlElement.options[this.htmlElement.options.length] = new Option(data[i], i + "");
         }
@@ -1755,4 +1841,42 @@ function attributeNotEmpty(attrVal) {
         return true;
     }
     return false;
+}
+/**
+ * Parses bracketed expressions of the type: [row['a',bb,c,dd],row[],row[],row[],...row[]]
+ * @param {type} input The expression containing a kind of bracketed structure
+ * @returns {Array[]} a 2d array of table data
+ */
+function parseTableItems(input){
+
+    input = input.trim();alert(endsWith(input,']'));
+    if(startsWith(input , '[') && endsWith(input,']')){
+        input = input.substring(1, input.length - 1);
+    }else{
+        throw new Error('Data in table not in correct format! Must be: [row[row-data],row[row-data]...]');
+    }
+   
+    
+    let tokens = new Scanner(input, false, new Array(',row', 'row')).scan();
+    
+
+let tableData = [];
+    for(let i=0;i<tokens.length;i++){
+     let rowStr = tokens[i];
+     let rowData = new Scanner(rowStr, false, [',']).scan();
+     tableData.push(rowData);
+    }
+    
+    
+    if(tableData.length > 0){
+    let len = tableData[0].length;
+    for(let i=1; i<tableData.length; i++){
+        if(tableData[i].length !== len){
+          throw new Error('The rows of your table should have equal lenth, please');   
+        }
+    }
+    
+    }
+    
+    return tableData;
 }
