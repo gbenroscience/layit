@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-const PATH_TO_LAYOUTS_FOLDER = 'layouts/';
+const PATH_TO_LAYOUTS_FOLDER = '../layouts/';
 
 
 

@@ -6,16 +6,23 @@
 
 
 let SCRIPTS_BASE = getScriptBaseUrl();
-
+alert(SCRIPTS_BASE);
 const PATH_TO_LAYOUTS_FOLDER = SCRIPTS_BASE + 'layouts/';
-const PATH_TO_COMPILER_SCRIPTS = SCRIPTS_BASE;
+const PATH_TO_IMAGES = SCRIPTS_BASE + 'images/';
+const PATH_TO_COMPILER_SCRIPTS = SCRIPTS_BASE+"sys/";
+const PATH_TO_UI_SCRIPTS = SCRIPTS_BASE+"uiscripts/";
+
+document.currentScript = document.currentScript || (function () {
+    var scripts = document.getElementsByTagName('script');
+    return scripts[scripts.length - 1];
+})();
 
 
 
 let nativeScripts = [
-    SCRIPTS_BASE + 'autolayout.js',
-    SCRIPTS_BASE + 'main.js',
-    SCRIPTS_BASE + 'compiler-constants.js',
+    SCRIPTS_BASE + '/sys/autolayout.js',
+    SCRIPTS_BASE + '/sys/main.js',
+    SCRIPTS_BASE + '/sys/compiler-constants.js',
     SCRIPTS_BASE + 'libs/utils/colorutils.js',
     SCRIPTS_BASE + 'libs/utils/constants.js',
     SCRIPTS_BASE + 'libs/utils/stringutils.js',
@@ -33,7 +40,7 @@ let nativeScripts = [
     SCRIPTS_BASE + 'libs/compilerui/tables/table.js',
     SCRIPTS_BASE + 'libs/compilerui/tables/inputtable.js',
     SCRIPTS_BASE + 'libs/compilerui/tables/growabletable.js',
-    SCRIPTS_BASE + 'libs/compilerui/tables/searchabletable.js',
+    SCRIPTS_BASE + 'libs/compilerui/tables/searchabletable.js'
 
 ];
 /**
@@ -71,25 +78,30 @@ const orientations = {
 
 const xmlKeys = {
     imports: "imports",
-    rootOpen: "ConstraintLayout",
-    viewOpen: "View",
-    buttonOpen: "Button",
-    fieldOpen: "TextField",
-    areaOpen: "TextArea",
-    imageViewOpen: "ImageView",
-    progressOpen: "ProgressBar",
-    checkOpen: "CheckBox",
-    radiogroupOpen: "RadioGroup",
-    radioOpen: "Radio",
-    separatorOpen: "Separator",
-    dropDownOpen: "DropDown",
-    guideOpen: "Guideline",
-    tableOpen: "Table",
-    listOpen: "List",
-    labelOpen: "Label",
-    multiLabelOpen: "MultiLineLabel",
+    root: "ConstraintLayout",
+    view: "View",
+    button: "Button",
+    field: "TextField",
+    area: "TextArea",
+    imageView: "ImageView",
+    progress: "ProgressBar",
+    check: "CheckBox",
+    radiogroup: "RadioGroup",
+    radio: "Radio",
+    separator: "Separator",
+    dropDown: "DropDown",
+    guide: "Guideline",
+    table: "NativeTable",
+    inputTable: "InputTableView",
+    growableTable: "GrowableTableView",
+    searchableTable: "SearchableTableView",
+    customTable: "CustomTable",
+    popup: "Popup",
+    list: "List",
+    label: "Label",
+    multiLabel: "MultiLineLabel",
     clock: "Clock",
-    canvasOpen: "Canvas",
+    canvas: "Canvas",
     include: "include"
 };
 
@@ -97,47 +109,57 @@ const xmlKeys = {
 const attrKeys = {
     id: "id",
     layout: "layout", //specifies the layout file to use with an include tag
-    layout_width: "layout_width",
-    layout_height: "layout_height",
+    layout_width: "width",
+    layout_height: "height",
 
-    layout_maxWidth: "layout_maxWidth",
-    layout_maxHeight: "layout_maxHeight",
-    layout_minWidth: "layout_minWidth",
-    layout_minHeight: "layout_minHeight",
+    layout_maxWidth: "maxWidth",
+    layout_maxHeight: "maxHeight",
+    layout_minWidth: "minWidth",
+    layout_minHeight: "minHeight",
 
-    width: "width",//on canvas element
-    height: "height",//on canvas element
+    width: "width", //on canvas element
+    height: "height", //on canvas element
     translationZ: "translationZ", //the z index
-    layout_margin: "layout_margin",
-    layout_marginStart: "layout_marginStart",
-    layout_marginEnd: "layout_marginEnd",
-    layout_marginTop: "layout_marginTop",
-    layout_marginBottom: "layout_marginBottom",
-    layout_marginHorizontal: "layout_marginHorizontal",
-    layout_marginVertical: "layout_marginVertical",
-    layout_padding: "layout_padding",
-    layout_paddingStart: "layout_paddingStart",
-    layout_paddingEnd: "layout_paddingEnd",
-    layout_paddingTop: "layout_paddingTop",
-    layout_paddingBottom: "layout_paddingBottom",
-    layout_paddingHorizontal: "layout_paddingHorizontal",
-    layout_paddingVertical: "layout_paddingVertical",
-    layout_constraintTop_toTopOf: "layout_constraintTop_toTopOf",
-    layout_constraintBottom_toBottomOf: "layout_constraintBottom_toBottomOf",
-    layout_constraintStart_toStartOf: "layout_constraintStart_toStartOf",
-    layout_constraintEnd_toEndOf: "layout_constraintEnd_toEndOf",
-    layout_constraintTop_toBottomOf: "layout_constraintTop_toBottomOf",
-    layout_constraintStart_toEndOf: "layout_constraintStart_toEndOf",
-    layout_constraintEnd_toStartOf: "layout_constraintEnd_toStartOf",
-    layout_constraintBottom_toTopOf: "layout_constraintBottom_toTopOf",
-    layout_constraintCenterXAlign: "layout_constraintCenterXAlign",
-    layout_constraintCenterYAlign: "layout_constraintCenterYAlign",
-    layout_constraintGuide_percent: "layout_constraintGuide_percent",
+    layout_margin: "margin",
+    layout_marginStart: "marginStart",
+    layout_marginEnd: "marginEnd",
+    layout_marginTop: "marginTop",
+    layout_marginBottom: "marginBottom",
+    layout_marginHorizontal: "marginHorizontal",
+    layout_marginVertical: "marginVertical",
+    layout_padding: "padding",
+    layout_paddingStart: "paddingStart",
+    layout_paddingEnd: "paddingEnd",
+    layout_paddingTop: "paddingTop",
+    layout_paddingBottom: "paddingBottom",
+    layout_paddingHorizontal: "paddingHorizontal",
+    layout_paddingVertical: "paddingVertical",
+    layout_constraintTop_toTopOf: "top_top",
+    layout_constraintBottom_toBottomOf: "bottom_bottom",
+    layout_constraintStart_toStartOf: "start_start",
+    layout_constraintEnd_toEndOf: "end_end",
+    layout_constraintTop_toBottomOf: "top_bottom",
+    layout_constraintStart_toEndOf: "start_end",
+    layout_constraintEnd_toStartOf: "end_start",
+    layout_constraintBottom_toTopOf: "bottom_top",
+    layout_constraintCenterXAlign: "cx_align",
+    layout_constraintCenterYAlign: "cy_align",
+    layout_constraintGuide_percent: "guide_percent",
     orientation: "orientation", //
-    entries: 'entries', // an array of items to display in a list or a dropdown
+
+    items: "items", // an array of items to display in a list or a dropdown
     tableItems: 'tableItems', //a 2d array of items to display on a table
+    title: 'title', // table title
+    showBorders: 'showBorders', // show the custom table's inner borders(does not apply to the native table)
+    pagingEnabled: 'pagingEnabled',
+    tableTheme: 'tableTheme',// for custom tables only
+    cellPadding: 'cellPadding', //works only for the custom tables
+    showLeftBtn: 'showLeftBtn',// only works for the SeachableTableView
+    hasHeader: "hasHeader", //check if a native html table node must have an header row
+    hasFooter: "hasFooter", //check if a native html table node or a custom table must have a footer row
     cssClass: "cssClass",
     resize: "resize",
+    progressColor: "progressColor",
 
     files: "files",
     src: "src",
@@ -151,7 +173,6 @@ const attrKeys = {
     boxShadow: "boxShadow",
     inputType: "inputType", //text or password
     text: "text",
-    items: "items",
     textColor: "textColor",
     textSize: "textSize",
     textStyle: "textStyle",
@@ -216,19 +237,19 @@ function Parser(xml, parentId) {
     this.styleSheet.setAttribute('type', 'text/css');
 
 
-   if(!parentId){
-       let generalStyle = new Style("*", []);
-       generalStyle.addFromOptions({
-           'margin': '0',
-           'padding': '0',
-           'box-sizing': 'border-box',
-           '-webkit-box-sizing': 'border-box',
-           '-moz-box-sizing': 'border-box'
-       });
-       injectStyleSheets(this.styleSheet, [generalStyle]);
-       allStyles.push(generalStyle);
+    if (!parentId) {
+        let generalStyle = new Style("*", []);
+        generalStyle.addFromOptions({
+            'margin': '0',
+            'padding': '0',
+            'box-sizing': 'border-box',
+            '-webkit-box-sizing': 'border-box',
+            '-moz-box-sizing': 'border-box'
+        });
+        injectStyleSheets(this.styleSheet, [generalStyle]);
+        allStyles.push(generalStyle);
 
-   }
+    }
 
 
     /**
@@ -271,7 +292,7 @@ let parseImports = function (scriptsText) {
         throw new Error('Please remove the empty import tag in xml layout file');
     }
     if (scriptsText.substring(scrLen - 1) !== ";") {
-        throw new Error('each js file definition in an import tag must end with a `;`')
+        throw new Error('each js file definition in an import tag must end with a `;`');
     }
     let files = scriptsText.split(';');
 
@@ -279,7 +300,7 @@ let parseImports = function (scriptsText) {
         let file = files[i].trim();
         let len = file.length;
         if (file.substring(len - 3) === '.js') {
-            files[i] = PATH_TO_COMPILER_SCRIPTS + "uiscripts/" + file;
+            files[i] = PATH_TO_UI_SCRIPTS + file;
         }
 
     }
@@ -290,16 +311,17 @@ let parseImports = function (scriptsText) {
 function getScriptBaseUrl() {
 
     let scripts = document.getElementsByTagName('script');
-    
-    for(let i=0;i<scripts.length;i++){
+
+    for (let i = 0; i < scripts.length; i++) {
         let script = scripts[i];
         let src = script.src;
-        let ender = 'layit.js';
+        let ender = 'sys/layit.js';
         let fullLen = src.length;
         let endLen = ender.length;
+        
         //check if script.src ends with layit.js
-        if(src.indexOf(ender, 0) === fullLen - endLen){
-            return src.substring(0 , fullLen - endLen);
+        if (src.lastIndexOf(ender) === fullLen - endLen) {
+            return src.substring(0, fullLen - endLen);
         }
 
     }
@@ -330,7 +352,7 @@ function setContentView(layoutFileName) {
             };
         } else {
             console.log('Compiler Scripts Fully Loaded');
-            prefetchAllLayouts(layoutFileName, function(){
+            prefetchAllLayouts(layoutFileName, function () {
                 console.log('Resetting engine parameters...');
                 workersMap.clear();
                 viewMap.clear();
@@ -344,14 +366,14 @@ function setContentView(layoutFileName) {
 
                 console.log('Now loading layout and associated layouts(included layouts)');
             }, function (xml) {
-                console.log('Loaded layout and '+(xmlIncludes.size - 1) +' included layouts');
+                console.log('Loaded layout and ' + (xmlIncludes.size - 1) + ' included layouts');
                 if (xml.length > 0) {
                     let parser = new Parser(xml, null);
                     console.log('Parsed loaded file!');
                 } else {
                     console.log('Awaiting loaded file!');
                 }
-            })
+            });
 
         }
     }
@@ -387,7 +409,7 @@ function prefetchAllLayouts(rootLayout, onPreStart, onload) {
 
     function findIncludes(xml) {
 
-        let check = attrKeys.layout+'=';
+        let check = attrKeys.layout + '=';
 
         //change layout[space....]=[space.....] to layout=
         let regex = /(layout)(^|\s*)((?<!=)=(?!=))(^|\s*)/;
@@ -431,7 +453,7 @@ function prefetchAllLayouts(rootLayout, onPreStart, onload) {
                         let worker = workersMap[m][i];
                         let workerName = worker.name;
                         stopFetchWorker(workerName);
-                        console.log('closed: ' + workerName)
+                        console.log('closed: ' + workerName);
                     }
                 }
             }
@@ -447,6 +469,17 @@ function prefetchAllLayouts(rootLayout, onPreStart, onload) {
 
 }
 
+function findHtmlViewById(viewId) {
+    let view = viewMap.get(viewId);
+    if (view) {
+        return view.htmlElement;
+    }
+    return null;
+}
+
+function findViewById(viewId) {
+    return viewMap.get(viewId);
+}
 
 /**
  *
@@ -477,7 +510,7 @@ Parser.prototype.nodeProcessor = function (node) {
     let view = null;
     const nodeName = node.nodeName;
     switch (nodeName) {
-        case xmlKeys.rootOpen:
+        case xmlKeys.root:
             let nodeId = node.getAttribute(attrKeys.id);
             if (!nodeId || nodeId === '') {
                 rootCount += 1;
@@ -509,72 +542,77 @@ Parser.prototype.nodeProcessor = function (node) {
             let scripts = parseImports(files);
             loadScripts(scripts);
             break;
-        case xmlKeys.viewOpen:
+        case xmlKeys.view:
             view = new View(node);
             break;
-        case xmlKeys.buttonOpen:
+        case xmlKeys.button:
             view = new Button(node);
             break;
-        case xmlKeys.imageViewOpen:
+        case xmlKeys.imageView:
             view = new ImageView(node);
             break;
-        case xmlKeys.progressOpen:
+        case xmlKeys.progress:
             view = new ProgressBar(node);
             break;
 
-        case xmlKeys.fieldOpen:
+        case xmlKeys.field:
             view = new TextField(node);
 
             break;
-        case xmlKeys.areaOpen:
+        case xmlKeys.area:
             view = new TextArea(node);
             break;
 
-        case xmlKeys.checkOpen:
+        case xmlKeys.check:
             view = new CheckBox(node);
 
             break;
 
-        case xmlKeys.radiogroupOpen:
+        case xmlKeys.radiogroup:
             view = new RadioGroup(node);
             break;
 
-        case xmlKeys.radioOpen:
+        case xmlKeys.radio:
             view = new Radio(node);
             break;
 
-        case xmlKeys.separatorOpen:
+        case xmlKeys.separator:
             view = new Separator(node);
             break;
 
-        case xmlKeys.guideOpen:
+        case xmlKeys.guide:
             view = new Guideline(node);
             break;
 
-        case xmlKeys.tableOpen:
-            view = new Table(node);
+        case xmlKeys.table:
+            console.log("HIAAA", xmlKeys.table);
+            view = new NativeTable(node);
             break;
 
-        case xmlKeys.listOpen:
+        case xmlKeys.searchableTable:
+            view = new SearchableTableView(node);
+            break;
+
+        case xmlKeys.list:
             view = new List(node);
 
             break;
 
-        case xmlKeys.labelOpen:
+        case xmlKeys.label:
             view = new Label(node);
             break;
 
-        case xmlKeys.dropDownOpen:
+        case xmlKeys.dropDown:
             view = new DropDown(node);
             break;
 
-        case xmlKeys.multiLabelOpen:
+        case xmlKeys.multiLabel:
             view = new MultiLineLabel(node);
             break;
         case xmlKeys.clock:
             view = new ClockView(node);
             break;
-        case xmlKeys.canvasOpen:
+        case xmlKeys.canvas:
             view = new CanvasView(node);
             break;
         default:
@@ -661,6 +699,7 @@ Parser.prototype.buildUI = function () {
     let clocks = [];
     let includes = [];
     let progressBars = [];
+    let customTables = [];
     viewMap.forEach(function (view, id) {
 
         if (view.constructor.name === 'IncludedView') {
@@ -675,6 +714,9 @@ Parser.prototype.buildUI = function () {
             }
             if (child.constructor.name === 'ProgressBar') {
                 progressBars.push(child);
+            }
+            if(child.constructor.name === 'SearchableTableView'){
+                customTables.push(child);
             }
         }
     });
@@ -726,6 +768,9 @@ Parser.prototype.buildUI = function () {
         progressBars.forEach((child) => {
             child.runProgress();
         });
+        customTables.forEach((child) => {
+            child.customTable.build(child.htmlElement);
+        });
 
 
     }
@@ -745,14 +790,14 @@ function addClass(element, className) {
 function startFetchWorker(layoutFileName, onSucc) {
 
     let worker = new WorkerBot("worker-" + layoutFileName, PATH_TO_COMPILER_SCRIPTS + 'layout-worker.js',
-        function (e) {
-            let layoutXML = e.data.content;
-            if (onSucc.length === 1) {
-                onSucc(layoutXML);
-            }
-        }, function (e) {
-            throw e;
-        });
+            function (e) {
+                let layoutXML = e.data.content;
+                if (onSucc.length === 1) {
+                    onSucc(layoutXML);
+                }
+            }, function (e) {
+        throw e;
+    });
 
     let args = {};
     args.layout = layoutFileName;
@@ -822,3 +867,7 @@ WorkerBot.prototype.recreate = function () {
     this.worker.onerror = this.onerror;
 };
 
+
+
+setContentView(document.currentScript.getAttribute('data-launcher'));
+console.log(document.currentScript.getAttribute('data-launcher'));

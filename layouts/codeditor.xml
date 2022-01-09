@@ -7,18 +7,18 @@ and open the template in the editor.
 
 
 <ConstraintLayout
-    layout_width="30%"
-    layout_height="45%"
+    width="30%"
+    height="45%"
     border="1px dashed brown"
 >
     
     <Label
         id="block_title"
-        layout_width="wrap_content"
-        layout_height="wrap_content"
-        layout_constraintCenterXAlign='parent'
-        layout_constraintTop_toTopOf="parent"
-        layout_marginTop="16"
+        width="wrap_content"
+        height="wrap_content"
+        cx_align='parent'
+        top_top="parent"
+        marginTop="16"
         textColor="black"
         value="Enter details"
         textSize="1.2em"
@@ -30,16 +30,16 @@ and open the template in the editor.
     
     <TextField
         id="phone_input"
-        layout_width="150px"
-        layout_height="32px"
-        layout_constraintStart_toStartOf="parent"
-        layout_constraintEnd_toEndOf="parent"
-        layout_constraintTop_toBottomOf="block_title"
-        layout_margin="8"
+        width="150px"
+        height="32px"
+        start_start="parent"
+        end_end="parent"
+        top_bottom="block_title"
+        margin="8"
         placeholder="Phone"
         background="white"
         fontFamily="Avenir"
-        layout_padding="8px"
+        padding="8px"
         inputType="phone"
         text=""
         value=""
@@ -51,17 +51,17 @@ and open the template in the editor.
     
     <TextField
         id="passcode_input"
-        layout_width="150px"
-        layout_height="32px"
-        layout_constraintStart_toStartOf="phone_input"
-        layout_constraintEnd_toEndOf="phone_input"
-        layout_constraintTop_toBottomOf="phone_input"
-        layout_marginTop='8px'
+        width="150px"
+        height="32px"
+        start_start="phone_input"
+        end_end="phone_input"
+        top_bottom="phone_input"
+        marginTop='8px'
         placeholder="Password"
         inputType="password"
         background="white"
         fontFamily="Avenir"
-        layout_padding="8px"
+        padding="8px"
         text=""
         value=""
         textColor="black"
@@ -72,15 +72,15 @@ and open the template in the editor.
         
     <Button
         id="submit"
-        layout_width="64px"
-        layout_height="24px"
-        layout_constraintStart_toStartOf="phone_input"
-        layout_constraintEnd_toEndOf="phone_input"
-        layout_constraintTop_toBottomOf="passcode_input"
-        layout_marginTop='14px'
+        width="64px"
+        height="24px"
+        start_start="phone_input"
+        end_end="phone_input"
+        top_bottom="passcode_input"
+        marginTop='14px'
         background="btn_dark_green"
         fontFamily="Avenir"
-        layout_padding="0px"
+        padding="0px"
         text="Submit"
         textColor="black"
         textSize="1.2em"

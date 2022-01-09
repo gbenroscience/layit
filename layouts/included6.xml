@@ -7,17 +7,17 @@ and open the template in the editor.
 
 
 <ConstraintLayout
-    layout_width="100%"
-    layout_height="match_parent"
+    width="100%"
+    height="match_parent"
 >
     
     <Label
         id="block_title_6"
-        layout_width="wrap_content"
-        layout_height="wrap_content"
-        layout_constraintCenterXAlign='parent'
-        layout_constraintTop_toTopOf="parent"
-        layout_marginTop="16"
+        width="wrap_content"
+        height="wrap_content"
+        cx_align='parent'
+        top_top="parent"
+        marginTop="16"
         textColor="black"
         value="Capitals"
         textSize="1.2em"
@@ -28,15 +28,15 @@ and open the template in the editor.
 
     <DropDown
             id="capitals_drop_down"
-            layout_width="220px"
-            layout_height="32px"
-            layout_constraintCenterXAlign="parent"
-            layout_constraintTop_toBottomOf="block_title_6"
-            layout_marginEnd="8"
+            width="220px"
+            height="32px"
+            cx_align="parent"
+            top_bottom="block_title_6"
+            marginEnd="8"
             items="['Washington DC','Abuja','New Delhi','London','Paris','Dublin','Seoul','Tokyo','Rio De Janeiro','Santiago','Buenos Aires','Quito']"
             background="#ddd"
             fontFamily="Avenir"
-            layout_padding="0px"
+            padding="0px"
             value="CHECK"
             textColor="black"
             textSize="1.5em"
