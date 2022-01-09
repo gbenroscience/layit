@@ -6,10 +6,11 @@
 
 
 let SCRIPTS_BASE = getScriptBaseUrl();
-
+alert(SCRIPTS_BASE);
 const PATH_TO_LAYOUTS_FOLDER = SCRIPTS_BASE + 'layouts/';
 const PATH_TO_IMAGES = SCRIPTS_BASE + 'images/';
-const PATH_TO_COMPILER_SCRIPTS = SCRIPTS_BASE;
+const PATH_TO_COMPILER_SCRIPTS = SCRIPTS_BASE+"sys/";
+const PATH_TO_UI_SCRIPTS = SCRIPTS_BASE+"uiscripts/";
 
 document.currentScript = document.currentScript || (function () {
     var scripts = document.getElementsByTagName('script');
@@ -19,9 +20,9 @@ document.currentScript = document.currentScript || (function () {
 
 
 let nativeScripts = [
-    SCRIPTS_BASE + 'autolayout.js',
-    SCRIPTS_BASE + 'main.js',
-    SCRIPTS_BASE + 'compiler-constants.js',
+    SCRIPTS_BASE + '/sys/autolayout.js',
+    SCRIPTS_BASE + '/sys/main.js',
+    SCRIPTS_BASE + '/sys/compiler-constants.js',
     SCRIPTS_BASE + 'libs/utils/colorutils.js',
     SCRIPTS_BASE + 'libs/utils/constants.js',
     SCRIPTS_BASE + 'libs/utils/stringutils.js',
@@ -299,7 +300,7 @@ let parseImports = function (scriptsText) {
         let file = files[i].trim();
         let len = file.length;
         if (file.substring(len - 3) === '.js') {
-            files[i] = PATH_TO_COMPILER_SCRIPTS + "uiscripts/" + file;
+            files[i] = PATH_TO_UI_SCRIPTS + file;
         }
 
     }
@@ -314,11 +315,12 @@ function getScriptBaseUrl() {
     for (let i = 0; i < scripts.length; i++) {
         let script = scripts[i];
         let src = script.src;
-        let ender = 'layit.js';
+        let ender = 'sys/layit.js';
         let fullLen = src.length;
         let endLen = ender.length;
+        
         //check if script.src ends with layit.js
-        if (src.indexOf(ender, 0) === fullLen - endLen) {
+        if (src.lastIndexOf(ender) === fullLen - endLen) {
             return src.substring(0, fullLen - endLen);
         }
 
