@@ -8,11 +8,12 @@
 let SCRIPTS_BASE = getScriptBaseUrl();
 
 const PATH_TO_LAYOUTS_FOLDER = SCRIPTS_BASE + 'layouts/';
+const PATH_TO_IMAGES = SCRIPTS_BASE + 'images/';
 const PATH_TO_COMPILER_SCRIPTS = SCRIPTS_BASE;
 
-document.currentScript = document.currentScript || (function() {
-  var scripts = document.getElementsByTagName('script');
-  return scripts[scripts.length - 1];
+document.currentScript = document.currentScript || (function () {
+    var scripts = document.getElementsByTagName('script');
+    return scripts[scripts.length - 1];
 })();
 
 
@@ -89,10 +90,10 @@ const xmlKeys = {
     separator: "Separator",
     dropDown: "DropDown",
     guide: "Guideline",
-    table: "Table",
-    inputTable: "InputTable",
-    growableTable: "GrowableTable",
-    searchableTable: "SearchableTable",
+    table: "NativeTable",
+    inputTable: "InputTableView",
+    growableTable: "GrowableTableView",
+    searchableTable: "SearchableTableView",
     customTable: "CustomTable",
     popup: "Popup",
     list: "List",
@@ -115,8 +116,8 @@ const attrKeys = {
     layout_minWidth: "minWidth",
     layout_minHeight: "minHeight",
 
-    width: "width",//on canvas element
-    height: "height",//on canvas element
+    width: "width", //on canvas element
+    height: "height", //on canvas element
     translationZ: "translationZ", //the z index
     layout_margin: "margin",
     layout_marginStart: "marginStart",
@@ -144,11 +145,17 @@ const attrKeys = {
     layout_constraintCenterYAlign: "cy_align",
     layout_constraintGuide_percent: "guide_percent",
     orientation: "orientation", //
-    
+
     items: "items", // an array of items to display in a list or a dropdown
     tableItems: 'tableItems', //a 2d array of items to display on a table
-    hasHeader: "hasHeader",//check if a native html table node must have an header row
-    hasFooter: "hasFooter",//check if a native html table node must have a footer row
+    title: 'title', // table title
+    showBorders: 'showBorders', // show the custom table's inner borders(does not apply to the native table)
+    pagingEnabled: 'pagingEnabled',
+    tableTheme: 'tableTheme',// for custom tables only
+    cellPadding: 'cellPadding', //works only for the custom tables
+    showLeftBtn: 'showLeftBtn',// only works for the SeachableTableView
+    hasHeader: "hasHeader", //check if a native html table node must have an header row
+    hasFooter: "hasFooter", //check if a native html table node or a custom table must have a footer row
     cssClass: "cssClass",
     resize: "resize",
     progressColor: "progressColor",
@@ -229,19 +236,19 @@ function Parser(xml, parentId) {
     this.styleSheet.setAttribute('type', 'text/css');
 
 
-   if(!parentId){
-       let generalStyle = new Style("*", []);
-       generalStyle.addFromOptions({
-           'margin': '0',
-           'padding': '0',
-           'box-sizing': 'border-box',
-           '-webkit-box-sizing': 'border-box',
-           '-moz-box-sizing': 'border-box'
-       });
-       injectStyleSheets(this.styleSheet, [generalStyle]);
-       allStyles.push(generalStyle);
+    if (!parentId) {
+        let generalStyle = new Style("*", []);
+        generalStyle.addFromOptions({
+            'margin': '0',
+            'padding': '0',
+            'box-sizing': 'border-box',
+            '-webkit-box-sizing': 'border-box',
+            '-moz-box-sizing': 'border-box'
+        });
+        injectStyleSheets(this.styleSheet, [generalStyle]);
+        allStyles.push(generalStyle);
 
-   }
+    }
 
 
     /**
@@ -303,16 +310,16 @@ let parseImports = function (scriptsText) {
 function getScriptBaseUrl() {
 
     let scripts = document.getElementsByTagName('script');
-    
-    for(let i=0;i<scripts.length;i++){
+
+    for (let i = 0; i < scripts.length; i++) {
         let script = scripts[i];
         let src = script.src;
         let ender = 'layit.js';
         let fullLen = src.length;
         let endLen = ender.length;
         //check if script.src ends with layit.js
-        if(src.indexOf(ender, 0) === fullLen - endLen){
-            return src.substring(0 , fullLen - endLen);
+        if (src.indexOf(ender, 0) === fullLen - endLen) {
+            return src.substring(0, fullLen - endLen);
         }
 
     }
@@ -343,7 +350,7 @@ function setContentView(layoutFileName) {
             };
         } else {
             console.log('Compiler Scripts Fully Loaded');
-            prefetchAllLayouts(layoutFileName, function(){
+            prefetchAllLayouts(layoutFileName, function () {
                 console.log('Resetting engine parameters...');
                 workersMap.clear();
                 viewMap.clear();
@@ -357,14 +364,14 @@ function setContentView(layoutFileName) {
 
                 console.log('Now loading layout and associated layouts(included layouts)');
             }, function (xml) {
-                console.log('Loaded layout and '+(xmlIncludes.size - 1) +' included layouts');
+                console.log('Loaded layout and ' + (xmlIncludes.size - 1) + ' included layouts');
                 if (xml.length > 0) {
                     let parser = new Parser(xml, null);
                     console.log('Parsed loaded file!');
                 } else {
                     console.log('Awaiting loaded file!');
                 }
-            })
+            });
 
         }
     }
@@ -400,7 +407,7 @@ function prefetchAllLayouts(rootLayout, onPreStart, onload) {
 
     function findIncludes(xml) {
 
-        let check = attrKeys.layout+'=';
+        let check = attrKeys.layout + '=';
 
         //change layout[space....]=[space.....] to layout=
         let regex = /(layout)(^|\s*)((?<!=)=(?!=))(^|\s*)/;
@@ -460,16 +467,16 @@ function prefetchAllLayouts(rootLayout, onPreStart, onload) {
 
 }
 
-function findHtmlViewById(viewId){
+function findHtmlViewById(viewId) {
     let view = viewMap.get(viewId);
-    if(view){
-         return view.htmlElement;   
+    if (view) {
+        return view.htmlElement;
     }
-   return null;
+    return null;
 }
 
-function findViewById(viewId){
-   return viewMap.get(viewId);
+function findViewById(viewId) {
+    return viewMap.get(viewId);
 }
 
 /**
@@ -576,7 +583,12 @@ Parser.prototype.nodeProcessor = function (node) {
             break;
 
         case xmlKeys.table:
+            console.log("HIAAA", xmlKeys.table);
             view = new NativeTable(node);
+            break;
+
+        case xmlKeys.searchableTable:
+            view = new SearchableTableView(node);
             break;
 
         case xmlKeys.list:
@@ -685,6 +697,7 @@ Parser.prototype.buildUI = function () {
     let clocks = [];
     let includes = [];
     let progressBars = [];
+    let customTables = [];
     viewMap.forEach(function (view, id) {
 
         if (view.constructor.name === 'IncludedView') {
@@ -699,6 +712,9 @@ Parser.prototype.buildUI = function () {
             }
             if (child.constructor.name === 'ProgressBar') {
                 progressBars.push(child);
+            }
+            if(child.constructor.name === 'SearchableTableView'){
+                customTables.push(child);
             }
         }
     });
@@ -750,6 +766,9 @@ Parser.prototype.buildUI = function () {
         progressBars.forEach((child) => {
             child.runProgress();
         });
+        customTables.forEach((child) => {
+            child.customTable.build(child.htmlElement);
+        });
 
 
     }
@@ -769,14 +788,14 @@ function addClass(element, className) {
 function startFetchWorker(layoutFileName, onSucc) {
 
     let worker = new WorkerBot("worker-" + layoutFileName, PATH_TO_COMPILER_SCRIPTS + 'layout-worker.js',
-        function (e) {
-            let layoutXML = e.data.content;
-            if (onSucc.length === 1) {
-                onSucc(layoutXML);
-            }
-        }, function (e) {
-            throw e;
-        });
+            function (e) {
+                let layoutXML = e.data.content;
+                if (onSucc.length === 1) {
+                    onSucc(layoutXML);
+                }
+            }, function (e) {
+        throw e;
+    });
 
     let args = {};
     args.layout = layoutFileName;

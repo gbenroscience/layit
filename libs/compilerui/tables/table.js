@@ -859,7 +859,7 @@ function Table(options) {
     }
 
     if (isEmptyText(options.footerText)) {
-        logIfConsole("Caption not specified for the table.  Specify with `footerText: Table footer` option.");
+        logIfConsole("Footer text not specified for the table.  Specify with `footerText: Table footer` option.");
         this.footerText = '';
     } else {
         this.footerText = options.footerText;

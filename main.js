@@ -83,7 +83,7 @@ function setAbsoluteSizeAndPosition(elm, left, top, width, height) {
 }
 
 
-/* global AutoLayout, attrKeys, xmlKeys, viewMap, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits */
+/* global AutoLayout, attrKeys, xmlKeys, viewMap, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits, PATH_TO_IMAGES */
 /**
  *
  * @param {type} node The node that represents this View in the android style xml document
@@ -129,7 +129,7 @@ function View(node) {
 
         const emptyMargin = 'x';
 
-        if (typeof this.marginTop === 'undefined' || this.marginTop === null || this.marginTop === '' || Number.isNaN(parseInt(this.marginTop)) ) {
+        if (typeof this.marginTop === 'undefined' || this.marginTop === null || this.marginTop === '' || Number.isNaN(parseInt(this.marginTop))) {
             this.marginTop = '0';
         }
         if (typeof this.marginBottom === 'undefined' || this.marginBottom === null || this.marginBottom === '' || Number.isNaN(parseInt(this.marginBottom))) {
@@ -238,25 +238,25 @@ function View(node) {
                 case attrKeys.layout_maxWidth:
                     if (Number.isNaN(parseInt(attrName))) {
                         this.refIds.set(attrKeys.layout_maxWidth, attrValue);
-                    //    this.style.addStyleElement("max-width", attrValue);
+                        //    this.style.addStyleElement("max-width", attrValue);
                     }
                     break;
                 case attrKeys.layout_maxHeight:
                     if (Number.isNaN(parseInt(attrName))) {
                         this.refIds.set(attrKeys.layout_maxHeight, attrValue);
-                     //   this.style.addStyleElement("max-height", attrValue);
+                        //   this.style.addStyleElement("max-height", attrValue);
                     }
                     break;
                 case attrKeys.layout_minWidth:
                     if (Number.isNaN(parseInt(attrName))) {
                         this.refIds.set(attrKeys.layout_minWidth, attrValue);
-                     //   this.style.addStyleElement("min-width", attrValue);
+                        //   this.style.addStyleElement("min-width", attrValue);
                     }
                     break;
                 case attrKeys.layout_minHeight:
                     if (Number.isNaN(parseInt(attrName))) {
                         this.refIds.set(attrKeys.layout_minHeight, attrValue);
-                      //  this.style.addStyleElement("min-height", attrValue);
+                        //  this.style.addStyleElement("min-height", attrValue);
 
                     }
                     break;
@@ -298,7 +298,7 @@ function View(node) {
                     this.refIds.set(attrKeys.orientation, attrValue);
                     break;
 
-                //as a bonus save the paddings in this pass
+                    //as a bonus save the paddings in this pass
                 case attrKeys.layout_padding:
                     this.style.addStyleElement("padding", attrValue);
                     break;
@@ -425,7 +425,7 @@ View.prototype.getTextSize = function (txt) {
     let formattedWidth = size.width + "px";
 
     document.querySelector('#za_span').textContent
-        = formattedWidth;
+            = formattedWidth;
     document.body.removeChild(span);
 
     return size;
@@ -479,7 +479,7 @@ function parseNumberAndUnits(val) {
     for (let i = val.length - 1; i > 0; i--) {
         let token = val.substring(i, i + 1);
         if (token !== '0' && token !== '1' && token !== '2' && token !== '3' && token !== '4' && token !== '5' &&
-            token !== '6' && token !== '7' && token !== '8' && token !== '9') {
+                token !== '6' && token !== '7' && token !== '8' && token !== '9') {
             units = token + units;
         } else {
             number = val.substring(0, i + 1);
@@ -507,27 +507,27 @@ View.prototype.makeVFL = function () {
     let minHei = this.refIds.get(attrKeys.layout_minHeight);
 
 
-    let maxWidth , maxHeight, minWidth, minHeight;
+    let maxWidth, maxHeight, minWidth, minHeight;
 
 
-    if(endsWith(maxWid , '%') === false){
-        maxWidth = parseInt(maxWid+'');
-    }else{
+    if (endsWith(maxWid, '%') === false) {
+        maxWidth = parseInt(maxWid + '');
+    } else {
         maxWidth = maxWid;
     }
-    if(endsWith(minWid , '%') === false){
-        minWidth = parseInt(minWid+'');
-    }else{
+    if (endsWith(minWid, '%') === false) {
+        minWidth = parseInt(minWid + '');
+    } else {
         minWidth = minWid;
     }
-    if(endsWith(maxHei , '%') === false){
-        maxHeight = parseInt(maxHei+'');
-    }else{
+    if (endsWith(maxHei, '%') === false) {
+        maxHeight = parseInt(maxHei + '');
+    } else {
         maxHeight = maxHei;
     }
-    if(endsWith(minHei , '%') === false){
-        minHeight = parseInt(minHei+'');
-    }else{
+    if (endsWith(minHei, '%') === false) {
+        minHeight = parseInt(minHei + '');
+    } else {
         minHeight = minHei;
     }
 
@@ -560,40 +560,40 @@ View.prototype.makeVFL = function () {
         let mss = endsWith(this.marginStart, "%") ? this.marginStart : ms;
         let mee = endsWith(this.marginEnd, "%") ? this.marginEnd : me;
 
-        if( mtt !== '0' && mtt !== 0){
-            throw new Error('No margins allowed on the root element of an `include`! Errant margin: margin-top...on include id: '+this.parentId);
+        if (mtt !== '0' && mtt !== 0) {
+            throw new Error('No margins allowed on the root element of an `include`! Errant margin: margin-top...on include id: ' + this.parentId);
         }
-        if( mbb !== '0' && mbb !== 0){
-            throw new Error('No margins allowed on the root element of an `include`!  Errant margin: margin-bottom...on include id: '+this.parentId);
+        if (mbb !== '0' && mbb !== 0) {
+            throw new Error('No margins allowed on the root element of an `include`!  Errant margin: margin-bottom...on include id: ' + this.parentId);
         }
-        if( mss !== '0' && mss !== 0){
-            throw new Error('No margins allowed on the root element of an `include`!  Errant margin: margin-start...on include id: '+this.parentId);
+        if (mss !== '0' && mss !== 0) {
+            throw new Error('No margins allowed on the root element of an `include`!  Errant margin: margin-start...on include id: ' + this.parentId);
         }
-        if( mee !== '0' && mee !== 0){
-            throw new Error('No margins allowed on the root element of an `include`!  Errant margin: margin-end...on include id: '+this.parentId);
+        if (mee !== '0' && mee !== 0) {
+            throw new Error('No margins allowed on the root element of an `include`!  Errant margin: margin-end...on include id: ' + this.parentId);
         }
 
 
 
 
-        if(maxWid && minWid){
-            parent.directChildConstraints.push('H:|~[' + this.id + '(==' + this.width+',<='+maxWidth+',>='+minWidth+')]~|\n');
-        }else if(!maxWid && !minWid){
+        if (maxWid && minWid) {
+            parent.directChildConstraints.push('H:|~[' + this.id + '(==' + this.width + ',<=' + maxWidth + ',>=' + minWidth + ')]~|\n');
+        } else if (!maxWid && !minWid) {
             parent.directChildConstraints.push('H:|~[' + this.id + '(==' + this.width + ')]~|\n');
-        }else if(maxWid){
-            parent.directChildConstraints.push('H:|~[' + this.id + '(==' + this.width + ',<='+maxWidth+')]~|\n');
-        }else if(minWid){
-            parent.directChildConstraints.push('H:|~[' + this.id + '(==' + this.width + ',>='+minWidth+')]~|\n');
+        } else if (maxWid) {
+            parent.directChildConstraints.push('H:|~[' + this.id + '(==' + this.width + ',<=' + maxWidth + ')]~|\n');
+        } else if (minWid) {
+            parent.directChildConstraints.push('H:|~[' + this.id + '(==' + this.width + ',>=' + minWidth + ')]~|\n');
         }
 
-        if(maxHei && minHei){
-            parent.directChildConstraints.push('V:|~[' + this.id + ',<='+maxHeight+',>='+minHeight+')]~|\n');
-        }else if(!maxHei && !minHei){
+        if (maxHei && minHei) {
+            parent.directChildConstraints.push('V:|~[' + this.id + ',<=' + maxHeight + ',>=' + minHeight + ')]~|\n');
+        } else if (!maxHei && !minHei) {
             parent.directChildConstraints.push('V:|~[' + this.id + '(==' + this.height + ')]~|\n');
-        }else if(maxHei){
-            parent.directChildConstraints.push('V:|~[' + this.id + '(==' + this.height + ',<='+maxHeight+')]~|\n');
-        }else if(minHei){
-            parent.directChildConstraints.push('V:|~[' + this.id + '(==' + this.height + ',>='+minHeight+')]~|\n');
+        } else if (maxHei) {
+            parent.directChildConstraints.push('V:|~[' + this.id + '(==' + this.height + ',<=' + maxHeight + ')]~|\n');
+        } else if (minHei) {
+            parent.directChildConstraints.push('V:|~[' + this.id + '(==' + this.height + ',>=' + minHeight + ')]~|\n');
         }
 
 
@@ -621,101 +621,101 @@ View.prototype.makeVFL = function () {
 
     if (isWidPct === true) {
 
-        if(maxWid && minWid){
-            vfl.append('H:[' + this.id + '(==' + this.width+',<='+maxWidth+',>='+minWidth+')]\n');
-        }else if(!maxWid && !minWid){
+        if (maxWid && minWid) {
+            vfl.append('H:[' + this.id + '(==' + this.width + ',<=' + maxWidth + ',>=' + minWidth + ')]\n');
+        } else if (!maxWid && !minWid) {
             vfl.append('H:[' + this.id + '(==' + this.width + ')]\n');
-        }else if(maxWid){
-            vfl.append('H:[' + this.id + '(==' + this.width + ',<='+maxWidth+')]\n');
-        }else if(minWid){
-            vfl.append('H:[' + this.id + '(==' + this.width + ',>='+minWidth+')]\n');
+        } else if (maxWid) {
+            vfl.append('H:[' + this.id + '(==' + this.width + ',<=' + maxWidth + ')]\n');
+        } else if (minWid) {
+            vfl.append('H:[' + this.id + '(==' + this.width + ',>=' + minWidth + ')]\n');
         }
     } else {
-         if (this.width === sizes.WRAP_CONTENT) {
+        if (this.width === sizes.WRAP_CONTENT) {
             let w = parseInt(this.wrapWidth);
             if (!Number.isNaN(w)) {
-                if(maxWid && minWid){
-                    vfl.append('H:[' + this.id + '(==' + w+',<='+maxWidth+',>='+minWidth+')]\n');
-                }else if(!maxWid && !minWid){
+                if (maxWid && minWid) {
+                    vfl.append('H:[' + this.id + '(==' + w + ',<=' + maxWidth + ',>=' + minWidth + ')]\n');
+                } else if (!maxWid && !minWid) {
                     vfl.append('H:[' + this.id + '(==' + w + ')]\n');
-                }else if(maxWid){
-                    vfl.append('H:[' + this.id + '(==' + w + ',<='+maxWidth+')]\n');
-                }else if(minWid){
-                    vfl.append('H:[' + this.id + '(==' + w + ',>='+minWidth+')]\n');
+                } else if (maxWid) {
+                    vfl.append('H:[' + this.id + '(==' + w + ',<=' + maxWidth + ')]\n');
+                } else if (minWid) {
+                    vfl.append('H:[' + this.id + '(==' + w + ',>=' + minWidth + ')]\n');
                 }
             } else {
                 throw 'Please implement wrap_content functionality for (' + this.constructor.name + ") , width of `" + this.id + "` set to wrap_content";
             }
         } else if (Number.isNaN(pw)) {
-             if(maxWid && minWid){
-                 vfl.append('H:[' + this.id + '(' + this.width+',<='+maxWidth+',>='+minWidth+')]\n');
-             }else if(!maxWid && !minWid){
-                 vfl.append('H:[' + this.id + '(' + this.width + ')]\n');
-             }else if(maxWid){
-                 vfl.append('H:[' + this.id + '(' + this.width + ',<='+maxWidth+')]\n');
-             }else if(minWid){
-                 vfl.append('H:[' + this.id + '(' + this.width + ',>='+minWidth+')]\n');
-             }
+            if (maxWid && minWid) {
+                vfl.append('H:[' + this.id + '(' + this.width + ',<=' + maxWidth + ',>=' + minWidth + ')]\n');
+            } else if (!maxWid && !minWid) {
+                vfl.append('H:[' + this.id + '(' + this.width + ')]\n');
+            } else if (maxWid) {
+                vfl.append('H:[' + this.id + '(' + this.width + ',<=' + maxWidth + ')]\n');
+            } else if (minWid) {
+                vfl.append('H:[' + this.id + '(' + this.width + ',>=' + minWidth + ')]\n');
+            }
         } else {
-             if(maxWid && minWid){
-                 vfl.append('H:[' + this.id + '(==' + pw+',<='+maxWidth+',>='+minWidth+')]\n');
-             }else if(!maxWid && !minWid){
-                 vfl.append('H:[' + this.id + '(==' + pw + ')]\n');
-             }else if(maxWid){
-                 vfl.append('H:[' + this.id + '(==' + pw + ',<='+maxWidth+')]\n');
-             }else if(minWid){
-                 vfl.append('H:[' + this.id + '(==' + pw + ',>='+minWidth+')]\n');
-             }
+            if (maxWid && minWid) {
+                vfl.append('H:[' + this.id + '(==' + pw + ',<=' + maxWidth + ',>=' + minWidth + ')]\n');
+            } else if (!maxWid && !minWid) {
+                vfl.append('H:[' + this.id + '(==' + pw + ')]\n');
+            } else if (maxWid) {
+                vfl.append('H:[' + this.id + '(==' + pw + ',<=' + maxWidth + ')]\n');
+            } else if (minWid) {
+                vfl.append('H:[' + this.id + '(==' + pw + ',>=' + minWidth + ')]\n');
+            }
         }
     }
 
 
     if (isHeiPct === true) {
-        if(maxHei && minHei){
-            vfl.append('V:[' + this.id + '(==' + this.height+',<='+maxHeight+',>='+minHeight+')]\n');
-        }else if(!maxHei && !minHei){
+        if (maxHei && minHei) {
+            vfl.append('V:[' + this.id + '(==' + this.height + ',<=' + maxHeight + ',>=' + minHeight + ')]\n');
+        } else if (!maxHei && !minHei) {
             vfl.append('V:[' + this.id + '(==' + this.height + ')]\n');
-        }else if(maxHei){
-            vfl.append('V:[' + this.id + '(==' + this.height + ',<='+maxHeight+')]\n');
-        }else if(minHei){
-            vfl.append('V:[' + this.id + '(==' + this.height + ',>='+minHeight+')]\n');
+        } else if (maxHei) {
+            vfl.append('V:[' + this.id + '(==' + this.height + ',<=' + maxHeight + ')]\n');
+        } else if (minHei) {
+            vfl.append('V:[' + this.id + '(==' + this.height + ',>=' + minHeight + ')]\n');
         }
     } else {
-       if (this.height === sizes.WRAP_CONTENT) {
+        if (this.height === sizes.WRAP_CONTENT) {
             let h = parseInt(this.wrapHeight);
             if (!Number.isNaN(h)) {
-                if(maxHei && minHei){
-                    vfl.append('V:[' + this.id + '(==' + h+',<='+maxHeight+',>='+minHeight+')]\n');
-                }else if(!maxHei && !minHei){
+                if (maxHei && minHei) {
+                    vfl.append('V:[' + this.id + '(==' + h + ',<=' + maxHeight + ',>=' + minHeight + ')]\n');
+                } else if (!maxHei && !minHei) {
                     vfl.append('V:[' + this.id + '(==' + h + ')]\n');
-                }else if(maxHei){
-                    vfl.append('V:[' + this.id + '(==' + h + ',<='+maxHeight+')]\n');
-                }else if(minHei){
-                    vfl.append('V:[' + this.id + '(==' + h + ',>='+minHeight+')]\n');
+                } else if (maxHei) {
+                    vfl.append('V:[' + this.id + '(==' + h + ',<=' + maxHeight + ')]\n');
+                } else if (minHei) {
+                    vfl.append('V:[' + this.id + '(==' + h + ',>=' + minHeight + ')]\n');
                 }
             } else {
                 throw 'Please implement wrap_content functionality for (' + this.constructor.name + ") , height of `" + this.id + "` set to wrap_content";
             }
         } else if (Number.isNaN(ph)) {
-           if(maxHei && minHei){
-               vfl.append('V:[' + this.id + '(' + this.height+',<='+maxHeight+',>='+minHeight+')]\n');
-           }else if(!maxHei && !minHei){
-               vfl.append('V:[' + this.id + '(' + this.height + ')]\n');
-           }else if(maxHei){
-               vfl.append('V:[' + this.id + '(' + this.height + ',<='+maxHeight+')]\n');
-           }else if(minHei){
-               vfl.append('V:[' + this.id + '(' + this.height + ',>='+minHeight+')]\n');
-           }
+            if (maxHei && minHei) {
+                vfl.append('V:[' + this.id + '(' + this.height + ',<=' + maxHeight + ',>=' + minHeight + ')]\n');
+            } else if (!maxHei && !minHei) {
+                vfl.append('V:[' + this.id + '(' + this.height + ')]\n');
+            } else if (maxHei) {
+                vfl.append('V:[' + this.id + '(' + this.height + ',<=' + maxHeight + ')]\n');
+            } else if (minHei) {
+                vfl.append('V:[' + this.id + '(' + this.height + ',>=' + minHeight + ')]\n');
+            }
         } else {
-           if(maxHei && minHei){
-               vfl.append('V:[' + this.id + '(==' + ph+',<='+maxHeight+',>='+minHeight+')]\n');
-           }else if(!maxHei && !minHei){
-               vfl.append('V:[' + this.id + '(==' + ph + ')]\n');
-           }else if(maxHei){
-               vfl.append('V:[' + this.id + '(==' + ph + ',<='+maxHeight+')]\n');
-           }else if(minHei){
-               vfl.append('V:[' + this.id + '(==' + ph + ',>='+minHeight+')]\n');
-           }
+            if (maxHei && minHei) {
+                vfl.append('V:[' + this.id + '(==' + ph + ',<=' + maxHeight + ',>=' + minHeight + ')]\n');
+            } else if (!maxHei && !minHei) {
+                vfl.append('V:[' + this.id + '(==' + ph + ')]\n');
+            } else if (maxHei) {
+                vfl.append('V:[' + this.id + '(==' + ph + ',<=' + maxHeight + ')]\n');
+            } else if (minHei) {
+                vfl.append('V:[' + this.id + '(==' + ph + ',>=' + minHeight + ')]\n');
+            }
         }
     }
 
@@ -974,6 +974,10 @@ NativeTable.prototype = Object.create(View.prototype);
 NativeTable.prototype.constructor = NativeTable;
 
 
+SearchableTableView.prototype = Object.create(View.prototype);
+SearchableTableView.prototype.constructor = SearchableTableView;
+
+
 TextField.prototype = Object.create(View.prototype);
 TextField.prototype.constructor = TextField;
 
@@ -1116,22 +1120,22 @@ function NativeTable(node) {
 NativeTable.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('table');
     this.assignId();
-    
-    
+
+
     let thead = document.createElement('thead');
     let tbody = document.createElement('tbody');
     let tfoot = document.createElement('tfoot');
-    
-    
+
+
     let entries = node.getAttribute(attrKeys.tableItems);
     let hasHeader = node.getAttribute(attrKeys.hasHeader);
     let hasFooter = node.getAttribute(attrKeys.hasFooter);
-    
-    
-    if(!attributeNotEmpty(hasHeader)){
+
+
+    if (!attributeNotEmpty(hasHeader)) {
         hasHeader = false;
     }
-    if(!attributeNotEmpty(hasFooter)){
+    if (!attributeNotEmpty(hasFooter)) {
         hasFooter = false;
     }
 
@@ -1139,66 +1143,59 @@ NativeTable.prototype.createElement = function (node) {
         let array = parseTableItems(entries);
         let tableSize = array.length;
         for (var i = 0; i < tableSize; i++) {
-             let tr = document.createElement('tr');
-            for(var j=0;j<array[i].length;j++){
-               let td = document.createElement('td');
-               td.innerHTML = array[i][j];
-               tr.appendChild(td);
+            let tr = document.createElement('tr');
+            for (var j = 0; j < array[i].length; j++) {
+                let td = document.createElement('td');
+                td.innerHTML = array[i][j];
+                tr.appendChild(td);
             }
-            if(tableSize === 1){
-                   tbody.appendChild(tr);
-                   break;
-            }
-            else if(tableSize === 2){
-               if(i === 0){
-                if(hasHeader){
-                     thead.appendChild(tr);
-                }else{
-                       tbody.appendChild(tr);
+            if (tableSize === 1) {
+                tbody.appendChild(tr);
+                break;
+            } else if (tableSize === 2) {
+                if (i === 0) {
+                    if (hasHeader) {
+                        thead.appendChild(tr);
+                    } else {
+                        tbody.appendChild(tr);
+                    }
+                } else if (i === array.length - 1) {
+                    if (hasFooter) {
+                        tfoot.appendChild(tr);
+                    } else {
+                        tbody.appendChild(tr);
+                    }
+                }
+            } else if (tableSize > 2) {
+                if (i === 0) {
+                    if (hasHeader) {
+                        thead.appendChild(tr);
+                    } else {
+                        tbody.appendChild(tr);
+                    }
+                } else if (i === array.length - 1) {
+                    if (hasFooter) {
+                        tfoot.appendChild(tr);
+                    } else {
+                        tbody.appendChild(tr);
+                    }
+                } else {
+                    tbody.appendChild(tr);
                 }
             }
-            
-            else if(i === array.length - 1){
-                if(hasFooter){
-                     tfoot.appendChild(tr);
-                }else{
-                       tbody.appendChild(tr);
-                }
-            }
-            }
-            else if(tableSize > 2){
-             if(i === 0){
-                if(hasHeader){
-                     thead.appendChild(tr);
-                }else{
-                       tbody.appendChild(tr);
-                }
-            }
-            
-             else if(i === array.length - 1){
-                if(hasFooter){
-                     tfoot.appendChild(tr);
-                }else{
-                       tbody.appendChild(tr);
-                }
-             }
-             else{
-                   tbody.appendChild(tr);
-             }
-            }
-            
-         
-         
+
+
+
         }
-        
-    this.htmlElement.appendChild(tbody);
-    if(hasHeader){
-         this.htmlElement.appendChild(thead);
-    }
-        if(hasFooter){
-         this.htmlElement.appendChild(tfoot);
-    }
-    this.calculateWrapContentSizes(node);
+
+        this.htmlElement.appendChild(tbody);
+        if (hasHeader) {
+            this.htmlElement.appendChild(thead);
+        }
+        if (hasFooter) {
+            this.htmlElement.appendChild(tfoot);
+        }
+        this.calculateWrapContentSizes(node);
     }
 
 };
@@ -1206,6 +1203,159 @@ NativeTable.prototype.createElement = function (node) {
 NativeTable.prototype.calculateWrapContentSizes = function (node) {
     this.wrapWidth = 200;
     this.wrapHeight = 250;
+};
+
+
+function SearchableTableView(node) {
+    this.options = {};
+    this.customTable = null;
+    View.call(this, node);
+}
+
+SearchableTableView.prototype.createElement = function (node) {
+  this.htmlElement = document.createElement('div');
+  this.assignId();
+  
+  
+   
+    let entries = node.getAttribute(attrKeys.tableItems);
+    let hasFooter = node.getAttribute(attrKeys.hasFooter);
+    
+    let data = [];
+    let title = node.getAttribute(attrKeys.title);
+    let showBorders = node.getAttribute(attrKeys.showBorders);
+    let pagingEnabled = node.getAttribute(attrKeys.pagingEnabled);
+    let icon = PATH_TO_IMAGES+node.getAttribute(attrKeys.src);
+    let cellPadding = node.getAttribute(attrKeys.cellPadding);
+    let fontSize = node.getAttribute(attrKeys.fontSize);
+    let cssClass = node.getAttribute(attrKeys.cssClass);
+    let theme = node.getAttribute(attrKeys.tableTheme);
+    let scrollable = node.getAttribute(attrKeys.scrollable);
+    let buttontext = node.getAttribute(attrKeys.buttonText);
+    let footertext = node.getAttribute(attrKeys.footerText);
+    let buttonLabel = node.getAttribute(attrKeys.buttonLabel);
+    let showLeftBtn = node.getAttribute(attrKeys.showLeftBtn);
+    
+ 
+    if (attributeNotEmpty(hasFooter)) {
+        hasFooter = hasFooter === 'true';
+    }else{
+        hasFooter = false;
+    }
+
+ 
+    if (attributeNotEmpty(showBorders)) {
+        showBorders = showBorders === 'true';
+    }else{
+        showBorders = true;
+    }
+    
+     if (attributeNotEmpty(showLeftBtn)) {
+        showLeftBtn = showLeftBtn === 'true';
+    }else{
+        showLeftBtn = true;
+    }
+    
+      
+    if (attributeNotEmpty(pagingEnabled)) {
+         pagingEnabled = pagingEnabled === 'true';
+    }else{
+        pagingEnabled = false;//set to true to enable paging by default
+    }
+    
+    if (attributeNotEmpty(scrollable)) {
+        scrollable = scrollable === 'true';
+    }else{
+        scrollable = true;
+    }
+    
+    if (attributeNotEmpty(entries)) {
+         data = parseTableItems(entries);
+    }else{
+        data = [];
+    }
+  
+    
+    if (attributeEmpty(title)) {
+         title = 'Set Title';
+    }
+   
+    
+    if (attributeEmpty(icon)) {
+        icon = "";
+    }
+    
+    if (attributeEmpty(cellPadding)) {
+        cellPadding = "1.3em";
+    }
+    
+    if (attributeEmpty(fontSize)) {
+        fontSize = "1.0em";
+    }
+    
+    if (attributeEmpty(cssClass)) {
+        cssClass = "";
+    }
+    
+     if (attributeEmpty(theme)) {
+        theme = "#444444";
+    }
+    
+    if (attributeEmpty(footertext)) {
+        footertext = "FOOTER TEXT GOES HERE";
+    }
+    
+    if (attributeEmpty(buttontext)) {
+        buttontext = "Button";
+    }
+  
+      if (attributeEmpty(buttonLabel)) {
+        buttonLabel = "Button Label";
+    }
+  
+  this.options = {
+      id: this.htmlElement.id+'_core',
+      width:"100%",
+      hasFooter: hasFooter,
+      showBorders: showBorders,
+      pagingEnabled: pagingEnabled,
+      onAddBtnClicked: function(){},
+      'main-style':{
+          'margin-top': '1.2em'
+      },
+      icon: icon,
+      fontSize: fontSize,
+      showLeftBtn: showLeftBtn,
+      cellpadding: cellPadding,
+      title: title,
+      footerText: footertext,
+      scrollable: scrollable,
+      theme: theme,
+      buttontext: buttontext,
+      data: data,
+      hasContainer: true,
+      checkablecolumns: [],
+      actioncolumns: []
+  };
+  console.log(this.options);
+  
+  if(cssClass && cssClass !== ""){
+      this.options.classname = cssClass;
+  }
+  this.customTable = new SearchableTable(this.options);
+  this.customTable.build(this.htmlElement);
+  this.customTable.setButtonLabel(buttonLabel);
+  
+  
+
+
+
+
+};
+
+SearchableTableView.prototype.calculateWrapContentSizes = function (node) {
+    this.wrapWidth = 350;
+    this.wrapHeight = 300;
 };
 
 /**
@@ -1233,7 +1383,7 @@ TextField.prototype.createElement = function (node) {
         type = 'text';//default
     }
     if (type && type !== 'text' && type !== 'password' && type !== 'file' && type !== 'date' && type !== 'search' && type !== 'datetime'
-        && type !== 'tel' && type !== 'phone' && type !== 'time' && type !== 'color' && type !== 'url') {
+            && type !== 'tel' && type !== 'phone' && type !== 'time' && type !== 'color' && type !== 'url') {
         throw 'Unsupported input type';
     }
 
@@ -1526,7 +1676,7 @@ CanvasView.prototype.createElement = function (node) {
     this.htmlElement.setAttribute('height', parseInt(height));
 
     this.calculateWrapContentSizes(node);
-}
+};
 
 CanvasView.prototype.calculateWrapContentSizes = function (node) {
     this.wrapWidth = this.htmlElement.getAttribute('width');
@@ -1842,41 +1992,49 @@ function attributeNotEmpty(attrVal) {
     }
     return false;
 }
+
+function attributeEmpty(attrVal) {
+    if (!attrVal || attrVal.trim().length === 0) {
+        return true;
+    }
+    return false;
+}
+
 /**
  * Parses bracketed expressions of the type: [row['a',bb,c,dd],row[],row[],row[],...row[]]
  * @param {type} input The expression containing a kind of bracketed structure
  * @returns {Array[]} a 2d array of table data
  */
-function parseTableItems(input){
+function parseTableItems(input) {
 
-    input = input.trim();alert(endsWith(input,']'));
-    if(startsWith(input , '[') && endsWith(input,']')){
+    input = input.trim();
+    if (startsWith(input, '[') && endsWith(input, ']')) {
         input = input.substring(1, input.length - 1);
-    }else{
+    } else {
         throw new Error('Data in table not in correct format! Must be: [row[row-data],row[row-data]...]');
     }
-   
-    
-    let tokens = new Scanner(input, false, new Array(',row', 'row')).scan();
-    
 
-let tableData = [];
-    for(let i=0;i<tokens.length;i++){
-     let rowStr = tokens[i];
-     let rowData = new Scanner(rowStr, false, [',']).scan();
-     tableData.push(rowData);
+
+    let tokens = new Scanner(input, false, new Array(',row', 'row')).scan();
+
+
+    let tableData = [];
+    for (let i = 0; i < tokens.length; i++) {
+        let rowStr = tokens[i];
+        let rowData = new Scanner(rowStr, false, ['[', ',', ']']).scan();
+        tableData.push(rowData);
     }
-    
-    
-    if(tableData.length > 0){
-    let len = tableData[0].length;
-    for(let i=1; i<tableData.length; i++){
-        if(tableData[i].length !== len){
-          throw new Error('The rows of your table should have equal lenth, please');   
+
+
+    if (tableData.length > 0) {
+        let len = tableData[0].length;
+        for (let i = 1; i < tableData.length; i++) {
+            if (tableData[i].length !== len) {
+                throw new Error('The rows of your table should have equal lenth, please');
+            }
         }
+
     }
-    
-    }
-    
+
     return tableData;
 }

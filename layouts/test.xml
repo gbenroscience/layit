@@ -250,7 +250,7 @@
         id="included_details"
         width="100%"
         height="220"
-        marginTop="88"
+        marginTop="408"
         cx_align="parent"
         top_bottom="notes_area"
         border="1px solid black"
@@ -283,15 +283,35 @@
     />
     
     
-    <Table
+    <NativeTable
         id="table_one"
-        width="wrap_content"
-        height="wrap_content"
+        width="120"
+        height="90"
         end_start="drop_down"
         cy_align="notes_area"
         hasHeader="true"
-        hasFooter="true"
+        hasFooter="false"
         tableItems="[row[23,44,90],row[1001,873,202],row[34,98,188]]"
+    
+    
+    />
+    
+    
+    
+    <SearchableTableView
+        id="table_two"
+        width="450"
+        height="90"
+        cx_align="parent"
+        top_bottom="notes_area"
+        hasHeader="true"
+        hasFooter="true"
+        showBorders="true"
+        theme="#444444"
+        title="Layit!!"
+        src="logo_small.png"
+        pagingEnabled="true"
+        tableItems="[row[FIRST,SECOND,THIRD],row[1001,873,202],row[34,98,188],row[394,598,1086],row[COOL,NUMBERS,HERE],]"
     
     
     />
