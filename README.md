@@ -11,7 +11,7 @@ To make things even sweeter, we have changed the long names given to the constra
 
 You need the entire project folder, so clone this repo and place it(the `layit` folder) in the root of your web project.<br>
 When you create an html file in your web project, depending on your code organization, it should look like this:
-`
+```html
 <html>
     <head>
         <title>TODO supply a title</title>
@@ -25,7 +25,7 @@ When you create an html file in your web project, depending on your code organiz
 <!--        <div>HAAAI!!!! MAIIIIY PIPUULLL!!!</div>-->
     </body>
 </html>
-`
+```
 
 You will not need to worry about importing the other js files, the layit project does that for you. **ABSOLUTELY ENSURE THAT YOUR RUN YOUR CODE IN A WEB-SERVER ENVIRONMENT!**<br>
 
