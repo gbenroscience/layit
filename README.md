@@ -29,4 +29,30 @@ When you create an html file in your web project, depending on your code organiz
 
 You will not need to worry about importing the other js files, the layit project does that for you. **ABSOLUTELY ENSURE THAT YOUR RUN YOUR CODE IN A WEB-SERVER ENVIRONMENT!**<br>
 
-ReadME still under-development
+The code above wil go and fetch an xml layout called test.xml from the layouts folder in the layit folder and use as the ui definition for the current html page.
+
+
+### Layouts
+All your xml layouts must be placed in the `layit/layouts` folder.<br>
+No sub-folders are allowed here.
+All your view tags, with the exception of the root view tag in the xml must have an `id`
+
+#### Includes
+Sub layouts can be included in a layout up to several levels. Just use the <include/> tag and specify the layout to be included. e.g:
+```xml
+ <include
+        layout="includer"
+        id="included_details"
+        width="100%"
+        height="220"
+        marginTop="12px"
+        cx_align="parent"
+        top_bottom="some_view"
+        border="1px solid lightgray"
+        borderRadius="1em"
+    />
+```
+
+The above tag specifies that a div should be created and assigned the identity: `included_details`. The xml layout in the file called includer.xml should be rendered within this
+div. It should horizontally aligned with its parent center and its top should be constrained to the bottom of a view whose id is `some_view` in the same xml file. The other properties are injected into the stylesheet for the page.<br>
+_**ReadME still under-development**_
