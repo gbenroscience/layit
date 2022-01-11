@@ -37,6 +37,49 @@ All your xml layouts must be placed in the `layit/layouts` folder.<br>
 No sub-folders are allowed here.
 All your view tags, with the exception of the root view tag in the xml must have an `id`
 
+### Layout Construction & Syntax
+The syntax of your xml file is basically same as that of Android's xml.
+The constraint properties with long names have been renamed to shorter forms to allow for quicker typing and other advantages, e.g:
+
+```
+    layout_constraintTop_toTopOf -> top_top
+    layout_constraintBottom_toBottomOf -> bottom_bottom
+    layout_constraintStart_toStartOf -> start_start
+    layout_constraintEnd_toEndOf  -> end_end
+    layout_constraintTop_toBottomOf -> top_bottom
+    layout_constraintStart_toEndOf -> start_end
+    layout_constraintEnd_toStartOf -> end_start
+    layout_constraintBottom_toTopOf -> bottom_top
+    layout_constraintCenterXAlign -> cx_align
+    layout_constraintCenterYAlign -> cy_align
+    layout_constraintGuide_percent -> guide_percent
+```
+
+#### layout_width and layout_height
+
+#### cx_align and cy_align
+
+Allow a layout's center to be constrained horizontally or vertically to another layout's center.<br>
+The values accepted are either, `parent` or `view_id`; the id of the view we are constraining this view with respect to.
+
+
+
+These properties are used to specify the size of the view. You may specify the values without a dimension, e.g. `layout_width='200'`, or with a dimension, e.g. `layout_width='200px'` or `layout_width='45%'` , or relative to another view in the same layout file, e.g `layout_width='another_views_id/2'` or `layout_width='another_views_id/0.85'`. Multiplication operation is not supported here, only division.
+
+`layout_width='match_parent'` and `layout_height='match_parent'` are supported.
+`layout_width='wrap_content'` and `layout_height='wrap_content'` are only partially supported. The implementation is not yet complete as regards these, for various reasons.
+
+The underlying `autolayout.js` library does not seem to support `wrap_content`,so we are trying to provide some implementation for it.
+
+Note that where no units are specified, pixels are used. So `layout_width='200'` and `layout_width='200px'` are equivalent.
+All these apply to `layout_height` also.<br>
+**CSS calc operations are not supported**<br>
+
+#### layout_maxWidth and layout_maxHeight , layout_minWidth and layout_minHeight 
+These are all supported.
+    
+    
+
 #### Includes
 Sub layouts can be included in a layout up to several levels. Just use the <include/> tag and specify the layout to be included. e.g:
 ```xml
@@ -54,5 +97,7 @@ Sub layouts can be included in a layout up to several levels. Just use the <incl
 ```
 
 The above tag specifies that a div should be created and assigned the identity: `included_details`. The xml layout in the file called includer.xml should be rendered within this
-div. It should horizontally aligned with its parent center and its top should be constrained to the bottom of a view whose id is `some_view` in the same xml file. The other properties are injected into the stylesheet for the page.<br>
+div. It should horizontally aligned with its parent center and its top should be constrained to the bottom of a view whose id is `some_view` in the same xml file. The other properties are injected into the stylesheet for the page.<br><br>
+
+
 _**ReadME still under-development**_
