@@ -43,17 +43,19 @@ The syntax of your xml file is basically same as that of Android's xml.
 The constraint properties with long names have been renamed to shorter forms to allow for quicker typing and other advantages, e.g:
 
 ```
-    layout_constraintTop_toTopOf -> top_top
+    layout_constraintTop_toTopOf       -> top_top
     layout_constraintBottom_toBottomOf -> bottom_bottom
-    layout_constraintStart_toStartOf -> start_start
-    layout_constraintEnd_toEndOf  -> end_end
-    layout_constraintTop_toBottomOf -> top_bottom
-    layout_constraintStart_toEndOf -> start_end
-    layout_constraintEnd_toStartOf -> end_start
-    layout_constraintBottom_toTopOf -> bottom_top
-    layout_constraintCenterXAlign -> cx_align
-    layout_constraintCenterYAlign -> cy_align
-    layout_constraintGuide_percent -> guide_percent
+    layout_constraintStart_toStartOf   -> start_start
+    layout_constraintEnd_toEndOf       -> end_end
+    layout_constraintTop_toBottomOf    -> top_bottom
+    layout_constraintStart_toEndOf     -> start_end
+    layout_constraintEnd_toStartOf     -> end_start
+    layout_constraintBottom_toTopOf    -> bottom_top
+    layout_constraintCenterXAlign      -> cx_align
+    layout_constraintCenterYAlign      -> cy_align
+    layout_constraintGuide_percent     -> guide_percent
+    layout_constraintDimensionRatio    -> dim_ratio
+    layout_constraintGuide_percent     -> guide_percent
 ```
 
 #### layout_width and layout_height
