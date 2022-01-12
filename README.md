@@ -7,7 +7,7 @@ This project already works, but is currently under development and new ui widget
 You can achieve very complex layouts very quickly using constraints. In addition, we adopted the cool xml style of Google's android xml layouts which allow you build layouts very quickly instead of the weird but **powerful?** syntax of VFL and EVFL.
 To make things even sweeter, we have changed the long names given to the constraint properties in the android xml syntax, to much shorter versions to allow for quick typing and to reduce bloat, e.g: `app:layout_constraintBottom_toBottomOf="parent"` becomes: `bottom_bottom='parent'`
 
-### NOTE: Some of the more advanced constraint properties in Android xml's ConstraintLayout are not yet supported, such as chaining, layout weight etc.  
+### NOTE: Some of the more advanced constraint properties in Android xml's ConstraintLayout are not yet supported, such as chaining, layout weight, priorities(from autolayout) etc.
 ## Usage
 
 You need the entire project folder, so clone this repository and place it(the `layit` folder) in the root of your web project.<br>
@@ -39,8 +39,11 @@ No sub-folders are allowed here.
 All your view tags, with the exception of the root view tag in the xml must have an `id`
 
 A layout file must begin with a root element, called a `ConstraintLayout` element.
-This root element is later translated into a div anyway, if you care to know.
-Any <View /> tag is also translated into a div later on.
+This root element is later translated into a `div` anyway, if you care to know.
+Any `<View />` tag is also translated into a div later on.
+
+With this library and similar libs, we are looking at the days of flatter layouts in web ui technologies, just as happened on mobile devices.
+Nested layouts can only result if the user decides to use included files, as these are translated and laid out in their own div, before their parent div is appended into the including div(The div generated from the `<include />` tag.
 
 The file would look like this:
 
@@ -120,7 +123,7 @@ These are all supported.
 
 #### cx_align and cy_align
 
-Allow a layout's center to be constrained horizontally or vertically to another layout's center.<br>
+Allows a layout's center to be constrained horizontally or vertically to another layout's center.<br>
 The values accepted are either, `parent` or `view_id`; where `view_id` is the id of the view we are constraining this view with respect to.
 
 
