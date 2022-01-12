@@ -104,7 +104,7 @@ function InputTable(options) {
                         if (options.showBorders === true) {
                             row.tableCells[j].addStyle("border", "1px solid #e7ecf1");
                         }
-                        row.tableCells[j].addStyle("padding", this.cellpadding);
+                        row.tableCells[j].addStyle("padding", this.cellPadding);
                         row.tableCells[j].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
                         row.tableCells[j].addStyle("overflow", "hidden");
                         row.tableCells[j].addStyle("text-overflow", "ellipsis");
@@ -182,7 +182,7 @@ function InputTable(options) {
                         if (options.showBorders === true) {
                             row.tableCells[j].addStyle("border", "1px solid #e7ecf1");
                         }
-                        row.tableCells[j].addStyle("padding", this.cellpadding);
+                        row.tableCells[j].addStyle("padding", this.cellPadding);
                         row.tableCells[j].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
                         row.tableCells[j].addStyle("overflow", "hidden");
                         row.tableCells[j].addStyle("text-overflow", "ellipsis");
@@ -263,28 +263,36 @@ function InputTable(options) {
                         if (options.showBorders === true) {
                             row.tableCells[j].addStyle("border", "1px solid #e7ecf1");
                         }
-                        row.tableCells[j].addStyle("padding", this.cellpadding);
+                        row.tableCells[j].addStyle("padding", this.cellPadding);
                         row.tableCells[j].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
                         row.tableCells[j].addStyle("overflow", "hidden");
                         row.tableCells[j].addStyle("text-overflow", "ellipsis");
                         row.tableCells[j].addStyle("white-space", "nowrap");
-
                     }
-
-
                 }
-
             }
-
         }
     } else {
         this.textcolumns = [];
     }
 
-
-    if (typeof options.selectcolumns !== 'undefined' && typeof options.selectcolumns[0] === 'string'
-            && this.isOneDimensionalArray(options.selectcolumns[1])) {
+//If user entered the selectcolumns as a json string, parse it into the object form
+if(typeof options.selectcolumns === 'string' && options.selectcolumns.trim().length > 0){
+    options.selectcolumns = JSON.parse(options.selectcolumns);
+}
+    if (typeof options.selectcolumns === 'object' && this.isOneDimensionalArray(options.selectcolumns) && options.selectcolumns.length > 0 
+            && typeof options.selectcolumns[0] === 'object') {
         this.selectcolumns = options.selectcolumns;
+        /**
+         * The selectcolumns should give a structure like:
+         
+         [
+          {'key1': ['Entry 1','Entry 2','Entry 3','Entry 4']},
+          {'key2': ['Entry 21','Entry 22','Entry 23','Entry 24']},
+          {'key3': ['Entry 31','Entry 32','Entry 33','Entry 34']},...
+         ]
+         
+         */
 
 
         modifyRowsByAddingSelectColumns:{
@@ -296,8 +304,8 @@ function InputTable(options) {
 
                 var len = row.tableCells.length;
                 /*
-                 * selectcolumns : 
-                 * [
+                 selectcolumns: 
+                 [
                  {
                  "Title1": ["Entry A1", "Entry B1, Entry C1"]
                  },
@@ -315,6 +323,8 @@ function InputTable(options) {
                  </select> 
                  */
                 for (var j = 0; j < this.selectcolumns.length; j++) {
+                    let obj = this.selectcolumns[j];
+                    let values = Object.values(obj);
 
 
                     if (i === 0) {
@@ -325,7 +335,7 @@ function InputTable(options) {
                          * the first json entry i.e. [Title1]. To get that key, just get the element at the zeroth index, so:
                          * Object.keys(this.selectcolumns[j])[0]
                          */
-                        var cell = new TableCell(Object.keys(this.selectcolumns[j])[0], row.header, row.footer);
+                        var cell = new TableCell(Object.keys(obj)[0], row.header, row.footer);
                         cell.setId(row.getCellIdAt(len + j));
                         cell.setStyle(new Style("#" + cell.getId(), []));
 
@@ -342,8 +352,8 @@ function InputTable(options) {
                         var selectHtml = new StringBuffer('<select class="').append(this.getTableCellSelectTypeClass()).append(" ")
                                 .append(this.getTableCellSelectColumnClass(len + j)).append('" >');
 
-                        for (var k = 0; k < this.selectcolumns[j].length; k++) {
-                            selectHtml.append("<option value='").append(k + "'>").append(this.selectcolumns[j][k]).append("</option>");
+                        for (var k = 0; k < values[0].length; k++) {
+                            selectHtml.append("<option value='").append(k + "'>").append(values[0][k]).append("</option>");
                         }
                         selectHtml.append("</select>");
 
@@ -360,7 +370,7 @@ function InputTable(options) {
             }
 
             /*
-             * Addition of the colums for the check boxes does not contain
+             * Addition of the columns for the check boxes does not contain
              *  the equal width specification for the cells so recalculate the cell widths now
              *  and apply the borders of the cells if 
              
@@ -378,7 +388,7 @@ function InputTable(options) {
                         if (options.showBorders === true) {
                             row.tableCells[j].addStyle("border", "1px solid #e7ecf1");
                         }
-                        row.tableCells[j].addStyle("padding", this.cellpadding);
+                        row.tableCells[j].addStyle("padding", this.cellPadding);
                         row.tableCells[j].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
                         row.tableCells[j].addStyle("overflow", "hidden");
                         row.tableCells[j].addStyle("text-overflow", "ellipsis");
@@ -398,10 +408,9 @@ function InputTable(options) {
 
 }
 
-InputTable.prototype.constructor = InputTable;
 
 InputTable.prototype = Object.create(Table.prototype);
-
+InputTable.prototype.constructor = InputTable;
 
 /**
  * 
@@ -488,24 +497,30 @@ InputTable.prototype.build = function (parent) {
     });
     var btnStyle = new Style("#" + this.getTableCellButtonTypeClass(), []);
     btnStyle.addFromOptions({
-        'display': "table",
-        'margin': "0 auto",
-        'padding': '3px 1em'
+        'display': "block",
+        'font-size': '0.9em',
+        'min-width': '80%',
+        'max-width':'95%',
+        'margin': "auto"
     });
 
     var textFieldStyle = new Style("#" + this.getTableCellTextFieldTypeClass(), []);
     textFieldStyle.addFromOptions({
-        'display': "table",
-        'margin': "0 auto",
-        'padding': '3px 1em',
+        'display': "block",
+        'padding': '2px',
+        'min-width': '80%',
+        'max-width':'95%',
+        'margin': "auto",
         'border': '0.5px solid gray'
     });
 
     var selectStyle = new Style("#" + this.getTableCellSelectTypeClass(), []);
     selectStyle.addFromOptions({
-        'display': "table",
-        'margin': "0 auto",
-        'padding': '3px 1em',
+        'display': "block",
+        'margin': "auto",
+        'padding': '2px',
+        'min-width': '80%',
+        'max-width':'95%',
         'border': '0.5px solid gray'
     });
 
@@ -664,9 +679,10 @@ InputTable.prototype.addRows = function (data) {
 
             var len = row.tableCells.length;
             for (var j = 0; j < this.selectcolumns.length; j++) {
-
+                    let obj = this.selectcolumns[j];
+                    let values = Object.values(obj);
                 if (i === 0) {
-                    var cell = new TableCell(Object.keys(this.selectcolumns[j])[0], row.header, row.footer);
+                    var cell = new TableCell(Object.keys(obj)[0], row.header, row.footer);
                     cell.setId(row.getCellIdAt(len + j));
                     cell.setStyle(new Style("#" + cell.getId(), []));
 
@@ -681,10 +697,11 @@ InputTable.prototype.addRows = function (data) {
 
                     var selectHtml = new StringBuffer('<select class="').append(this.getTableCellSelectTypeClass()).append(" ")
                             .append(this.getTableCellSelectColumnClass(len + j)).append('" >');
-
-                    for (var k = 0; k < this.selectcolumns[j].length; k++) {
-                        selectHtml.append("<option value='").append(k + "'>").append(this.selectcolumns[j][k]).append("</option>");
-                    }
+                    
+                       for (var k = 0; k < values[0].length; k++) {
+                            selectHtml.append("<option value='").append(k + "'>").append(values[0][k]).append("</option>");
+                        }
+               
                     selectHtml.append("</select>");
 
 

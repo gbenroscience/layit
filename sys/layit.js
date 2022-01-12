@@ -6,7 +6,11 @@
 
 
 let SCRIPTS_BASE = getScriptBaseUrl();
-alert(SCRIPTS_BASE);
+
+let isNumber = function (number) {
+  return isNaN(number) === false;
+};
+
 const PATH_TO_LAYOUTS_FOLDER = SCRIPTS_BASE + 'layouts/';
 const PATH_TO_IMAGES = SCRIPTS_BASE + 'images/';
 const PATH_TO_COMPILER_SCRIPTS = SCRIPTS_BASE+"sys/";
@@ -20,9 +24,9 @@ document.currentScript = document.currentScript || (function () {
 
 
 let nativeScripts = [
-    SCRIPTS_BASE + '/sys/autolayout.js',
-    SCRIPTS_BASE + '/sys/main.js',
-    SCRIPTS_BASE + '/sys/compiler-constants.js',
+    SCRIPTS_BASE + 'sys/autolayout.js',
+    SCRIPTS_BASE + 'sys/main.js',
+    SCRIPTS_BASE + 'sys/compiler-constants.js',
     SCRIPTS_BASE + 'libs/utils/colorutils.js',
     SCRIPTS_BASE + 'libs/utils/constants.js',
     SCRIPTS_BASE + 'libs/utils/stringutils.js',
@@ -95,7 +99,7 @@ const xmlKeys = {
     inputTable: "InputTableView",
     growableTable: "GrowableTableView",
     searchableTable: "SearchableTableView",
-    customTable: "CustomTable",
+    customTable: "CustomTableView",
     popup: "Popup",
     list: "List",
     label: "Label",
@@ -145,6 +149,7 @@ const attrKeys = {
     layout_constraintCenterXAlign: "cx_align",
     layout_constraintCenterYAlign: "cy_align",
     layout_constraintGuide_percent: "guide_percent",
+    dimension_ratio: "dim_ratio",
     orientation: "orientation", //
 
     items: "items", // an array of items to display in a list or a dropdown
@@ -154,9 +159,23 @@ const attrKeys = {
     pagingEnabled: 'pagingEnabled',
     tableTheme: 'tableTheme',// for custom tables only
     cellPadding: 'cellPadding', //works only for the custom tables
+    headerPadding: 'headerPadding',
     showLeftBtn: 'showLeftBtn',// only works for the SeachableTableView
+    buttonText: "buttonText",// the text on the top left button
     hasHeader: "hasHeader", //check if a native html table node must have an header row
     hasFooter: "hasFooter", //check if a native html table node or a custom table must have a footer row
+    hasContainer: "hasContainer", //check if a custom table must have a container
+    actionColumns: "actionColumns",// a list of columns on an InputTableView, GrowableTableView or a SearchableTableView that will be rendered as buttons
+    checkableColumns: "checkableColumns",// a list of columns on an InputTableView, GrowableTableView or a SearchableTableView that will be rendered as checkboxes
+    textColumns: "textColumns",// a list of columns on an InputTableView, GrowableTableView or a SearchableTableView that will be rendered as textfields
+    selectColumns: "selectColumns",// a list of columns on an InputTableView, GrowableTableView or a SearchableTableView that will be rendered as dropdowns
+    
+    
+    
+    hasCaption: "hasCaption",
+    caption: "caption",
+    scrollHeight: "scrollHeight",
+    withNumbering: "withNumbering",
     cssClass: "cssClass",
     resize: "resize",
     progressColor: "progressColor",
@@ -295,6 +314,7 @@ let parseImports = function (scriptsText) {
         throw new Error('each js file definition in an import tag must end with a `;`');
     }
     let files = scriptsText.split(';');
+    
 
     for (let i = 0; i < files.length; i++) {
         let file = files[i].trim();
@@ -302,7 +322,6 @@ let parseImports = function (scriptsText) {
         if (file.substring(len - 3) === '.js') {
             files[i] = PATH_TO_UI_SCRIPTS + file;
         }
-
     }
     return files;
 };
@@ -384,9 +403,12 @@ function setContentView(layoutFileName) {
 function loadScripts(scripts) {
     for (let i = 0; i < scripts.length; i++) {
         let newScript = document.createElement("script");
-        newScript.src = scripts[i];
+        let src = scripts[i];
+        if(src.trim().length > 0){
+            newScript.src = src;
         let head = document.getElementsByTagName('head')[0];
         head.appendChild(newScript);
+        }
     }
 }
 
@@ -585,10 +607,18 @@ Parser.prototype.nodeProcessor = function (node) {
             break;
 
         case xmlKeys.table:
-            console.log("HIAAA", xmlKeys.table);
             view = new NativeTable(node);
             break;
 
+        case xmlKeys.customTable:
+            view = new CustomTableView(node);
+            break;
+        case xmlKeys.inputTable:
+            view = new InputTableView(node);
+            break;
+        case xmlKeys.growableTable:
+            view = new GrowableTableView(node);
+            break;
         case xmlKeys.searchableTable:
             view = new SearchableTableView(node);
             break;
