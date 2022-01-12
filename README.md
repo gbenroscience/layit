@@ -10,7 +10,7 @@ To make things even sweeter, we have changed the long names given to the constra
 ### NOTE: Some of the more advanced constraint properties in Android xml's ConstraintLayout are not yet supported, such as chaining, layout weight etc.  
 ## Usage
 
-You need the entire project folder, so clone this repo and place it(the `layit` folder) in the root of your web project.<br>
+You need the entire project folder, so clone this repository and place it(the `layit` folder) in the root of your web project.<br>
 When you create an html file in your web project, depending on your code organization, it should look like this:
 ```html
 <html>
@@ -38,7 +38,49 @@ All your xml layouts must be placed in the `layit/layouts` folder.<br>
 No sub-folders are allowed here.
 All your view tags, with the exception of the root view tag in the xml must have an `id`
 
-### Layout Construction & Syntax
+A layout file must begin with a root element, called a `ConstraintLayout` element.
+This root element is later translated into a div anyway, if you care to know.
+
+The file would look like this:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<ConstraintLayout
+    width="match_parent"
+    height="match_parent">
+
+     <View
+        id="section_top"
+        width="match_parent"
+        height="128px"
+        backgroundColor="#000044"
+        top_top='parent'
+        start_start='parent'
+        end_end='parent'
+
+    />
+    <Label
+        id="site_title"
+        width="wrap_content"
+        height="wrap_content"
+        start_start='section_top'
+        cy_align="section_top"
+        marginStart="16"
+        textColor="#eee"
+        value="Layit Framework By Example"
+        textSize="1.5em"
+        textStyle="bold italic"
+        fontFamily="Kartika"
+    
+    />
+  
+    <!--- ...Other xml tags -->
+</ConstraintLayout>    
+```
+
+
+
+### Layout Construction & Syntax in more detail
 The syntax of your xml file is basically same as that of Android's xml.
 The constraint properties with long names have been renamed to shorter forms to allow for quicker typing and other advantages, e.g:
 
@@ -63,7 +105,7 @@ The constraint properties with long names have been renamed to shorter forms to 
 #### cx_align and cy_align
 
 Allow a layout's center to be constrained horizontally or vertically to another layout's center.<br>
-The values accepted are either, `parent` or `view_id`; the id of the view we are constraining this view with respect to.
+The values accepted are either, `parent` or `view_id`; where `view_id` is the id of the view we are constraining this view with respect to.
 
 
 
