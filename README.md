@@ -27,10 +27,10 @@ When you create an html file in your web project, depending on your code organiz
     </body>
 </html>
 ```
+The code above will go and fetch an xml layout called `test.xml` from the `layouts` sub-folder in the `layit` folder and use it as the ui definition for the current html page.
 
 You will not need to worry about importing the other js files, the layit project does that for you. **ABSOLUTELY ENSURE THAT YOU RUN YOUR CODE IN A WEB-SERVER ENVIRONMENT!**<br>
 
-The code above will go and fetch an xml layout called `test.xml` from the `layouts` sub-folder in the `layit` folder and use it as the ui definition for the current html page.
 
 
 ### Layouts
@@ -40,6 +40,7 @@ All your view tags, with the exception of the root view tag in the xml must have
 
 A layout file must begin with a root element, called a `ConstraintLayout` element.
 This root element is later translated into a div anyway, if you care to know.
+Any <View /> tag is also translated into a div later on.
 
 The file would look like this:
 
@@ -102,14 +103,7 @@ The constraint properties with long names have been renamed to shorter forms to 
 
 #### layout_width and layout_height
 
-#### cx_align and cy_align
-
-Allow a layout's center to be constrained horizontally or vertically to another layout's center.<br>
-The values accepted are either, `parent` or `view_id`; where `view_id` is the id of the view we are constraining this view with respect to.
-
-
-
-These properties are used to specify the size of the view. You may specify the values without a dimension, e.g. `layout_width='200'`, or with a dimension, e.g. `layout_width='200px'` or `layout_width='45%'` , or relative to another view in the same layout file, e.g `layout_width='another_views_id/2'` or `layout_width='another_views_id/0.85'`. Multiplication operation is not supported here, only division.
+These properties are used to specify the size of the view. You may specify the values without a dimension, e.g. `layout_width='200'`, or with a dimension, e.g. `layout_width='200px'` or `layout_width='45%'` , or relative to another view in the same layout file, e.g `layout_width='another_views_id/2'` or `layout_width='another_views_id/0.85'` or `layout_width='another_views_id'`. Multiplication operation is not supported here, only division.
 
 `layout_width='match_parent'` and `layout_height='match_parent'` are supported.
 `layout_width='wrap_content'` and `layout_height='wrap_content'` are only partially supported. The implementation is not yet complete as regards these, for various reasons.
@@ -123,7 +117,13 @@ All these apply to `layout_height` also.<br>
 #### layout_maxWidth and layout_maxHeight , layout_minWidth and layout_minHeight 
 These are all supported.
     
-    
+
+#### cx_align and cy_align
+
+Allow a layout's center to be constrained horizontally or vertically to another layout's center.<br>
+The values accepted are either, `parent` or `view_id`; where `view_id` is the id of the view we are constraining this view with respect to.
+
+
 
 #### Includes
 Sub layouts can be included in a layout up to several levels. Just use the <include/> tag and specify the layout to be included. e.g:
@@ -166,7 +166,8 @@ This will load the files `aaa.js` and `mmm.js` in the directories `aa` and `mm` 
 Your ui scripts should be defined in the `uiscripts` directory. You may create folders and subfolders within the `uiscripts` directory
 
 
-Define an `imports` tag anywhere in the xml layout and the library will load the scripts defined in the imports tag
+Define an `imports` tag anywhere in the xml layout and the library will load the scripts defined in the `imports` tag.<br>
+This allows you to separate your ui(the xml layout) from its logic and other related logic.
 
 
 
