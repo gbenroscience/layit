@@ -101,5 +101,33 @@ Sub layouts can be included in a layout up to several levels. Just use the <incl
 
 The above tag specifies that a div should be created and assigned the identity: `included_details`. The xml layout in the file called `includer.xml` should be rendered within this div. It should be horizontally aligned with its parent center and its top should be constrained to the bottom of a view whose id is `some_view` in the same xml file. The other properties are injected into the stylesheet for the page.<br><br>
 
+### imports: Loading scripts to control your ui elements
+
+`**imports**` are an important feature introduced here. They allow the library dynamically load scripts that the user wishes to use in working with the xml ui; e.g. a controller.
+
+To import scripts, use the imports tag as such:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<ConstraintLayout
+    width="match_parent"
+    height="match_parent">
+
+    <imports
+        files="aa/aaa.js;mm/mmm.js;"
+    />
+    
+    <!--- ...Other xml tags -->
+</ConstraintLayout>    
+```
+This will load the files `aaa.js` and `mmm.js` in the directories `aa` and `mm` respectively; where the directories `aa` and `mm` are both located in the `uiscripts` directory of the `layit` folder.<br>
+Your ui scripts should be defined in the `uiscripts` directory. You may create folders and subfolders within the `uiscripts` directory
+
+
+Define an `imports` tag anywhere in the xml layout and the library will load the scripts defined in the imports tag
+
+
+
+
 
 _**ReadME still under-development**_
