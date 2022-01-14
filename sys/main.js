@@ -83,20 +83,27 @@ function setAbsoluteSizeAndPosition(elm, left, top, width, height) {
 }
 
 
-/* global AutoLayout, attrKeys, xmlKeys, viewMap, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits, PATH_TO_IMAGES */
+/* global AutoLayout, attrKeys, xmlKeys, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits, PATH_TO_IMAGES */
 /**
- *
+ * 
  * @param {type} node The node that represents this View in the android style xml document
  * @returns {View}
  */
-function View(node) {
+
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {XMLNode} node
+ * @returns {View}
+ */
+function View(wkspc, node) {
     const zaId = node.getAttribute(attrKeys.id);
 
     if (typeof zaId === 'undefined' || zaId === null || zaId === '') {
         throw 'Please specify the view id properly';
     }
 
-    if (typeof viewMap.get(zaId) !== 'undefined') {
+    if (typeof wkspc.findViewById(zaId) !== 'undefined') {
         throw 'A view with this id(`' + zaId + '`) exists already';
     }
 
@@ -106,7 +113,7 @@ function View(node) {
     this.root = nodeName === xmlKeys.root || nodeName === xmlKeys.include;
 
     //The main ConstraintLayout tag in the original layout file
-    this.topLevelRoot = this.root === true && viewMap.size === 0;
+    this.topLevelRoot = this.root === true && wkspc.viewMap.size === 0;
 
     this.id = zaId;
 
@@ -202,6 +209,20 @@ function View(node) {
         
         this.width = node.getAttribute(attrKeys.layout_width);
         this.height = node.getAttribute(attrKeys.layout_height);
+        
+        
+        changePxToUnitLess:{
+            
+            if(endsWith(this.width , 'px')){
+                this.width = parseInt(this.width);
+            }if(endsWith(this.height , 'px')){
+                this.height = parseInt(this.height);
+            }
+            
+        }
+        
+        
+        
         this.dimRatio = -1;//Not specified... dimRatio is width/height
 
         this.wrapWidth = "";
@@ -436,7 +457,7 @@ function View(node) {
 
 
     this.createElement(node);
-    viewMap.set(this.id, this);
+    wkspc.viewMap.set(this.id, this);
     if (cssClasses !== null) {
         addClass(this.htmlElement, cssClasses);
     }
@@ -551,9 +572,10 @@ function parseNumberAndUnits(val) {
 
 /**
  * Layout the content of an xml file relative to its root
- * @return {string}m
+ * @param {Workspace} wkspc 
+ * @return {string} the vfl definition for this View
  */
-View.prototype.makeVFL = function () {
+View.prototype.makeVFL = function (wkspc) {
 
 
     let mt = parseInt(this.marginTop);
@@ -645,8 +667,8 @@ View.prototype.makeVFL = function () {
 
     let parent, hasIncludedParent;
     if (attributeNotEmpty(this.parentId)) {
-        parent = viewMap.get(this.parentId);
-        hasIncludedParent = parent && parent.constructor.name === 'IncludedView';
+        parent = wkspc.viewMap.get(this.parentId);
+        hasIncludedParent = parent && (parent.constructor.name === 'IncludedView' || parent.constructor.name === 'PopupView');
     }
     /**
      * Must be the root node in an included file
@@ -925,13 +947,6 @@ View.prototype.makeVFL = function () {
 
     return vfl.toString().trim();
 };
-View.prototype.register = function () {
-    viewMap.set(this.id, this);
-};
-
-View.prototype.unregister = function () {
-    viewMap.delete(this.id);
-};
 
 function isHTMLTagName(tagName) {
     if (typeof tagName === 'string') {
@@ -1142,13 +1157,17 @@ ClockView.prototype.constructor = ClockView;
 IncludedView.prototype = Object.create(View.prototype);
 IncludedView.prototype.constructor = IncludedView;
 
+
+PopupView.prototype = Object.create(IncludedView.prototype);
+PopupView.prototype.constructor = PopupView;
+
 /**
- *
+ * @param {Workspace} wkspc 
  * @param {type} node key-value object
- * @returns {undefined}
+ * @returns {CheckBox}
  */
-function CheckBox(node) {
-    View.call(this, node);
+function CheckBox(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 CheckBox.prototype.createElement = function (node) {
@@ -1175,12 +1194,12 @@ CheckBox.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc 
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function Button(node) {
-    View.call(this, node);
+function Button(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 Button.prototype.createElement = function (node) {
@@ -1216,12 +1235,12 @@ Button.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc 
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function NativeTable(node) {
-    View.call(this, node);
+function NativeTable(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 NativeTable.prototype.createElement = function (node) {
@@ -1312,10 +1331,15 @@ NativeTable.prototype.calculateWrapContentSizes = function (node) {
     this.wrapHeight = 250;
 };
 
-function CustomTableView(node) {
+/**
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {CustomTableView}
+ */
+function CustomTableView(wkspc,node) {
     this.options = {};
     this.customTable = null;
-    View.call(this, node);
+    View.call(this, wkspc, node);
 }
 
 
@@ -1477,11 +1501,14 @@ CustomTableView.prototype.calculateWrapContentSizes = function (node) {
     this.wrapHeight = 300;
 };
 
-
-function InputTableView(node) {
-    this.options = {};
-    this.customTable = null;
-    View.call(this, node);
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {InputTableView}
+ */
+function InputTableView(wkspc, node) {
+    CustomTableView.call(this, wkspc, node);
 }
 
 InputTableView.prototype.createElement = function (node) {
@@ -1667,10 +1694,14 @@ InputTableView.prototype.createElement = function (node) {
 
 };
 
-function GrowableTableView(node) {
-    this.options = {};
-    this.customTable = null;
-    View.call(this, node);
+/**
+ * 
+  @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {GrowableTableView}
+ */
+function GrowableTableView(wkspc, node) {
+    InputTableView.call(this, wkspc, node);
 }
 
 
@@ -1852,7 +1883,7 @@ GrowableTableView.prototype.createElement = function (node) {
         textcolumns: textColumns,
         selectcolumns: selectColumns
     };
-    console.log(this.options);
+
 
     if (cssClass && cssClass !== "") {
         this.options.classname = cssClass;
@@ -1863,11 +1894,14 @@ GrowableTableView.prototype.createElement = function (node) {
 
 };
 
-
-function SearchableTableView(node) {
-    this.options = {};
-    this.customTable = null;
-    View.call(this, node);
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {SearchableTableView}
+ */
+function SearchableTableView(wkspc, node) {
+    GrowableTableView.call(this, wkspc, node);
 }
 
 SearchableTableView.prototype.createElement = function (node) {
@@ -2078,12 +2112,12 @@ SearchableTableView.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function TextField(node) {
-    View.call(this, node);
+function TextField(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 TextField.prototype.createElement = function (node) {
@@ -2137,14 +2171,14 @@ TextField.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function ProgressBar(node) {
+function ProgressBar(wkspc, node) {
     this.options = {};
     this.progress = null;
-    View.call(this, node);
+    View.call(this, wkspc, node);
 }
 
 ProgressBar.prototype.createElement = function (node) {
@@ -2190,12 +2224,12 @@ ProgressBar.prototype.runProgress = function () {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function TextArea(node) {
-    View.call(this, node);
+function TextArea(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 /**
@@ -2258,24 +2292,30 @@ TextArea.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function DropDown(node) {
-    View.call(this, node);
+function DropDown(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 
 DropDown.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('SELECT');
     var items = node.getAttribute(attrKeys.items);
-    console.log(items);
     items = items.replace(/\n|\r/g,'');//remove new lines
+    let regex1 = /(')(\s*)(,)(\s*)(')/g;
+    let regex2 = /(")(\s*)(,)(\s*)(")/g;
+    
+    items = items.replace(regex1 , "','");
+    items = items.replace(regex2 , '","');
+ 
+   
 
     if (attributeNotEmpty(items)) {
-        let scanner = new Scanner(items, false, new Array('\'', '\"', '[', ']', ','));
-        let data = scanner.scan();
+        console.log('items:\n',items);
+    let data = JSON.parse(items);
         for (var i = 0; i < data.length; i++) {
             this.htmlElement.options[this.htmlElement.options.length] = new Option(data[i], i + "");
         }
@@ -2289,12 +2329,12 @@ DropDown.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function List(node) {
-    View.call(this, node);
+function List(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 List.prototype.createElement = function (node) {
@@ -2308,12 +2348,12 @@ List.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function Label(node) {
-    View.call(this, node);
+function Label(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 
@@ -2347,12 +2387,12 @@ Label.prototype.calculateWrapContentSizes = function (node) {
 
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function MultiLineLabel(node) {
-    View.call(this, node);
+function MultiLineLabel(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 
@@ -2378,9 +2418,14 @@ MultiLineLabel.prototype.createElement = function (node) {
 MultiLineLabel.prototype.calculateWrapContentSizes = function (node) {
     this.getWrapSize(node);
 };
-
-function CanvasView(node) {
-    View.call(this, node);
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {CanvasView}
+ */
+function CanvasView(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 CanvasView.prototype.createElement = function (node) {
@@ -2408,11 +2453,16 @@ CanvasView.prototype.calculateWrapContentSizes = function (node) {
     this.wrapWidth = this.htmlElement.getAttribute('width');
     this.wrapHeight = this.htmlElement.getAttribute('height');
 };
-
-function ClockView(node) {
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {ClockView}
+ */
+function ClockView(wkspc, node) {
     this.clockOptions = {};
     this.clock = null;
-    View.call(this, node);
+    View.call(this, wkspc, node);
 
 }
 
@@ -2500,12 +2550,12 @@ ClockView.prototype.calculateWrapContentSizes = function (node) {
 
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function RadioGroup(node) {
-    View.call(this, node);
+function RadioGroup(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 RadioGroup.prototype.createElement = function (node) {
@@ -2517,12 +2567,12 @@ RadioGroup.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function Radio(node) {
-    View.call(this, node);
+function Radio(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 Radio.prototype.createElement = function (node) {
@@ -2547,8 +2597,14 @@ Radio.prototype.calculateWrapContentSizes = function (node) {
 
 };
 
-function ImageView(node) {
-    View.call(this, node);
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {ImageView}
+ */
+function ImageView(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 ImageView.prototype.createElement = function (node) {
@@ -2563,12 +2619,12 @@ ImageView.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function Separator(node) {
-    View.call(this, node);
+function Separator(wkspc, node) {
+    View.call(this, wkspc, node);
 
 }
 
@@ -2594,12 +2650,12 @@ Separator.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function Guideline(node) {
-    View.call(this, node);
+function Guideline(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 Guideline.prototype.createElement = function (node) {
@@ -2666,9 +2722,24 @@ Guideline.prototype.makeVFL = function () {
     return vfl.toString();
 
 };
-
-function IncludedView(node) {
-    View.call(this, node);
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {PopupView}
+ */
+function PopupView(wkspc, node){
+    this.hidden = true;
+    IncludedView.call(this, wkspc, node);
+}
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {IncludedView}
+ */
+function IncludedView(wkspc, node) {
+    View.call(this, wkspc, node);
 
     let rawLayoutName = node.getAttribute(attrKeys.layout);
     let layout = rawLayoutName;
@@ -2685,12 +2756,10 @@ function IncludedView(node) {
      * @type {string[]}
      */
     this.directChildConstraints = [];
-    this.constraints = [];
 
-    let xmlLayout = xmlIncludes.get(layout);
+    let xmlLayout = wkspc.xmlIncludes.get(layout);
 
-
-    let mp = new Parser(xmlLayout, this.id);
+    let mp = new Parser(wkspc, xmlLayout, this.id);
 
     this.constraints = mp.constraints;
 

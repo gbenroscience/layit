@@ -33,7 +33,7 @@ and open the template in the editor.
             cx_align="parent"
             top_bottom="block_title_6"
             marginEnd="8"
-            items="['Washington DC','Abuja','New Delhi','London','Paris','Dublin','Seoul','Tokyo','Rio De Janeiro','Santiago','Buenos Aires','Quito']"
+            items='["Washington DC","Abuja","New Delhi","London","Paris","Dublin","Seoul","Tokyo","Rio De Janeiro","Santiago","Buenos Aires","Quito"]'
             background="#ddd"
             fontFamily="Avenir"
             padding="0px"

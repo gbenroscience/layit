@@ -4,7 +4,7 @@
     height="match_parent">
 
     <imports
-        files="aa/aaa.js;kkk/mmm.js;"
+        files="test/test.js;test/aaa.js;" controller="TestController"
     />
     <View
         id="section_top"
@@ -213,7 +213,7 @@
         end_start="notes_area"
         cy_align="notes_area"
         marginEnd="8"
-        items="['Nigeria','The United States','The United Kingdom','France','South Africa','Republic of Ireland','South Korea','Japan','Brazil','Chile','Argentina','Ecuador']"
+        items='["Nigeria","The United States","The United Kingdom","France","South Africa","Republic of Ireland","South Korea","Japan","Brazil","Chile","Argentina","Ecuador"]'
         background="#ddd"
         fontFamily="Avenir"
         padding="0px"
@@ -287,6 +287,18 @@
         borderRadius="1em"
     />
 
+     <PopupView
+        layout="popup"
+        id="states_popup"
+        width="120px"
+        height="75px"
+        marginTop="40"
+        cx_align="parent"
+        top_bottom="notes_area"
+        border="1px solid green"
+        borderRadius="1em"
+    />
+        
     <Radio
         id='yes'
         width="20"
@@ -377,7 +389,7 @@
         title="Layit!!"
         src="splash.png"
         pagingEnabled="true"
-        actionColumns='["CLICK","GOTO"]'
+        actionColumns='["VIEW","DELETE"]'
         checkableColumns='["RED" , "BLUE"]'
         textColumns='["Value 1","Value 2","Value 3"]'
         selectColumns='[{"Countries": ["Nigeria","Portugal","Chile","Colombia","South Africa"]},{"Capitals": ["Abuja","Lisbon","Santiago","Bogota","Pretoria"]},{"Continents": ["Africa","Europe","South America","South America","Africa"]}]'

@@ -7,12 +7,12 @@ and open the template in the editor.
 
 
 <ConstraintLayout
-    width="100%"
-    height="match_parent"
+    width="88%"
+    height="300px"
 >
     
     <Label
-        id="block_title_7"
+        id="pop_title"
         width="wrap_content"
         height="wrap_content"
         cx_align='parent'
@@ -27,11 +27,11 @@ and open the template in the editor.
 
 
     <DropDown
-            id="us_states_drop_down"
+            id="pop_title_us_states_drop_down"
             width="220px"
             height="32px"
             cx_align="parent"
-            top_bottom="block_title_7"
+            top_bottom="pop_title"
             marginEnd="8"
             items='["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho",
                     "Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Mississippi","Minnesota","Missouri",

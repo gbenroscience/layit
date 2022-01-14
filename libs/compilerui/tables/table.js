@@ -1626,8 +1626,9 @@ Table.prototype.buildRawTable = function () {
     }
     var rowLen = this.getRowLength();
     var thead = table.createTHead();
+    var tbody = table.createTBody();
     var tfoot = table.createTFoot();
-    document.getElementsByTagName("tbody")[0] = document.createElement("tbody");
+    //document.getElementsByTagName("tbody")[0] = tbody;
     for (var i = 0; i < rowLen; i++) {
         var row = this.rows[i];
         row.setId(this.id + '_' + i);
@@ -1638,7 +1639,7 @@ Table.prototype.buildRawTable = function () {
             tfoot.appendChild(row.getHtml());
         }
         if (row.header !== true && row.footer !== true) {
-            table.appendChild(row.getHtml());
+            tbody.appendChild(row.getHtml());
         }
 
     }
