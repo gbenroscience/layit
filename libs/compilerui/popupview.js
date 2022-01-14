@@ -15,6 +15,7 @@ var popupZIndex = 1000;
  * Format is:
  * 
  * {
+ *   layitId: "id_generated_for_view_by_layit_compiler",
  *   width : '10em',
  *   height : '6em',
  *   bg: '#ffffff',
@@ -23,31 +24,25 @@ var popupZIndex = 1000;
  *   border-radius : 1em,
  *   width : 30%,
  *   onOpen : function(){},
- *   onClose : function(){}
- *   
- *   }
- *   
- * 
- * 
- * 
+ *   onClose : function(){}   
  * }
- * @param {string} injectableHTML HTML layout string to show in the popup. 
  * 
  * 
  * 
  * @returns {undefined}
  */
-function Popup(options, injectableHTML) {
+function Popup(options) {
 
     if (!options) {
         console.log("No options specified for creating this popup");
         return;
     }
-    if (!options.id || typeof options.id !== 'string') {
-        console.log("Hi! You have not specified a value for options.id! Popup cannot be created");
-        return;
+    if (!options.layitId || typeof options.layitId !== 'string') {
+        throw new Error("Hi! You have not specified a value for options.layitId! Popup cannot be created");
     }
-    this.id = options.id;
+    this.layitId = options.layitId;
+    this.id = options.layitId+'_popup';
+    
     if (typeof options.width !== 'string') {
         console.log("Hi! options.width must be a valid css dimension! Defaulting to 90%");
         options.width = "90%";
@@ -86,15 +81,15 @@ function Popup(options, injectableHTML) {
         this.onClose = function () {};
     }
 
-    if (injectableHTML && typeof injectableHTML === 'string') {
-        this.injectableHTML = injectableHTML;
-    } else {
-        this.injectableHTML = '<p style="padding: 1em;font-size: 1em; color : red;font-weight:bold">Home made OOP Popup!</p>';
-    }
+            //this.injectableHTML = '<p style="padding: 1em;font-size: 1em; color : red;font-weight:bold">Home made OOP Popup!</p>';
 
     this.registry = {};//register css classes and map them to their styles.
 
+var body = document.body,
+    html = document.documentElement;
 
+var height = Math.max( body.scrollHeight, body.offsetHeight, 
+                       html.clientHeight, html.scrollHeight, html.offsetHeight );
 
 
     this.opaqueBgStyle = new Style('#' + this.id, []);
@@ -115,7 +110,7 @@ function Popup(options, injectableHTML) {
         right: '0',
         'z-index': popupZIndex + '',
         width: '100%',
-        height: '100%'
+        height: height+'px'
     });
 
 
@@ -140,7 +135,7 @@ function Popup(options, injectableHTML) {
             display: 'block',
             padding: '0px',
             margin: '0px',
-            'overflow-y': 'scroll',
+            overflow: 'auto',
             width: w,
             height: h,
             'background-color': bg,
@@ -153,7 +148,6 @@ function Popup(options, injectableHTML) {
             for (var key in containerCss) {
                 this.containerStyle.addStyleElement(key, containerCss[key]);
             }
-
         }
     }
 
@@ -232,13 +226,13 @@ Popup.prototype.build = function () {
 
 
 
-    var dialog = document.createElement('div');
+    dialog = document.createElement('div');
     document.body.appendChild(dialog);
     dialog.setAttribute("id", this.containerId());
 
 
 
-    var closeBtn = document.createElement("input");
+    let closeBtn = document.createElement("input");
     closeBtn.type = "button";
     closeBtn.value = "\u02DF";
 
@@ -246,7 +240,11 @@ Popup.prototype.build = function () {
     this.addClass(elem, this.overlayClass());
     this.addClass(closeBtn, this.closeBtnClass());
 
-    dialog.innerHTML = this.injectableHTML;
+    
+
+let workspace = new Workspace( 'popup.xml' , dialog.id, function () {
+     
+    });
 
 
     
@@ -301,7 +299,7 @@ Popup.prototype.overlayClass = function () {
 
 
 Popup.prototype.containerId = function () {
-    return this.id + "-container";
+    return this.id + "_container";
 };
 
 

@@ -15,7 +15,7 @@
  * 
  * {
  * ...,
- * buttontext : "Add New",
+ * buttonText : "Add New",
  * onAddBtnClicked    : function(){}
  * 
  * 
@@ -29,11 +29,11 @@ function GrowableTable(options) {
         return;
     }
 
-    if (isEmptyText(options.buttontext)) {
+    if (isEmptyText(options.buttonText)) {
         logIfConsole("The button text is not specified for the table.  Specify with `buttontext: Add New` option.");
         this.buttonText = 'Button';
     } else {
-        this.buttonText = options.buttontext;
+        this.buttonText = options.buttonText;
     }
 
     if (options.onAddBtnClicked && {}.toString.call(options.onAddBtnClicked) === '[object Function]') {
@@ -86,8 +86,8 @@ function GrowableTable(options) {
 
 
 
-GrowableTable.prototype.constructor = GrowableTable;
 GrowableTable.prototype = Object.create(InputTable.prototype);
+GrowableTable.prototype.constructor = GrowableTable;
 
 
 

@@ -15,7 +15,7 @@ function StyleElement(attr,value){
     this.attr = attr.trim();
     this.value = value.trim();
 }else{
-    console.log("attr or value must be string.");
+    throw new Error("attr or value must be string...`attr` = "+attr+", `value` = "+value);
 }
 }
 

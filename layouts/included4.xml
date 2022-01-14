@@ -48,6 +48,17 @@ and open the template in the editor.
         borderRadius="10px"
     />
 
+        <include
+            layout="included7"
+            id="us_states_layout"
+            width="250"
+            height="120"
+            marginStart="0px"
+            cx_align="parent"
+            top_bottom="phone_input_4"
+            border="0px solid gray"
+            borderRadius="0em"
+    />
     
     
 </ConstraintLayout>

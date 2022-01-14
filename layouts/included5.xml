@@ -7,7 +7,7 @@ and open the template in the editor.
 
 
 <ConstraintLayout
-        width="90%"
+        width="90px"
         height="match_parent"
 >
     

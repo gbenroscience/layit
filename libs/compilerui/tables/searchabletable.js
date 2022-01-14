@@ -120,8 +120,8 @@ function SearchableTable(options) {
 }
 
 
-SearchableTable.prototype.constructor = SearchableTable;
 SearchableTable.prototype = Object.create(GrowableTable.prototype);
+SearchableTable.prototype.constructor = SearchableTable;
 
 
 

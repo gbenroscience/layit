@@ -4,25 +4,35 @@
  * and open the template in the editor.
  */
 
+/* global PATH_TO_UI_SCRIPTS, xmlKeys, attrKeys, DISABLE_INPUT_SHADOW, PATH_TO_COMPILER_SCRIPTS, ViewController */
+/**
+ * All workspaces loaded for this page.
+ * Each workspace has the ability to parse a root xml layout which may have several included layouts.
+ * A workspace will be needed to parse the root layout for the main page. Another workspace may be needed to parse a layout file
+ * which is used for a popup view. Another might be used to parse a layout file loaded dynamically with ajax and whose parsed content
+ * will be shown on a div or other item.
+ * So a page may have several workspaces.
+ * 
+ * Workspaces accomplish their work using background loaders(using the fetch API and workers) and Parser objects.
+ * The key to the workspaces Map is the workspace id, and its value is the workspace itself
+ * @type Map
+ */
 
-let SCRIPTS_BASE = getScriptBaseUrl();
-alert(SCRIPTS_BASE);
-const PATH_TO_LAYOUTS_FOLDER = SCRIPTS_BASE + 'layouts/';
-const PATH_TO_IMAGES = SCRIPTS_BASE + 'images/';
-const PATH_TO_COMPILER_SCRIPTS = SCRIPTS_BASE+"sys/";
-const PATH_TO_UI_SCRIPTS = SCRIPTS_BASE+"uiscripts/";
+/**
+ * When this is specified as the Workspace's system_root_id field,
+ * the library will attach the parsed layout to document.body
+ * @type String
+ */
+const BODY_ID = 'html_main';
 
-document.currentScript = document.currentScript || (function () {
-    var scripts = document.getElementsByTagName('script');
-    return scripts[scripts.length - 1];
-})();
+const SCRIPTS_BASE = getScriptBaseUrl();
 
 
-
-let nativeScripts = [
-    SCRIPTS_BASE + '/sys/autolayout.js',
-    SCRIPTS_BASE + '/sys/main.js',
-    SCRIPTS_BASE + '/sys/compiler-constants.js',
+const nativeScripts = [
+    SCRIPTS_BASE + 'sys/autolayout.js',
+    SCRIPTS_BASE + 'sys/main.js',
+    SCRIPTS_BASE + 'sys/compiler-constants.js',
+    SCRIPTS_BASE + 'sys/sdk/viewcontroller.js',
     SCRIPTS_BASE + 'libs/utils/colorutils.js',
     SCRIPTS_BASE + 'libs/utils/constants.js',
     SCRIPTS_BASE + 'libs/utils/stringutils.js',
@@ -33,7 +43,7 @@ let nativeScripts = [
     SCRIPTS_BASE + 'libs/compilerui/imagebox.js',
     SCRIPTS_BASE + 'libs/compilerui/list.js',
     SCRIPTS_BASE + 'libs/compilerui/pager.js',
-    SCRIPTS_BASE + 'libs/compilerui/popup.js',
+    SCRIPTS_BASE + 'libs/compilerui/popupview.js',
     SCRIPTS_BASE + 'libs/compilerui/progress.js',
     SCRIPTS_BASE + 'libs/compilerui/style.js',
     SCRIPTS_BASE + 'libs/compilerui/textwithlines.js',
@@ -41,200 +51,77 @@ let nativeScripts = [
     SCRIPTS_BASE + 'libs/compilerui/tables/inputtable.js',
     SCRIPTS_BASE + 'libs/compilerui/tables/growabletable.js',
     SCRIPTS_BASE + 'libs/compilerui/tables/searchabletable.js'
-
 ];
+
+
+let workspaces = new Map();
+
+let isNumber = function (number) {
+    return isNaN(number) === false;
+};
+
+
+document.currentScript = document.currentScript || (function () {
+    var scripts = document.getElementsByTagName('script');
+    return scripts[scripts.length - 1];
+})();
+
+
+
 /**
- * Stores the views by the html id.
- * @type Map a map of all views
+ * 
+ * @param {string} rootLayoutName The name of the xml file to be loaded and parsed... Just the simple file name, no path needed.
+ * @param {string} destElemId The id of the element that the parsed document will be attached to
+ * @param {Function} onComplete 
+ * @returns {Workspace}
  */
-let viewMap = new Map();
-let allStyles = [];
+function Workspace(rootLayoutName, destElemId, onComplete) {
+
+
+    if (onComplete && typeof onComplete !== 'function') {
+        throw new Error('`onComplete` must be a function!');
+    }
+    
+    this.systemRootId = destElemId;//;
+    this.id = destElemId + '_' + rootLayoutName;//This is the workspace id.
+    this.viewMap = new Map();
+    this.allStyles = [];
+    this.xmlIncludes = new Map();
+    this.workersMap = new Map();
+    this.rootCount = 0;
+    this.rootParser = null;
+    this.rootLayoutName = rootLayoutName;
+    this.layoutCount = 0;
+    this.loadedCount = 0;
+    this.deadEnds = 0;
+    this.styleSheet = document.createElement('style');
+    this.styleSheet.setAttribute('type', 'text/css');
+    this.rootXml = null;
+    /**
+     * The ViewController that can be used with the view.
+     */
+    this.controller = null;
+    this.onComplete = onComplete;
+
+    workspaces.set(this.id, this);
+    this.setContentView(rootLayoutName);
+
+}
+
+
 /**
- * Store prefetched xml-layouts here
- * @type {Map<any, any>}
+ * @param {Workspace} workspace 
+ * @param {type} xml The xml being parsed
+ * @param {type} parentId The id of the view that hosts the resultant parsed xml layout, usually applies to included views
+ * @returns {Parser}
  */
-let xmlIncludes = new Map();
-/**
- * Document all workers here
- * @type {Map<any, any>}
- */
-let workersMap = new Map();
+function Parser(workspace, xml, parentId) {
 
-let rootCount = 0;
-const system_root_id = 'html_main';
-const DISABLE_INPUT_SHADOW = true;
-
-const sizes = {
-    MATCH_PARENT: 'match_parent',
-    WRAP_CONTENT: 'wrap_content'
-};
-
-
-const orientations = {
-    VERTICAL: 'vertical',
-    HORIZONTAL: 'horizontal'
-};
-
-
-const xmlKeys = {
-    imports: "imports",
-    root: "ConstraintLayout",
-    view: "View",
-    button: "Button",
-    field: "TextField",
-    area: "TextArea",
-    imageView: "ImageView",
-    progress: "ProgressBar",
-    check: "CheckBox",
-    radiogroup: "RadioGroup",
-    radio: "Radio",
-    separator: "Separator",
-    dropDown: "DropDown",
-    guide: "Guideline",
-    table: "NativeTable",
-    inputTable: "InputTableView",
-    growableTable: "GrowableTableView",
-    searchableTable: "SearchableTableView",
-    customTable: "CustomTable",
-    popup: "Popup",
-    list: "List",
-    label: "Label",
-    multiLabel: "MultiLineLabel",
-    clock: "Clock",
-    canvas: "Canvas",
-    include: "include"
-};
-
-
-const attrKeys = {
-    id: "id",
-    layout: "layout", //specifies the layout file to use with an include tag
-    layout_width: "width",
-    layout_height: "height",
-
-    layout_maxWidth: "maxWidth",
-    layout_maxHeight: "maxHeight",
-    layout_minWidth: "minWidth",
-    layout_minHeight: "minHeight",
-
-    width: "width", //on canvas element
-    height: "height", //on canvas element
-    translationZ: "translationZ", //the z index
-    layout_margin: "margin",
-    layout_marginStart: "marginStart",
-    layout_marginEnd: "marginEnd",
-    layout_marginTop: "marginTop",
-    layout_marginBottom: "marginBottom",
-    layout_marginHorizontal: "marginHorizontal",
-    layout_marginVertical: "marginVertical",
-    layout_padding: "padding",
-    layout_paddingStart: "paddingStart",
-    layout_paddingEnd: "paddingEnd",
-    layout_paddingTop: "paddingTop",
-    layout_paddingBottom: "paddingBottom",
-    layout_paddingHorizontal: "paddingHorizontal",
-    layout_paddingVertical: "paddingVertical",
-    layout_constraintTop_toTopOf: "top_top",
-    layout_constraintBottom_toBottomOf: "bottom_bottom",
-    layout_constraintStart_toStartOf: "start_start",
-    layout_constraintEnd_toEndOf: "end_end",
-    layout_constraintTop_toBottomOf: "top_bottom",
-    layout_constraintStart_toEndOf: "start_end",
-    layout_constraintEnd_toStartOf: "end_start",
-    layout_constraintBottom_toTopOf: "bottom_top",
-    layout_constraintCenterXAlign: "cx_align",
-    layout_constraintCenterYAlign: "cy_align",
-    layout_constraintGuide_percent: "guide_percent",
-    orientation: "orientation", //
-
-    items: "items", // an array of items to display in a list or a dropdown
-    tableItems: 'tableItems', //a 2d array of items to display on a table
-    title: 'title', // table title
-    showBorders: 'showBorders', // show the custom table's inner borders(does not apply to the native table)
-    pagingEnabled: 'pagingEnabled',
-    tableTheme: 'tableTheme',// for custom tables only
-    cellPadding: 'cellPadding', //works only for the custom tables
-    showLeftBtn: 'showLeftBtn',// only works for the SeachableTableView
-    hasHeader: "hasHeader", //check if a native html table node must have an header row
-    hasFooter: "hasFooter", //check if a native html table node or a custom table must have a footer row
-    cssClass: "cssClass",
-    resize: "resize",
-    progressColor: "progressColor",
-
-    files: "files",
-    src: "src",
-    alt: "alt", //image tag
-    border: "border", //e.g 1px solid red
-    borderRadius: "borderRadius", //e.g 1px solid red
-    background: "background",
-    backgroundImage: "backgroundImage",
-    backgroundColor: "backgroundColor",
-    backgroundAttachment: "backgroundAttachment",
-    boxShadow: "boxShadow",
-    inputType: "inputType", //text or password
-    text: "text",
-    textColor: "textColor",
-    textSize: "textSize",
-    textStyle: "textStyle",
-    font: "font",
-    fontFamily: "fontFamily",
-    fontSize: "fontSize",
-    fontWeight: "fontWeight",
-    fontStyle: "fontStyle",
-    fontStretch: "fontStretch",
-    checked: "checked",
-    name: "name",
-    value: "value",
-    placeholder: "placeholder",
-    maxLength: 'maxLength',
-    rows: 'rows',
-    cols: 'cols',
-    clockOuterColor: 'clockOuterColor',
-    clockMiddleColor: 'clockMiddleColor',
-    clockInnerColor: 'clockInnerColor',
-    clockTickColor: 'clockTickColor',
-    clockSecondsColor: "clockSecondsColor",
-    clockMinutesColor: 'clockMinutesColor',
-    clockHoursColor: 'clockHoursColor',
-    clockCenterSpotWidth: 'clockHoursColor',
-    clockOuterCircleAsFractionOfFrameSize: 'clockOuterCircleAsFractionOfFrameSize',
-    clockShowBaseText: 'clockShowBaseText',
-    description: 'description'
-
-};
-
-
-
-/*
- * Sample for recursive parse
- function nodeMarkup( node ){
- if( node.childNodes.length ) {
- var list = '', header = '';
- for( var index = 0; index < node.childNodes.length; index++ ) {
- if( node.childNodes[index].tagName == 'name' ) {
- header = node.childNodes[index].textContent;
- } else {
- list += nodeMarkup( node.childNodes[index] );
- };
- };
- return node.hasAttribute( 'submenu' ) 
- ? '<li>' + header + '<ul>' + list + '</ul></li>'
- : list;
- } else {
- return '<li>' + node.textContent + '</li>';
- };  
- };
- */
-
-function Parser(xml, parentId) {
 
     this.constraints = [];
     this.html = new StringBuffer('');
     this.parentId = parentId && typeof parentId === "string" && parentId.length > 0 ? parentId : '';//needed for includes.
     this.rootView = null;
-
-    this.styleSheet = document.createElement('style');
-    this.styleSheet.setAttribute('type', 'text/css');
 
 
     if (!parentId) {
@@ -246,8 +133,8 @@ function Parser(xml, parentId) {
             '-webkit-box-sizing': 'border-box',
             '-moz-box-sizing': 'border-box'
         });
-        injectStyleSheets(this.styleSheet, [generalStyle]);
-        allStyles.push(generalStyle);
+        injectStyleSheets(workspace.styleSheet, [generalStyle]);
+        workspace.allStyles.push(generalStyle);
 
     }
 
@@ -258,13 +145,8 @@ function Parser(xml, parentId) {
      */
     this.doneParsing = false;
     this.errorOccured = false;
-    /**
-     * An array of parsers that were born because this Parser encountered includes
-     * which needed to be parsed.
-     * @type {Parser[]}
-     */
-    this.childParsers = [];
-    this.nodeProcessor(new NodeMaker(xml).rootNode);
+
+    this.nodeProcessor(workspace, new NodeMaker(xml).rootNode);
 
 }
 
@@ -295,16 +177,17 @@ let parseImports = function (scriptsText) {
         throw new Error('each js file definition in an import tag must end with a `;`');
     }
     let files = scriptsText.split(';');
+    let cleanedFiles = [];
+
 
     for (let i = 0; i < files.length; i++) {
         let file = files[i].trim();
         let len = file.length;
         if (file.substring(len - 3) === '.js') {
-            files[i] = PATH_TO_UI_SCRIPTS + file;
+            cleanedFiles.push(PATH_TO_UI_SCRIPTS + file);
         }
-
     }
-    return files;
+    return cleanedFiles;
 };
 
 
@@ -318,7 +201,7 @@ function getScriptBaseUrl() {
         let ender = 'sys/layit.js';
         let fullLen = src.length;
         let endLen = ender.length;
-        
+
         //check if script.src ends with layit.js
         if (src.lastIndexOf(ender) === fullLen - endLen) {
             return src.substring(0, fullLen - endLen);
@@ -329,8 +212,24 @@ function getScriptBaseUrl() {
     return null;
 }
 
-function setContentView(layoutFileName) {
+Workspace.prototype.resetLoaderIndices = function () {
+    this.layoutCount = this.loadedCount = this.deadEnds = 0;
+    this.rootXml = null;
+};
 
+Workspace.prototype.resetAllIndices = function () {
+    this.workersMap.clear();
+    this.viewMap.clear();
+    this.xmlIncludes.clear();
+    this.rootCount = 0;
+    this.allStyles.length = 0;
+    this.resetLoaderIndices();
+};
+
+Workspace.prototype.setContentView = function (layoutFileName) {
+
+
+    let self = this;
     /**
      * Recursively loads all the scripts natively used by the compiler, so that the user wont be stressed with this.
      * The user only needs load this file(layit.js) on their html page, in order to use this library.
@@ -342,33 +241,29 @@ function setContentView(layoutFileName) {
             throw new Error('Please supply a number for the load index');
         }
         if (i < nativeScripts.length) {
-            let newScript = document.createElement("script");
-            newScript.setAttribute('src', nativeScripts[i]);
-            let head = document.getElementsByTagName('head')[0];
-            head.appendChild(newScript);
+            if (!isScriptLoaded(nativeScripts[i])) {
+                let newScript = document.createElement("script");
+                newScript.setAttribute('src', nativeScripts[i]);
+                let head = document.getElementsByTagName('head')[0];
+                head.appendChild(newScript);
 
-            newScript.onload = function () {
+                newScript.onload = function () {
+                    loadnative(i + 1);
+                };
+            } else {
                 loadnative(i + 1);
-            };
+            }
+
         } else {
             console.log('Compiler Scripts Fully Loaded');
-            prefetchAllLayouts(layoutFileName, function () {
+            self.prefetchAllLayouts(layoutFileName, function () {
                 console.log('Resetting engine parameters...');
-                workersMap.clear();
-                viewMap.clear();
-                xmlIncludes.clear();
-                rootCount = 0;
-                allStyles.length = 0;
-                layoutCount = 0;
-                loadedCount = 0;
-                deadEnds = 0;
-                rootXml = null;
-
+                self.resetAllIndices();
                 console.log('Now loading layout and associated layouts(included layouts)');
             }, function (xml) {
-                console.log('Loaded layout and ' + (xmlIncludes.size - 1) + ' included layouts');
+                console.log('Loaded layout and ' + (self.xmlIncludes.size - 1) + ' included layouts');
                 if (xml.length > 0) {
-                    let parser = new Parser(xml, null);
+                    self.rootParser = new Parser(self, xml, null);
                     console.log('Parsed loaded file!');
                 } else {
                     console.log('Awaiting loaded file!');
@@ -379,25 +274,45 @@ function setContentView(layoutFileName) {
     }
 
     loadnative(0);
-}
+};
 
-function loadScripts(scripts) {
-    for (let i = 0; i < scripts.length; i++) {
-        let newScript = document.createElement("script");
-        newScript.src = scripts[i];
-        let head = document.getElementsByTagName('head')[0];
-        head.appendChild(newScript);
+function loadScripts(scripts, onload) {
+    if (scripts.length === 0) {
+        return;
     }
+    if (typeof onload !== 'function') {
+        throw new Error('Please supply a function callback for the second argument.');
+    }
+    function loadAt(i) {
+        if (typeof i !== 'number') {
+            throw new Error('Please supply a number for the load index');
+        }
+        if (i < scripts.length) {
+            if (!isScriptLoaded(scripts[i])) {
+                let newScript = document.createElement("script");
+                newScript.setAttribute('src', scripts[i]);
+                let head = document.getElementsByTagName('head')[0];
+                head.appendChild(newScript);
+
+                newScript.onload = function () {
+                    loadAt(i + 1);
+                };
+            } else {
+                loadAt(i + 1);
+            }
+
+        } else {
+            console.log('User imported scripts fully loaded');
+            onload();
+        }
+    }
+
+    loadAt(0);
+
 }
 
 
-let layoutCount = 0;
-let loadedCount = 0;
-let deadEnds = 0;
-let rootXml = null;
-
-
-function prefetchAllLayouts(rootLayout, onPreStart, onload) {
+Workspace.prototype.prefetchAllLayouts = function (rootLayout, onPreStart, onload) {
 
     if (onload.length !== 1) {
         throw new Error('onload must have only one argument.');
@@ -407,6 +322,7 @@ function prefetchAllLayouts(rootLayout, onPreStart, onload) {
         throw new Error('onPreStart must have no argument.');
     }
 
+    let self = this;
     function findIncludes(xml) {
 
         let check = attrKeys.layout + '=';
@@ -415,9 +331,9 @@ function prefetchAllLayouts(rootLayout, onPreStart, onload) {
         let regex = /(layout)(^|\s*)((?<!=)=(?!=))(^|\s*)/;
         xml = xml.replace(regex, check);
         let open = 0, close = 0, layouts = [];
-        if (rootXml === null) {
+        if (self.rootXml === null) {
             onPreStart();
-            rootXml = xml;
+            self.rootXml = xml;
         }
 
         while ((open = xml.indexOf(check, open)) !== -1) {
@@ -431,28 +347,27 @@ function prefetchAllLayouts(rootLayout, onPreStart, onload) {
                 layouts.push(layout);
             }
         }
-        layoutCount += layouts.length;
+        self.layoutCount += layouts.length;
         return layouts;
     }
 
 
-    startFetchWorker(rootLayout, function (layoutXml) {
+    this.startFetchWorker(rootLayout, function (layoutXml) {
         let layouts = findIncludes(layoutXml);
-        loadedCount++;
-        xmlIncludes.set(rootLayout, layoutXml);
+        self.loadedCount++;
+        self.xmlIncludes.set(rootLayout, layoutXml);
         if (layouts.length === 0) {
-            deadEnds++;
-            if (layoutCount === loadedCount - 1) {
-                console.log("DONE! , layout: " + rootLayout + ", layoutCount: " + layoutCount + ", loadedCount: " + loadedCount, ", deadEnds: ", deadEnds);
-                onload(rootXml);
-                layoutCount = loadedCount = deadEnds = 0;
-                rootXml = null;
+            self.deadEnds++;
+            if (self.layoutCount === self.loadedCount - 1) {
+                console.log("DONE! , layout: " + rootLayout + ", layoutCount: " + self.layoutCount + ", loadedCount: " + self.loadedCount, ", deadEnds: ", self.deadEnds);
+                onload(self.rootXml);
+                self.resetLoaderIndices();
 
-                for (let m in workersMap) {
-                    for (let i = 0; i < workersMap[m].length; i++) {
-                        let worker = workersMap[m][i];
+                for (let m in self.workersMap) {
+                    for (let i = 0; i < self.workersMap[m].length; i++) {
+                        let worker = self.workersMap[m][i];
                         let workerName = worker.name;
-                        stopFetchWorker(workerName);
+                        self.stopFetchWorker(workerName);
                         console.log('closed: ' + workerName);
                     }
                 }
@@ -461,25 +376,29 @@ function prefetchAllLayouts(rootLayout, onPreStart, onload) {
             for (let i = 0; i < layouts.length; i++) {
                 let rawLayoutName = layouts[i];
                 let layout = rawLayoutName + '.xml';
-                prefetchAllLayouts(layout, onPreStart, onload);
+                self.prefetchAllLayouts(layout, onPreStart, onload);
             }
         }
     });
 
 
-}
+};
 
-function findHtmlViewById(viewId) {
-    let view = viewMap.get(viewId);
+Workspace.prototype.findHtmlViewById = function (viewId) {
+    let view = this.viewMap.get(viewId);
     if (view) {
         return view.htmlElement;
     }
     return null;
-}
-
-function findViewById(viewId) {
-    return viewMap.get(viewId);
-}
+};
+/**
+ * 
+ * @param {string} viewId
+ * @returns {View|undefined}
+ */
+Workspace.prototype.findViewById = function (viewId) {
+    return this.viewMap.get(viewId);
+};
 
 /**
  *
@@ -502,7 +421,7 @@ function doXmlParse(xml) {
     return xmlDoc;
 }
 
-Parser.prototype.nodeProcessor = function (node) {
+Parser.prototype.nodeProcessor = function (wkspc, node) {
     //use node.parentNode to access the parent of this node
     let childNodes = node.childNodes;
 
@@ -513,13 +432,13 @@ Parser.prototype.nodeProcessor = function (node) {
         case xmlKeys.root:
             let nodeId = node.getAttribute(attrKeys.id);
             if (!nodeId || nodeId === '') {
-                rootCount += 1;
-                node.setAttribute('id', 'root_' + rootCount);
+                wkspc.rootCount += 1;
+                node.setAttribute('id', 'root_' + wkspc.rootCount);
             }
 
-            view = new View(node);//view adds to viewMap automatically in constructor
+            view = new View(wkspc, node);//view adds to viewMap automatically in constructor
 
-            if (viewMap.size === 1) {//first ConstraintLayout tag in the Parser
+            if (wkspc.viewMap.size === 1) {//first ConstraintLayout tag in the Parser
                 view.topLevel = true;
                 this.rootView = view;
             } else {//child ConstraintLayout tags
@@ -527,101 +446,134 @@ Parser.prototype.nodeProcessor = function (node) {
                     view.parentId = this.parentId;
                     this.rootView = view;
                 }
-                let parent = viewMap.get(view.parentId);
+                let parent = wkspc.viewMap.get(view.parentId);
                 parent.childrenIds.push(view.id);
             }
 
             break;
         case xmlKeys.include:
-            view = new IncludedView(node);
+            view = new IncludedView(wkspc, node);
 
 
             break;
+
+        case xmlKeys.popupView:
+            view = new PopupView(wkspc, node);
+
+
+            break;
+
         case xmlKeys.imports:
             let files = node.getAttribute(attrKeys.files);
             let scripts = parseImports(files);
-            loadScripts(scripts);
+            loadScripts(scripts, function () {
+                let controllerName = node.getAttribute(attrKeys.controller);
+                if (typeof controllerName === 'string' && controllerName.length > 0) {
+                    let viewController = new window[controllerName](wkspc.id);
+
+                    if (viewController && viewController instanceof ViewController) {
+                        wkspc.controller = viewController;
+                        wkspc.controller.onCreate(wkspc);
+                        if (wkspc.rootParser.doneParsing === true) {
+                            wkspc.controller.onViewsAttached(wkspc);
+                        }
+                    } else {
+                        throw new Error("Couldn't initialize ViewController...");
+                    }
+
+                }
+            });
+
+
             break;
         case xmlKeys.view:
-            view = new View(node);
+            view = new View(wkspc, node);
             break;
         case xmlKeys.button:
-            view = new Button(node);
+            view = new Button(wkspc, node);
             break;
         case xmlKeys.imageView:
-            view = new ImageView(node);
+            view = new ImageView(wkspc, node);
             break;
         case xmlKeys.progress:
-            view = new ProgressBar(node);
+            view = new ProgressBar(wkspc, node);
             break;
 
         case xmlKeys.field:
-            view = new TextField(node);
+            view = new TextField(wkspc, node);
 
             break;
         case xmlKeys.area:
-            view = new TextArea(node);
+            view = new TextArea(wkspc, node);
             break;
 
         case xmlKeys.check:
-            view = new CheckBox(node);
+            view = new CheckBox(wkspc, node);
 
             break;
 
         case xmlKeys.radiogroup:
-            view = new RadioGroup(node);
+            view = new RadioGroup(wkspc, node);
             break;
 
         case xmlKeys.radio:
-            view = new Radio(node);
+            view = new Radio(wkspc, node);
             break;
 
         case xmlKeys.separator:
-            view = new Separator(node);
+            view = new Separator(wkspc, node);
             break;
 
         case xmlKeys.guide:
-            view = new Guideline(node);
+            view = new Guideline(wkspc, node);
             break;
 
         case xmlKeys.table:
-            console.log("HIAAA", xmlKeys.table);
-            view = new NativeTable(node);
+            view = new NativeTable(wkspc, node);
             break;
 
+        case xmlKeys.customTable:
+            view = new CustomTableView(wkspc, node);
+            break;
+        case xmlKeys.inputTable:
+            view = new InputTableView(wkspc, node);
+            break;
+        case xmlKeys.growableTable:
+            view = new GrowableTableView(wkspc, node);
+            break;
         case xmlKeys.searchableTable:
-            view = new SearchableTableView(node);
+            view = new SearchableTableView(wkspc, node);
             break;
 
         case xmlKeys.list:
-            view = new List(node);
+            view = new List(wkspc, node);
 
             break;
 
         case xmlKeys.label:
-            view = new Label(node);
+            view = new Label(wkspc, node);
             break;
 
         case xmlKeys.dropDown:
-            view = new DropDown(node);
+            view = new DropDown(wkspc, node);
             break;
 
         case xmlKeys.multiLabel:
-            view = new MultiLineLabel(node);
+            view = new MultiLineLabel(wkspc, node);
             break;
         case xmlKeys.clock:
-            view = new ClockView(node);
+            view = new ClockView(wkspc, node);
             break;
         case xmlKeys.canvas:
-            view = new CanvasView(node);
+            view = new CanvasView(wkspc, node);
             break;
         default:
             break;
     }
 
     if (view !== null) {
-        this.constraints.push(view.makeVFL());
-        allStyles.push(view.style);
+        this.constraints.push(view.makeVFL(wkspc));
+        wkspc.allStyles.push(view.style);
     } else {
         if (nodeName !== xmlKeys.imports) {
             this.doneParsing = true;
@@ -644,7 +596,7 @@ Parser.prototype.nodeProcessor = function (node) {
                         view.childrenIds.push(childId);//register the child with the parent
                     }
                 }
-                this.nodeProcessor(childNode);
+                this.nodeProcessor(wkspc, childNode);
             }
         }//end for loop
 
@@ -652,26 +604,25 @@ Parser.prototype.nodeProcessor = function (node) {
 
     }
 
-    this.doneParsing = true;
-    this.errorOccured = false;
 
     if (view) {
         if (view.topLevel === true) {
-            this.buildUI();
+            this.buildUI(wkspc);
         }
     }
 
-
+    this.doneParsing = true;
+    this.errorOccured = false;
 };
 
 
-Parser.prototype.buildUI = function () {
+Parser.prototype.buildUI = function (wkspc) {
 
 
     injectButtonDefaults:{
         let defBtnStyle = new Style("input[type='button']:hover", []);
         defBtnStyle.addStyleElement('cursor', 'pointer');
-        allStyles.push(defBtnStyle);
+        wkspc.allStyles.push(defBtnStyle);
     }
 
     injectAbsCss:{
@@ -680,7 +631,7 @@ Parser.prototype.buildUI = function () {
         styleObj.addStyleElement('padding', '0');
         styleObj.addStyleElement('margin', '0');
 
-        allStyles.push(styleObj);
+        wkspc.allStyles.push(styleObj);
     }
 
     injectInputShadowRemover:{
@@ -690,7 +641,7 @@ Parser.prototype.buildUI = function () {
             inputShadowRemoveStyle.addStyleElement('outline', '0');
             //inputShadowRemoveStyle.addStyleElement('box-shadow', 'none');
 
-            allStyles.push(inputShadowRemoveStyle);
+            wkspc.allStyles.push(inputShadowRemoveStyle);
         }
     }
 
@@ -698,16 +649,27 @@ Parser.prototype.buildUI = function () {
 
     let clocks = [];
     let includes = [];
+    let popups = [];
     let progressBars = [];
-    let customTables = [];
-    viewMap.forEach(function (view, id) {
+    wkspc.viewMap.forEach(function (view, id) {
 
         if (view.constructor.name === 'IncludedView') {
             includes.push(view);
         }
+
+        if (view.constructor.name === 'PopupView') {
+            popups.push(view);
+        }
+
+
         for (let i = 0; i < view.childrenIds.length; i++) {
             let childId = view.childrenIds[i];
-            let child = viewMap.get(childId);
+            let child = wkspc.viewMap.get(childId);
+            if (child.constructor.name === 'PopupView') {
+                //popup views will not be shown by default. They are launched by the user with some action
+                continue;
+            }
+
             view.htmlElement.appendChild(child.htmlElement);
             if (child.constructor.name === 'ClockView') {
                 clocks.push(child);
@@ -715,30 +677,39 @@ Parser.prototype.buildUI = function () {
             if (child.constructor.name === 'ProgressBar') {
                 progressBars.push(child);
             }
-            if(child.constructor.name === 'SearchableTableView'){
-                customTables.push(child);
-            }
         }
+
     });
 
 
     this.html = this.rootView.toHTML();
-    injectStyleSheets(this.styleSheet, allStyles);
+    injectStyleSheets(wkspc.styleSheet, wkspc.allStyles);
 
     makeDefaultPositioningDivs:{
-        let body = document.body;
 
-        body.id = system_root_id;
-        body.style.backgroundColor = 'red';
-        body.appendChild(this.rootView.htmlElement);
+        let baseRoot = null;
+        if (wkspc.systemRootId === BODY_ID) {
+            baseRoot = document.body;
+            baseRoot.id = wkspc.systemRootId;
+        } else {
+            baseRoot = document.getElementById(wkspc.systemRootId);
+        }
 
+
+        baseRoot.style.backgroundColor = 'red';
+        baseRoot.appendChild(this.rootView.htmlElement);
+
+
+    //If the baseRoot is the document.body, then specify its own constraints on the page
+    if(baseRoot === document.body){
         // main layout
         autoLayout(undefined, [
-            'HV:|-0-[' + system_root_id + ']-0-|'
+            'HV:|-0-[' + wkspc.systemRootId + ']-0-|'
         ]);
+    }
 
-        // layout the root layout on the body
-        autoLayout(body, [
+        // layout the root layout on the baseRoot(the element we are attaching the xml layout to)
+        autoLayout(baseRoot, [
             'HV:|-0-[' + this.rootView.htmlElement.id + ']-0-|'
         ]);
 
@@ -748,18 +719,29 @@ Parser.prototype.buildUI = function () {
 
 
 //layout the includes
-        includes.forEach((view) => {
-            let rootChild = viewMap.get(view.childrenIds[0]);
+        includes.forEach((include) => {//Each view is an include
+            let rootChild = wkspc.viewMap.get(include.childrenIds[0]);
             //layout the root of an included layout with respect to its include parent element(which is just a div)
-            autoLayout(view.htmlElement, view.directChildConstraints);
+            autoLayout(include.htmlElement, include.directChildConstraints);
             //console.log('id:  ', view.id, '    ', view.directChildConstraints);
             //layout the xml of an included layout with respect to its root
-            autoLayout(rootChild.htmlElement, view.constraints);
+            autoLayout(rootChild.htmlElement, include.constraints);
             //console.log('Generated Child Constraints for ', view.id, view.constraints);
         });
 
-        //////////console.log('Generated Constraints', this.constraints);
 
+//layout the popups
+        popups.forEach((popupView) => { // Each view is a PopupView
+            // body.appendChild(popupView.htmlElement);
+            let rootChild = wkspc.viewMap.get(popupView.childrenIds[0]);
+            //layout the root of an included layout with respect to its include parent element(which is just a div)
+            autoLayout(popupView.htmlElement, popupView.directChildConstraints);
+            //console.log('id:  ', view.id, '    ', view.directChildConstraints);
+            //layout the xml of an included layout with respect to its root
+            autoLayout(rootChild.htmlElement, popupView.constraints);
+            //console.log('Generated Child Constraints for ', view.id, view.constraints);
+            // popupView.htmlElement.remove();
+        });
 
         clocks.forEach((child) => {
             child.runClock();
@@ -768,14 +750,19 @@ Parser.prototype.buildUI = function () {
         progressBars.forEach((child) => {
             child.runProgress();
         });
-        customTables.forEach((child) => {
-            child.customTable.build(child.htmlElement);
-        });
 
 
     }
 
-    console.log('UI construction logic done...', viewMap.size);
+    if (wkspc.controller && wkspc.controller instanceof ViewController) {
+        wkspc.controller.onResume(wkspc);
+    }
+
+  if(wkspc.onComplete){
+        wkspc.onComplete();
+      }
+
+    console.log('UI construction logic done...', wkspc.viewMap.size);
 
 };
 
@@ -787,7 +774,7 @@ function addClass(element, className) {
     }
 }
 
-function startFetchWorker(layoutFileName, onSucc) {
+Workspace.prototype.startFetchWorker = function (layoutFileName, onSucc) {
 
     let worker = new WorkerBot("worker-" + layoutFileName, PATH_TO_COMPILER_SCRIPTS + 'layout-worker.js',
             function (e) {
@@ -804,21 +791,21 @@ function startFetchWorker(layoutFileName, onSucc) {
 
     worker.postMessage(args);
 
-    workersMap.set(worker.name, worker);
-}
+    this.workersMap.set(worker.name, worker);
+};
 
-function stopFetchWorkerByLayoutName(layoutFileName) {
-    let worker = workersMap.get("worker-" + layoutFileName);
+Workspace.prototype.stopFetchWorkerByLayoutName = function (layoutFileName) {
+    let worker = this.workersMap.get("worker-" + layoutFileName);
     worker.stop();
     worker = null;
-}
+};
 
 
-function stopFetchWorker(workerName) {
-    let worker = workersMap.get(workerName);
+Workspace.prototype.stopFetchWorker = function (workerName) {
+    let worker = this.workersMap.get(workerName);
     worker.stop();
     worker = null;
-}
+};
 
 
 /**
@@ -867,7 +854,60 @@ WorkerBot.prototype.recreate = function () {
     this.worker.onerror = this.onerror;
 };
 
+function isScriptLoaded(scriptURL) {
 
+    let scripts = document.getElementsByTagName('script');
 
-setContentView(document.currentScript.getAttribute('data-launcher'));
-console.log(document.currentScript.getAttribute('data-launcher'));
+    for (let i = 0; i < scripts.length; i++) {
+        let script = scripts[i];
+
+        if (script.src === scriptURL) {
+            return true;
+        }
+
+    }
+
+    return null;
+}
+
+/**
+ * Runs a default workspace based on the file name supplied by the user on the layit.js script tag in the html file.
+ * The 
+ * @returns {undefined}
+ */
+function baseLauncher() {
+    let fileName = document.currentScript.getAttribute('data-launcher');
+    launcher(fileName, BODY_ID);
+}
+
+/**
+ * Runs a workspace based on the file name supplied by the user and the id of the element that the layout should be attached to.
+ * @param {string} fileName
+ * @param {string} elemId
+ * @returns {undefined}
+ */
+function launcher(fileName, elemId) {
+
+    if (elemId && typeof elemId === 'string' && elemId.length > 0) {
+        if (fileName && typeof fileName === 'string' && fileName.length > 0) {
+            let len = fileName.length;
+            let endItem = '.xml';
+            let endLen = endItem.length;
+
+            const isXML = fileName.lastIndexOf(endItem) === len - endLen;
+
+            if (isXML === true) {
+                let workspace = new Workspace(fileName, elemId);
+            } else {
+                throw new Error('Invalid xml file specified in data-launcher attribute of `layit.js` script tag.');
+            }
+        } else {
+            throw new Error('Invalid filename specified');
+        }
+    } else {
+        throw new Error('Invalid parent element specified');
+    }
+
+}
+
+baseLauncher();

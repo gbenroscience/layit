@@ -78,7 +78,7 @@ TableCell.prototype.build = function () {
 };
 /**
  * TableCell function<br>
- * Sets the listener TableCell rowSpan
+ * Sets the listener on the TableCell
  * @param {string} listenerName The name of the listener, e.g. onclick etc.
  * @param {string} listenerCode The code of the listener, the RHS that is assigned to the listenerName.
  * @returns {undefined}
@@ -715,7 +715,8 @@ function logIfConsole(text) {
  * scrollable: true,
  * classname: "nicetable",
  * caption:  "Data table", 
- * cellpadding: "1em",
+ * cellPadding: "1em",
+ * headerPadding: "1.3em",
  * scrollHeight: "150px",
  * icon : "icon.png",
  * hasFooter : true,
@@ -872,12 +873,21 @@ function Table(options) {
         this.caption = options.caption;
     }
 
-    if (isEmptyText(options.cellpadding)) {
-        logIfConsole("Cell-padding not specified for the table.  Specify with the format: `cellpadding: 4px` option.");
-        this.cellpadding = "1em";
+    if (isEmptyText(options.cellPadding)) {
+        logIfConsole("Cell-padding not specified for the table.  Specify with the format: `cellPadding: 4px` option.");
+        this.cellPadding = "1em";
     } else {
-        this.cellpadding = options.cellpadding;
+        this.cellPadding = options.cellPadding;
     }
+    
+    
+    if (isEmptyText(options.headerPadding)) {
+        logIfConsole("header padding not specified for the table.  Specify with the format: `headerPadding: 4px` option.");
+        this.headerPadding = "1.3em";
+    } else {
+        this.headerPadding = options.headerPadding;
+    }
+    
     if (isEmptyText(options.scrollHeight)) {
         logIfConsole("Cell-scroll-height not specified for the table.  Specify with `scrollHeight: 120px` option. Defaulting to 120px.");
         /**
@@ -959,7 +969,7 @@ function Table(options) {
 
         initRows:{
             this.tableCellStyle.addFromOptions({
-                "padding": this.cellpadding,
+                "padding": this.cellPadding,
                 // "word-wrap": "break-word",
                 "word-break": "break-all",
                 "max-width": "calc( 100% / " + options.data[0].length + "  )",
@@ -1030,7 +1040,7 @@ function Table(options) {
 
 
 
-    var cellpdd = this.cellpadding;
+    var cellpdd = this.cellPadding;
     var colorTh = this.colorTheme;
     initHeaderCss:{
 
@@ -1039,7 +1049,7 @@ function Table(options) {
         this.headerStyle.addFromOptions({
             "float": "left",
             "width": "100%",
-            "padding": "calc(" + cellpdd + " * 0.75)",
+            "padding": options.headerPadding,
             "text-align": "left",
             "background-color": colorTh,
             "color": "#ffffff",
@@ -1616,8 +1626,9 @@ Table.prototype.buildRawTable = function () {
     }
     var rowLen = this.getRowLength();
     var thead = table.createTHead();
+    var tbody = table.createTBody();
     var tfoot = table.createTFoot();
-    document.getElementsByTagName("tbody")[0] = document.createElement("tbody");
+    //document.getElementsByTagName("tbody")[0] = tbody;
     for (var i = 0; i < rowLen; i++) {
         var row = this.rows[i];
         row.setId(this.id + '_' + i);
@@ -1628,7 +1639,7 @@ Table.prototype.buildRawTable = function () {
             tfoot.appendChild(row.getHtml());
         }
         if (row.header !== true && row.footer !== true) {
-            table.appendChild(row.getHtml());
+            tbody.appendChild(row.getHtml());
         }
 
     }
@@ -1864,7 +1875,7 @@ Table.prototype.setCellSpacing = function (cellSpacing) {
  * @returns {void}
  */
 Table.prototype.setCellPadding = function (cellPadding) {
-    return this.cellpadding = cellPadding;
+    return this.cellPadding = cellPadding;
 };
 /**
  * A Table function
@@ -1883,7 +1894,7 @@ Table.prototype.getStyle = function () {
 };
 /**
  * A Table function
- * @param {Boolean} scrollable If true, the Table will try to scroll above a certain height(default is 150px).
+ * @param {Boolean} scrollable If true, the Table will try to scroll above a certain height(default is 120px).
  * This height is determined by the scrollHeight property of this Table
  * @returns {undefined}
  */

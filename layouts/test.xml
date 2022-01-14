@@ -4,7 +4,7 @@
     height="match_parent">
 
     <imports
-        files="aa/aaa.js;kkk/mmm.js;"
+        files="test/test.js;test/aaa.js;" controller="TestController"
     />
     <View
         id="section_top"
@@ -152,13 +152,27 @@
         inputType='password'
     />
     
-    
+    <Label
+        id="text_area_label"
+        width="wrap_content"
+        height="wrap_content"
+        start_start='notes_area'
+        bottom_top="notes_area"
+        marginStart="0"
+        marginBottom="16"
+        textColor="red"
+        paddingStart="0"
+        value="Here is a textarea below!"
+        textSize="1.2em"
+        textStyle="bold"
+        fontFamily="Arial"
+    />
     <TextArea
         id="notes_area"
-        width="32%"
-        height="25%"
-        start_start="parent"
-        end_end="parent"
+        width="512px"
+        height="0"
+        dim_ratio='2:1'
+        cx_align="parent"
         top_bottom="section_top"
         marginTop="80"
         marginEnd="8"
@@ -199,7 +213,7 @@
         end_start="notes_area"
         cy_align="notes_area"
         marginEnd="8"
-        items="['Nigeria','The United States','The United Kingdom','France','South Africa','Republic of Ireland','South Korea','Japan','Brazil','Chile','Argentina','Ecuador']"
+        items='["Nigeria","The United States","The United Kingdom","France","South Africa","Republic of Ireland","South Korea","Japan","Brazil","Chile","Argentina","Ecuador"]'
         background="#ddd"
         fontFamily="Avenir"
         padding="0px"
@@ -245,6 +259,22 @@
 
     />
 
+    <Label
+        id="includes_label"
+        width="wrap_content"
+        height="wrap_content"
+        cx_align='included_details'
+        bottom_top="included_details"
+        marginStart="0"
+        marginBottom="16"
+        textColor="darkred"
+        paddingStart="0"
+        value="An included layout with other levels of includes below!"
+        textSize="1.2em"
+        textStyle="bold"
+        fontFamily="Arial"
+    />
+    
     <include
         layout="includer"
         id="included_details"
@@ -253,10 +283,22 @@
         marginTop="408"
         cx_align="parent"
         top_bottom="notes_area"
-        border="1px solid black"
+        border="1px solid lightgray"
         borderRadius="1em"
     />
 
+     <PopupView
+        layout="popup"
+        id="states_popup"
+        width="120px"
+        height="75px"
+        marginTop="40"
+        cx_align="parent"
+        top_bottom="notes_area"
+        border="1px solid green"
+        borderRadius="1em"
+    />
+        
     <Radio
         id='yes'
         width="20"
@@ -282,36 +324,76 @@
         
     />
     
-    
+    <Label
+        id="table_one_label"
+        width="wrap_content"
+        height="wrap_content"
+        start_start='table_one'
+        bottom_top="table_one"
+        marginStart="0"
+        marginBottom="16"
+        textColor="red"
+        paddingStart="0"
+        value="Here is a native html table below"
+        textSize="1.2em"
+        textStyle="bold"
+        fontFamily="Arial"
+    />
     <NativeTable
         id="table_one"
         width="120"
         height="90"
         end_start="drop_down"
         cy_align="notes_area"
+        marginHorizontal='20px'
         hasHeader="true"
+        fontWeight='bold'
         hasFooter="false"
+        textColor="midnightblue"
         tableItems="[row[23,44,90],row[1001,873,202],row[34,98,188]]"
     
     
     />
     
+  <Label
+        id="custom_table_label"
+        width="wrap_content"
+        height="wrap_content"
+        start_start='table_two'
+        top_bottom="notes_area"
+        marginStart="0"
+        marginTop="8"
+        textColor="darkred"
+        paddingStart="0"
+        value="A custom table below!"
+        textSize="1.2em"
+        textStyle="bold"
+        fontFamily="Arial"
+    />
     
     
     <SearchableTableView
         id="table_two"
-        width="450"
-        height="90"
+        width="90%"
+        height="190"
+        withNumbering='true'
         cx_align="parent"
-        top_bottom="notes_area"
+        top_bottom="custom_table_label"
+        marginTop="8"
         hasHeader="true"
-        hasFooter="true"
+        hasFooter="false"
         showBorders="true"
+        headerPadding="1.3em"
+        fontSize="1.0em"
         theme="#444444"
         title="Layit!!"
-        src="logo_small.png"
+        src="splash.png"
         pagingEnabled="true"
-        tableItems="[row[FIRST,SECOND,THIRD],row[1001,873,202],row[34,98,188],row[394,598,1086],row[COOL,NUMBERS,HERE],]"
+        actionColumns='["VIEW","DELETE"]'
+        checkableColumns='["RED" , "BLUE"]'
+        textColumns='["Value 1","Value 2","Value 3"]'
+        selectColumns='[{"Countries": ["Nigeria","Portugal","Chile","Colombia","South Africa"]},{"Capitals": ["Abuja","Lisbon","Santiago","Bogota","Pretoria"]},{"Continents": ["Africa","Europe","South America","South America","Africa"]}]'
+        tableItems="[row[FIRST,SECOND,THIRD],row[1001,873,202],row[34,98,188],row[394,598,1086],row[COOL,NUMBERS,HERE]]"
     
     
     />

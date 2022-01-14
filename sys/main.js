@@ -83,20 +83,27 @@ function setAbsoluteSizeAndPosition(elm, left, top, width, height) {
 }
 
 
-/* global AutoLayout, attrKeys, xmlKeys, viewMap, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits, PATH_TO_IMAGES */
+/* global AutoLayout, attrKeys, xmlKeys, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits, PATH_TO_IMAGES */
 /**
- *
+ * 
  * @param {type} node The node that represents this View in the android style xml document
  * @returns {View}
  */
-function View(node) {
+
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {XMLNode} node
+ * @returns {View}
+ */
+function View(wkspc, node) {
     const zaId = node.getAttribute(attrKeys.id);
 
     if (typeof zaId === 'undefined' || zaId === null || zaId === '') {
         throw 'Please specify the view id properly';
     }
 
-    if (typeof viewMap.get(zaId) !== 'undefined') {
+    if (typeof wkspc.findViewById(zaId) !== 'undefined') {
         throw 'A view with this id(`' + zaId + '`) exists already';
     }
 
@@ -106,7 +113,7 @@ function View(node) {
     this.root = nodeName === xmlKeys.root || nodeName === xmlKeys.include;
 
     //The main ConstraintLayout tag in the original layout file
-    this.topLevelRoot = this.root === true && viewMap.size === 0;
+    this.topLevelRoot = this.root === true && wkspc.viewMap.size === 0;
 
     this.id = zaId;
 
@@ -126,25 +133,33 @@ function View(node) {
         this.marginStart = node.getAttribute(attrKeys.layout_marginStart);
         this.marginEnd = node.getAttribute(attrKeys.layout_marginEnd);
         this.margin = node.getAttribute(attrKeys.layout_margin);
+        this.marginHorizontal = node.getAttribute(attrKeys.layout_marginHorizontal);
+        this.marginVertical = node.getAttribute(attrKeys.layout_marginVertical);
+
 
         const emptyMargin = 'x';
 
-        if (typeof this.marginTop === 'undefined' || this.marginTop === null || this.marginTop === '' || Number.isNaN(parseInt(this.marginTop))) {
+        if (typeof this.marginTop === 'undefined' || this.marginTop === null || this.marginTop === '' || isNaN(parseInt(this.marginTop))) {
             this.marginTop = '0';
         }
-        if (typeof this.marginBottom === 'undefined' || this.marginBottom === null || this.marginBottom === '' || Number.isNaN(parseInt(this.marginBottom))) {
+        if (typeof this.marginBottom === 'undefined' || this.marginBottom === null || this.marginBottom === '' || isNaN(parseInt(this.marginBottom))) {
             this.marginBottom = '0';
         }
-        if (typeof this.marginStart === 'undefined' || this.marginStart === null || this.marginStart === '' || Number.isNaN(parseInt(this.marginStart))) {
+        if (typeof this.marginStart === 'undefined' || this.marginStart === null || this.marginStart === '' || isNaN(parseInt(this.marginStart))) {
             this.marginStart = '0';
         }
-        if (typeof this.marginEnd === 'undefined' || this.marginEnd === null || this.marginEnd === '' || Number.isNaN(parseInt(this.marginEnd))) {
+        if (typeof this.marginEnd === 'undefined' || this.marginEnd === null || this.marginEnd === '' || isNaN(parseInt(this.marginEnd))) {
             this.marginEnd = '0';
         }
-        if (typeof this.margin === 'undefined' || this.margin === null || this.margin === '' || Number.isNaN(parseInt(this.margin))) {
+        if (typeof this.marginHorizontal === 'undefined' || this.marginHorizontal === null || this.marginHorizontal === '' || isNaN(parseInt(this.marginHorizontal))) {
+            this.marginHorizontal = '0';
+        }
+        if (typeof this.marginVertical === 'undefined' || this.marginVertical === null || this.marginVertical === '' || isNaN(parseInt(this.marginVertical))) {
+            this.marginVertical = '0';
+        }
+        if (typeof this.margin === 'undefined' || this.margin === null || this.margin === '' || isNaN(parseInt(this.margin))) {
             this.margin = emptyMargin;
         }
-
 
         if (this.marginTop.startsWith("+")) {
             this.marginTop = this.marginTop.substr(1);
@@ -158,30 +173,57 @@ function View(node) {
         if (this.marginEnd.startsWith("+")) {
             this.marginEnd = this.marginEnd.substr(1);
         }
+        if (this.marginHorizontal.startsWith("+")) {
+            this.marginHorizontal = this.marginHorizontal.substr(1);
+        }
+        if (this.marginVertical.startsWith("+")) {
+            this.marginVertical = this.marginVertical.substr(1);
+        }
         if (this.margin.startsWith("+")) {
             this.margin = this.margin.substr(1);
         }
 
 
         if (this.marginTop.startsWith("-")) {
-            throw 'Negative margins (margin-top) not supported by layout engine';
+            throw 'Negative margins (margin-top) on view(' + this.id + ') not supported by layout engine';
         }
         if (this.marginBottom.startsWith("-")) {
-            throw 'Negative margins (margin-bottom) not supported by layout engine';
+            throw 'Negative margins (margin-bottom) on view(' + this.id + ') not supported by layout engine';
         }
         if (this.marginStart.startsWith("-")) {
-            throw 'Negative margins (margin-start) not supported by layout engine';
+            throw 'Negative margins (margin-start) on view(' + this.id + ') not supported by layout engine';
         }
         if (this.marginEnd.startsWith("-")) {
-            throw 'Negative margins (margin-end) not supported by layout engine';
+            throw 'Negative margins (margin-end) on view(' + this.id + ') not supported by layout engine';
+        }
+        if (this.marginHorizontal.startsWith("-")) {
+            throw 'Negative margins (marginHorizontal) on view(' + this.id + ') not supported by layout engine';
+        }
+        if (this.marginVertical.startsWith("-")) {
+            throw 'Negative margins (marginVertical) on view(' + this.id + ') not supported by layout engine';
         }
         if (this.margin.startsWith("-")) {
-            throw 'Negative margins (margin) not supported by layout engine';
+            throw 'Negative margins (margin) on view(' + this.id + ') not supported by layout engine';
         }
-
-
+        
+        
         this.width = node.getAttribute(attrKeys.layout_width);
         this.height = node.getAttribute(attrKeys.layout_height);
+        
+        
+        changePxToUnitLess:{
+            
+            if(endsWith(this.width , 'px')){
+                this.width = parseInt(this.width);
+            }if(endsWith(this.height , 'px')){
+                this.height = parseInt(this.height);
+            }
+            
+        }
+        
+        
+        
+        this.dimRatio = -1;//Not specified... dimRatio is width/height
 
         this.wrapWidth = "";
         this.wrapHeight = "";
@@ -225,38 +267,35 @@ function View(node) {
                     this.refIds.set(attrKeys.layout, attrValue);
                     break;
                 case attrKeys.layout_width:
-                    if (Number.isNaN(parseInt(attrName))) {
+                    if (isNaN(parseInt(attrName))) {
                         this.refIds.set(attrKeys.layout_width, attrValue);
                     }
                     break;
                 case attrKeys.layout_height:
-                    if (Number.isNaN(parseInt(attrName))) {
+                    if (isNaN(parseInt(attrName))) {
                         this.refIds.set(attrKeys.layout_height, attrValue);
                     }
                     break;
 
                 case attrKeys.layout_maxWidth:
-                    if (Number.isNaN(parseInt(attrName))) {
+                    if (isNaN(parseInt(attrName))) {
                         this.refIds.set(attrKeys.layout_maxWidth, attrValue);
                         //    this.style.addStyleElement("max-width", attrValue);
                     }
                     break;
                 case attrKeys.layout_maxHeight:
-                    if (Number.isNaN(parseInt(attrName))) {
+                    if (isNaN(parseInt(attrName))) {
                         this.refIds.set(attrKeys.layout_maxHeight, attrValue);
-                        //   this.style.addStyleElement("max-height", attrValue);
                     }
                     break;
                 case attrKeys.layout_minWidth:
-                    if (Number.isNaN(parseInt(attrName))) {
+                    if (isNaN(parseInt(attrName))) {
                         this.refIds.set(attrKeys.layout_minWidth, attrValue);
-                        //   this.style.addStyleElement("min-width", attrValue);
                     }
                     break;
                 case attrKeys.layout_minHeight:
-                    if (Number.isNaN(parseInt(attrName))) {
+                    if (isNaN(parseInt(attrName))) {
                         this.refIds.set(attrKeys.layout_minHeight, attrValue);
-                        //  this.style.addStyleElement("min-height", attrValue);
 
                     }
                     break;
@@ -296,6 +335,27 @@ function View(node) {
                     break;
                 case attrKeys.orientation:
                     this.refIds.set(attrKeys.orientation, attrValue);
+                    break;
+                case attrKeys.dimension_ratio:
+                    if (isDimensionRatio(attrValue) === true) {
+                        this.refIds.set(attrKeys.dimension_ratio, attrValue);
+                        let arr = attrValue.split(':');
+                        let num = parseFloat(arr[0]);
+                        let den = parseFloat(arr[1]);
+                        if (num <= 0) {
+                            throw new Error('Bad ratio specified! LHS can neither be 0 nor less than 0');
+                        }
+                        if (den <= 0) {
+                            throw new Error('Bad ratio specified! RHS can neither be 0 nor less than 0');
+                        }
+                        if (isNumber(attrValue)) {
+                            this.dimRatio = parseFloat(attrValue);
+                        } else {
+                            this.dimRatio = num / den;
+                        }
+                    } else {
+                        throw new Error('Invalid dimension ratio specified on view with id: ' + this.id);
+                    }
                     break;
 
                     //as a bonus save the paddings in this pass
@@ -397,7 +457,7 @@ function View(node) {
 
 
     this.createElement(node);
-    viewMap.set(this.id, this);
+    wkspc.viewMap.set(this.id, this);
     if (cssClasses !== null) {
         addClass(this.htmlElement, cssClasses);
     }
@@ -464,6 +524,27 @@ View.prototype.getWrapSize = function (text) {
     return {width: this.wrapWidth, height: this.wrapHeight};
 };
 
+function isDimensionRatio(val) {
+    if (!isNaN(val)) {
+        val = val + ':1';
+        return true;
+    }
+    let count = 0;
+    for (let i = 0; i < val.length; i++) {
+        if (val.substring(i, i + 1) === ':') {
+            count++;
+            if (count > 1) {
+                return false;
+            }
+        }
+    }
+    if (count === 0 || count > 1) {
+        return false;
+    }
+    let arr = val.split(':');
+    return arr.length = 2 && !isNaN(arr[0]) && !isNaN(arr[1]);
+}
+
 /**
  * Parses a number and unit string into the number and the units.
  * Performs no validation!
@@ -491,20 +572,34 @@ function parseNumberAndUnits(val) {
 
 /**
  * Layout the content of an xml file relative to its root
- * @return {string}
+ * @param {Workspace} wkspc 
+ * @return {string} the vfl definition for this View
  */
-View.prototype.makeVFL = function () {
+View.prototype.makeVFL = function (wkspc) {
+
 
     let mt = parseInt(this.marginTop);
     let mb = parseInt(this.marginBottom);
     let ms = parseInt(this.marginStart);
     let me = parseInt(this.marginEnd);
+    
+    let mh = parseInt(this.marginHorizontal);
+    let mv = parseInt(this.marginVertical);
+    
+    if(isNumber(mh) && mh > 0){
+        ms = me = mh;//override individual horizontal margins if a general horizontal margin is defined
+    }
+   if(isNumber(mv) && mv > 0){
+        mt = mb = mv;//override individual horizontal margins if a general horizontal margin is defined
+    }
+    
 
 
     let maxWid = this.refIds.get(attrKeys.layout_maxWidth);
     let maxHei = this.refIds.get(attrKeys.layout_maxHeight);
     let minWid = this.refIds.get(attrKeys.layout_minWidth);
     let minHei = this.refIds.get(attrKeys.layout_minHeight);
+
 
 
     let maxWidth, maxHeight, minWidth, minHeight;
@@ -539,6 +634,8 @@ View.prototype.makeVFL = function () {
         this.height = '100%';
     }
 
+
+
     let isWidPct = endsWith(this.width, '%');
     let isHeiPct = endsWith(this.height, '%');
 
@@ -546,10 +643,32 @@ View.prototype.makeVFL = function () {
     let ph = parseInt(this.height);
 
 
+
+
+    if (this.dimRatio > 0) {
+        //dimRatio = w/h
+        if (pw === 0) {
+            if (isNaN(ph)) {
+                this.width = this.height + "/" + (1.0 / this.dimRatio);
+            } else {
+                this.width = pw = ph * this.dimRatio;
+            }
+        }
+        if (ph === 0) {
+            if (isNaN(pw)) {
+                this.height = this.width + "/" + this.dimRatio;
+            } else {
+                this.height = ph = pw / this.dimRatio;
+            }
+        }
+    }
+
+
+
     let parent, hasIncludedParent;
     if (attributeNotEmpty(this.parentId)) {
-        parent = viewMap.get(this.parentId);
-        hasIncludedParent = parent && parent.constructor.name === 'IncludedView';
+        parent = wkspc.viewMap.get(this.parentId);
+        hasIncludedParent = parent && (parent.constructor.name === 'IncludedView' || parent.constructor.name === 'PopupView');
     }
     /**
      * Must be the root node in an included file
@@ -633,7 +752,7 @@ View.prototype.makeVFL = function () {
     } else {
         if (this.width === sizes.WRAP_CONTENT) {
             let w = parseInt(this.wrapWidth);
-            if (!Number.isNaN(w)) {
+            if (!isNaN(w)) {
                 if (maxWid && minWid) {
                     vfl.append('H:[' + this.id + '(==' + w + ',<=' + maxWidth + ',>=' + minWidth + ')]\n');
                 } else if (!maxWid && !minWid) {
@@ -646,7 +765,7 @@ View.prototype.makeVFL = function () {
             } else {
                 throw 'Please implement wrap_content functionality for (' + this.constructor.name + ") , width of `" + this.id + "` set to wrap_content";
             }
-        } else if (Number.isNaN(pw)) {
+        } else if (isNaN(pw)) {
             if (maxWid && minWid) {
                 vfl.append('H:[' + this.id + '(' + this.width + ',<=' + maxWidth + ',>=' + minWidth + ')]\n');
             } else if (!maxWid && !minWid) {
@@ -683,7 +802,7 @@ View.prototype.makeVFL = function () {
     } else {
         if (this.height === sizes.WRAP_CONTENT) {
             let h = parseInt(this.wrapHeight);
-            if (!Number.isNaN(h)) {
+            if (!isNaN(h)) {
                 if (maxHei && minHei) {
                     vfl.append('V:[' + this.id + '(==' + h + ',<=' + maxHeight + ',>=' + minHeight + ')]\n');
                 } else if (!maxHei && !minHei) {
@@ -696,7 +815,7 @@ View.prototype.makeVFL = function () {
             } else {
                 throw 'Please implement wrap_content functionality for (' + this.constructor.name + ") , height of `" + this.id + "` set to wrap_content";
             }
-        } else if (Number.isNaN(ph)) {
+        } else if (isNaN(ph)) {
             if (maxHei && minHei) {
                 vfl.append('V:[' + this.id + '(' + this.height + ',<=' + maxHeight + ',>=' + minHeight + ')]\n');
             } else if (!maxHei && !minHei) {
@@ -750,8 +869,6 @@ View.prototype.makeVFL = function () {
                 vfl.append('C:' + this.id + '.left(' + ss + '.left*1+' + ms + ')\n');
             }
         }
-
-
     }
     if (ee) {
         if (this.parentId === ee) {
@@ -830,13 +947,6 @@ View.prototype.makeVFL = function () {
 
     return vfl.toString().trim();
 };
-View.prototype.register = function () {
-    viewMap.set(this.id, this);
-};
-
-View.prototype.unregister = function () {
-    viewMap.delete(this.id);
-};
 
 function isHTMLTagName(tagName) {
     if (typeof tagName === 'string') {
@@ -852,7 +962,7 @@ function getSignedValue(val) {
     }
     if (typeof val === 'string') {
         var p = parseInt(val);
-        return Number.isNaN(p) ? "+0.0" : (p >= 0 ? "+" + p : "" + p);
+        return isNaN(p) ? "+0.0" : (p >= 0 ? "+" + p : "" + p);
     }
     if (typeof val === 'number') {
         return (val > 0 ? "+" + val : "-" + val);
@@ -974,7 +1084,19 @@ NativeTable.prototype = Object.create(View.prototype);
 NativeTable.prototype.constructor = NativeTable;
 
 
-SearchableTableView.prototype = Object.create(View.prototype);
+CustomTableView.prototype = Object.create(View.prototype);
+CustomTableView.prototype.constructor = CustomTableView;
+
+
+InputTableView.prototype = Object.create(CustomTableView.prototype);
+InputTableView.prototype.constructor = InputTableView;
+
+
+GrowableTableView.prototype = Object.create(InputTableView.prototype);
+GrowableTableView.prototype.constructor = GrowableTableView;
+
+
+SearchableTableView.prototype = Object.create(GrowableTableView.prototype);
 SearchableTableView.prototype.constructor = SearchableTableView;
 
 
@@ -1035,13 +1157,17 @@ ClockView.prototype.constructor = ClockView;
 IncludedView.prototype = Object.create(View.prototype);
 IncludedView.prototype.constructor = IncludedView;
 
+
+PopupView.prototype = Object.create(IncludedView.prototype);
+PopupView.prototype.constructor = PopupView;
+
 /**
- *
+ * @param {Workspace} wkspc 
  * @param {type} node key-value object
- * @returns {undefined}
+ * @returns {CheckBox}
  */
-function CheckBox(node) {
-    View.call(this, node);
+function CheckBox(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 CheckBox.prototype.createElement = function (node) {
@@ -1068,12 +1194,12 @@ CheckBox.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc 
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function Button(node) {
-    View.call(this, node);
+function Button(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 Button.prototype.createElement = function (node) {
@@ -1109,12 +1235,12 @@ Button.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc 
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function NativeTable(node) {
-    View.call(this, node);
+function NativeTable(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 NativeTable.prototype.createElement = function (node) {
@@ -1205,148 +1331,775 @@ NativeTable.prototype.calculateWrapContentSizes = function (node) {
     this.wrapHeight = 250;
 };
 
-
-function SearchableTableView(node) {
+/**
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {CustomTableView}
+ */
+function CustomTableView(wkspc,node) {
     this.options = {};
     this.customTable = null;
-    View.call(this, node);
+    View.call(this, wkspc, node);
 }
 
-SearchableTableView.prototype.createElement = function (node) {
-  this.htmlElement = document.createElement('div');
-  this.assignId();
-  
-  
-   
-    let entries = node.getAttribute(attrKeys.tableItems);
+
+
+
+CustomTableView.prototype.createElement = function (node) {
+    this.htmlElement = document.createElement('div');
+    this.assignId();
+
+    let hasCaption = node.getAttribute(attrKeys.hasCaption);
+    let caption = node.getAttribute(attrKeys.caption);
+    let scrollHeight = node.getAttribute(attrKeys.scrollHeight);
+    let withNumbering = node.getAttribute(attrKeys.withNumbering);
+    let hasContainer = node.getAttribute(attrKeys.hasContainer);
+
     let hasFooter = node.getAttribute(attrKeys.hasFooter);
-    
+
+    let entries = node.getAttribute(attrKeys.tableItems);
     let data = [];
     let title = node.getAttribute(attrKeys.title);
     let showBorders = node.getAttribute(attrKeys.showBorders);
     let pagingEnabled = node.getAttribute(attrKeys.pagingEnabled);
-    let icon = PATH_TO_IMAGES+node.getAttribute(attrKeys.src);
+    let icon = PATH_TO_IMAGES + node.getAttribute(attrKeys.src);
     let cellPadding = node.getAttribute(attrKeys.cellPadding);
+    let headerPadding = node.getAttribute(attrKeys.headerPadding);
     let fontSize = node.getAttribute(attrKeys.fontSize);
     let cssClass = node.getAttribute(attrKeys.cssClass);
     let theme = node.getAttribute(attrKeys.tableTheme);
     let scrollable = node.getAttribute(attrKeys.scrollable);
-    let buttontext = node.getAttribute(attrKeys.buttonText);
     let footertext = node.getAttribute(attrKeys.footerText);
-    let buttonLabel = node.getAttribute(attrKeys.buttonLabel);
-    let showLeftBtn = node.getAttribute(attrKeys.showLeftBtn);
-    
- 
+
+
+
+    if (attributeNotEmpty(hasCaption)) {
+        hasCaption = hasCaption === 'true';
+    } else {
+        hasCaption = false;
+    }
+    if (attributeEmpty(caption)) {
+        caption = '';
+    }
+
+    if (attributeEmpty(scrollHeight)) {
+        scrollHeight = '120px';
+    }
+    if (attributeNotEmpty(withNumbering)) {
+        withNumbering = withNumbering === 'true';
+    } else {
+        withNumbering = false;
+    }
+
+    if (attributeNotEmpty(hasContainer)) {
+        hasContainer = hasContainer === 'true';
+    } else {
+        hasContainer = true;
+    }
+
     if (attributeNotEmpty(hasFooter)) {
         hasFooter = hasFooter === 'true';
-    }else{
+    } else {
         hasFooter = false;
     }
 
- 
+
     if (attributeNotEmpty(showBorders)) {
         showBorders = showBorders === 'true';
-    }else{
+    } else {
         showBorders = true;
     }
-    
-     if (attributeNotEmpty(showLeftBtn)) {
-        showLeftBtn = showLeftBtn === 'true';
-    }else{
-        showLeftBtn = true;
-    }
-    
-      
+
+
     if (attributeNotEmpty(pagingEnabled)) {
-         pagingEnabled = pagingEnabled === 'true';
-    }else{
+        pagingEnabled = pagingEnabled === 'true';
+    } else {
         pagingEnabled = false;//set to true to enable paging by default
     }
-    
+
     if (attributeNotEmpty(scrollable)) {
         scrollable = scrollable === 'true';
-    }else{
+    } else {
         scrollable = true;
     }
-    
+
     if (attributeNotEmpty(entries)) {
-         data = parseTableItems(entries);
-    }else{
+        data = parseTableItems(entries);
+    } else {
         data = [];
     }
-  
-    
+
+
     if (attributeEmpty(title)) {
-         title = 'Set Title';
+        title = 'Set Title';
     }
-   
-    
+
+
     if (attributeEmpty(icon)) {
         icon = "";
     }
-    
+
     if (attributeEmpty(cellPadding)) {
         cellPadding = "1.3em";
     }
-    
+
+    if (attributeEmpty(headerPadding)) {
+        headerPadding = "4px";
+    }
+
     if (attributeEmpty(fontSize)) {
         fontSize = "1.0em";
     }
-    
+
     if (attributeEmpty(cssClass)) {
         cssClass = "";
     }
-    
-     if (attributeEmpty(theme)) {
+
+    if (attributeEmpty(theme)) {
         theme = "#444444";
     }
-    
+
     if (attributeEmpty(footertext)) {
         footertext = "FOOTER TEXT GOES HERE";
     }
-    
-    if (attributeEmpty(buttontext)) {
-        buttontext = "Button";
+
+
+    this.options = {
+        id: this.htmlElement.id + '_core',
+        hasCaption: hasCaption,
+        hasContainer: hasContainer,
+        caption: caption,
+        scrollHeight: scrollHeight,
+        withNumbering: withNumbering,
+        width: "100%",
+        hasFooter: hasFooter,
+        showBorders: showBorders,
+        pagingEnabled: pagingEnabled,
+        icon: icon,
+        fontSize: fontSize,
+        cellpadding: cellPadding,
+        headerPadding: headerPadding,
+        title: title,
+        footerText: footertext,
+        scrollable: scrollable,
+        theme: theme,
+        data: data
+    };
+
+    if (cssClass && cssClass !== "") {
+        this.options.classname = cssClass;
     }
-  
-      if (attributeEmpty(buttonLabel)) {
-        buttonLabel = "Button Label";
+    this.customTable = new Table(this.options);
+    this.customTable.build(this.htmlElement);
+
+
+
+};
+
+CustomTableView.prototype.calculateWrapContentSizes = function (node) {
+    this.wrapWidth = 350;
+    this.wrapHeight = 300;
+};
+
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {InputTableView}
+ */
+function InputTableView(wkspc, node) {
+    CustomTableView.call(this, wkspc, node);
+}
+
+InputTableView.prototype.createElement = function (node) {
+    this.htmlElement = document.createElement('div');
+    this.assignId();
+
+    let hasCaption = node.getAttribute(attrKeys.hasCaption);
+    let caption = node.getAttribute(attrKeys.caption);
+    let scrollHeight = node.getAttribute(attrKeys.scrollHeight);
+    let withNumbering = node.getAttribute(attrKeys.withNumbering);
+    let hasContainer = node.getAttribute(attrKeys.hasContainer);
+
+    let hasFooter = node.getAttribute(attrKeys.hasFooter);
+
+    let entries = node.getAttribute(attrKeys.tableItems);
+    let data = [];
+    let title = node.getAttribute(attrKeys.title);
+    let showBorders = node.getAttribute(attrKeys.showBorders);
+    let pagingEnabled = node.getAttribute(attrKeys.pagingEnabled);
+    let icon = PATH_TO_IMAGES + node.getAttribute(attrKeys.src);
+    let cellPadding = node.getAttribute(attrKeys.cellPadding);
+    let headerPadding = node.getAttribute(attrKeys.headerPadding);
+    let fontSize = node.getAttribute(attrKeys.fontSize);
+    let cssClass = node.getAttribute(attrKeys.cssClass);
+    let theme = node.getAttribute(attrKeys.tableTheme);
+    let scrollable = node.getAttribute(attrKeys.scrollable);
+    let footertext = node.getAttribute(attrKeys.footerText);
+
+    let actionColumns = node.getAttribute(attrKeys.actionColumns);
+    let checkableColumns = node.getAttribute(attrKeys.checkableColumns);
+    let textColumns = node.getAttribute(attrKeys.textColumns);
+    let selectColumns = node.getAttribute(attrKeys.selectColumns);
+
+
+    if (attributeNotEmpty(hasCaption)) {
+        hasCaption = hasCaption === 'true';
+    } else {
+        hasCaption = false;
     }
-  
-  this.options = {
-      id: this.htmlElement.id+'_core',
-      width:"100%",
-      hasFooter: hasFooter,
-      showBorders: showBorders,
-      pagingEnabled: pagingEnabled,
-      onAddBtnClicked: function(){},
-      'main-style':{
-          'margin-top': '1.2em'
-      },
-      icon: icon,
-      fontSize: fontSize,
-      showLeftBtn: showLeftBtn,
-      cellpadding: cellPadding,
-      title: title,
-      footerText: footertext,
-      scrollable: scrollable,
-      theme: theme,
-      buttontext: buttontext,
-      data: data,
-      hasContainer: true,
-      checkablecolumns: [],
-      actioncolumns: []
-  };
-  console.log(this.options);
-  
-  if(cssClass && cssClass !== ""){
-      this.options.classname = cssClass;
-  }
-  this.customTable = new SearchableTable(this.options);
-  this.customTable.build(this.htmlElement);
-  this.customTable.setButtonLabel(buttonLabel);
-  
-  
+    if (attributeEmpty(caption)) {
+        caption = '';
+    }
+
+    if (attributeEmpty(scrollHeight)) {
+        scrollHeight = '120px';
+    }
+    if (attributeNotEmpty(withNumbering)) {
+        withNumbering = withNumbering === 'true';
+    } else {
+        withNumbering = false;
+    }
+
+    if (attributeNotEmpty(hasContainer)) {
+        hasContainer = hasContainer === 'true';
+    } else {
+        hasContainer = true;
+    }
+
+    if (attributeNotEmpty(hasFooter)) {
+        hasFooter = hasFooter === 'true';
+    } else {
+        hasFooter = false;
+    }
+
+
+    if (attributeNotEmpty(showBorders)) {
+        showBorders = showBorders === 'true';
+    } else {
+        showBorders = true;
+    }
+
+
+    if (attributeNotEmpty(pagingEnabled)) {
+        pagingEnabled = pagingEnabled === 'true';
+    } else {
+        pagingEnabled = false;//set to true to enable paging by default
+    }
+
+    if (attributeNotEmpty(scrollable)) {
+        scrollable = scrollable === 'true';
+    } else {
+        scrollable = true;
+    }
+
+    if (attributeNotEmpty(entries)) {
+        data = parseTableItems(entries);
+    } else {
+        data = [];
+    }
+
+
+    if (attributeEmpty(title)) {
+        title = 'Set Title';
+    }
+
+
+    if (attributeEmpty(icon)) {
+        icon = "";
+    }
+
+    if (attributeEmpty(cellPadding)) {
+        cellPadding = "1.3em";
+    }
+
+    if (attributeEmpty(headerPadding)) {
+        headerPadding = "4px";
+    }
+
+    if (attributeEmpty(fontSize)) {
+        fontSize = "1.0em";
+    }
+
+    if (attributeEmpty(cssClass)) {
+        cssClass = "";
+    }
+
+    if (attributeEmpty(theme)) {
+        theme = "#444444";
+    }
+
+    if (attributeEmpty(footertext)) {
+        footertext = "FOOTER TEXT GOES HERE";
+    }
+    if (attributeEmpty(actionColumns)) {
+        actionColumns = [];
+    } else {
+        actionColumns = JSON.parse(actionColumns);
+    }
+    if (attributeEmpty(checkableColumns)) {
+        checkableColumns = [];
+    } else {
+        checkableColumns = JSON.parse(checkableColumns);
+    }
+    if (attributeEmpty(textColumns)) {
+        textColumns = [];
+    } else {
+        textColumns = JSON.parse(textColumns);
+    }
+    if (attributeEmpty(selectColumns)) {
+        selectColumns = [];
+    } else {
+        selectColumns = JSON.parse(selectColumns);
+    }
+
+
+
+    this.options = {
+        id: this.htmlElement.id + '_core',
+        hasCaption: hasCaption,
+        hasContainer: hasContainer,
+        caption: caption,
+        scrollHeight: scrollHeight,
+        withNumbering: withNumbering,
+
+        width: "100%",
+        hasFooter: hasFooter,
+        showBorders: showBorders,
+        pagingEnabled: pagingEnabled,
+        onAddBtnClicked: function () {},
+        'main-style': {
+            'margin-top': '1.2em'
+        },
+        icon: icon,
+        fontSize: fontSize,
+        cellpadding: cellPadding,
+        headerPadding: headerPadding,
+        title: title,
+        footerText: footertext,
+        scrollable: scrollable,
+        theme: theme,
+        data: data,
+        checkablecolumns: checkableColumns,
+        actioncolumns: actionColumns,
+        textcolumns: textColumns,
+        selectcolumns: selectColumns
+    };
+
+    if (cssClass && cssClass !== "") {
+        this.options.classname = cssClass;
+    }
+    this.customTable = new InputTable(this.options);
+    this.customTable.build(this.htmlElement);
+
+};
+
+/**
+ * 
+  @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {GrowableTableView}
+ */
+function GrowableTableView(wkspc, node) {
+    InputTableView.call(this, wkspc, node);
+}
+
+
+GrowableTableView.prototype.createElement = function (node) {
+    this.htmlElement = document.createElement('div');
+    this.assignId();
+
+    let hasCaption = node.getAttribute(attrKeys.hasCaption);
+    let caption = node.getAttribute(attrKeys.caption);
+    let scrollHeight = node.getAttribute(attrKeys.scrollHeight);
+    let withNumbering = node.getAttribute(attrKeys.withNumbering);
+    let hasContainer = node.getAttribute(attrKeys.hasContainer);
+
+    let hasFooter = node.getAttribute(attrKeys.hasFooter);
+
+    let entries = node.getAttribute(attrKeys.tableItems);
+    let data = [];
+    let title = node.getAttribute(attrKeys.title);
+    let showBorders = node.getAttribute(attrKeys.showBorders);
+    let pagingEnabled = node.getAttribute(attrKeys.pagingEnabled);
+    let icon = PATH_TO_IMAGES + node.getAttribute(attrKeys.src);
+    let cellPadding = node.getAttribute(attrKeys.cellPadding);
+    let headerPadding = node.getAttribute(attrKeys.headerPadding);
+    let fontSize = node.getAttribute(attrKeys.fontSize);
+    let cssClass = node.getAttribute(attrKeys.cssClass);
+    let theme = node.getAttribute(attrKeys.tableTheme);
+    let scrollable = node.getAttribute(attrKeys.scrollable);
+    let buttonText = node.getAttribute(attrKeys.buttonText);
+    let footertext = node.getAttribute(attrKeys.footerText);
+    let actionColumns = node.getAttribute(attrKeys.actionColumns);
+    let checkableColumns = node.getAttribute(attrKeys.checkableColumns);
+    let textColumns = node.getAttribute(attrKeys.textColumns);
+    let selectColumns = node.getAttribute(attrKeys.selectColumns);
+
+
+    if (attributeNotEmpty(hasCaption)) {
+        hasCaption = hasCaption === 'true';
+    } else {
+        hasCaption = false;
+    }
+    if (attributeEmpty(caption)) {
+        caption = '';
+    }
+
+    if (attributeEmpty(scrollHeight)) {
+        scrollHeight = '120px';
+    }
+    if (attributeNotEmpty(withNumbering)) {
+        withNumbering = withNumbering === 'true';
+    } else {
+        withNumbering = false;
+    }
+
+    if (attributeNotEmpty(hasContainer)) {
+        hasContainer = hasContainer === 'true';
+    } else {
+        hasContainer = true;
+    }
+
+    if (attributeNotEmpty(hasFooter)) {
+        hasFooter = hasFooter === 'true';
+    } else {
+        hasFooter = false;
+    }
+
+
+    if (attributeNotEmpty(showBorders)) {
+        showBorders = showBorders === 'true';
+    } else {
+        showBorders = true;
+    }
+
+
+    if (attributeNotEmpty(pagingEnabled)) {
+        pagingEnabled = pagingEnabled === 'true';
+    } else {
+        pagingEnabled = false;//set to true to enable paging by default
+    }
+
+    if (attributeNotEmpty(scrollable)) {
+        scrollable = scrollable === 'true';
+    } else {
+        scrollable = true;
+    }
+
+    if (attributeNotEmpty(entries)) {
+        data = parseTableItems(entries);
+    } else {
+        data = [];
+    }
+
+
+    if (attributeEmpty(title)) {
+        title = 'Set Title';
+    }
+
+
+    if (attributeEmpty(icon)) {
+        icon = "";
+    }
+
+    if (attributeEmpty(cellPadding)) {
+        cellPadding = '4px';
+    }
+
+    if (attributeEmpty(headerPadding)) {
+        headerPadding = "4px";
+    }
+
+    if (attributeEmpty(fontSize)) {
+        fontSize = "1.0em";
+    }
+
+    if (attributeEmpty(cssClass)) {
+        cssClass = "";
+    }
+
+    if (attributeEmpty(theme)) {
+        theme = "#444444";
+    }
+
+    if (attributeEmpty(footertext)) {
+        footertext = "FOOTER TEXT GOES HERE";
+    }
+
+    if (attributeEmpty(buttonText)) {
+        buttonText = "Button";
+    }
+    if (attributeEmpty(actionColumns)) {
+        actionColumns = [];
+    } else {
+        actionColumns = JSON.parse(actionColumns);
+    }
+    if (attributeEmpty(checkableColumns)) {
+        checkableColumns = [];
+    } else {
+        checkableColumns = JSON.parse(checkableColumns);
+    }
+    if (attributeEmpty(textColumns)) {
+        textColumns = [];
+    } else {
+        textColumns = JSON.parse(textColumns);
+    }
+    if (attributeEmpty(selectColumns)) {
+        selectColumns = [];
+    } else {
+        selectColumns = JSON.parse(selectColumns);
+    }
+
+
+    this.options = {
+        id: this.htmlElement.id + '_core',
+        hasCaption: hasCaption,
+        hasContainer: hasContainer,
+        caption: caption,
+        scrollHeight: scrollHeight,
+        withNumbering: withNumbering,
+
+        width: "100%",
+        hasFooter: hasFooter,
+        showBorders: showBorders,
+        pagingEnabled: pagingEnabled,
+        onAddBtnClicked: function () {},
+        'main-style': {
+            'margin-top': '1.2em'
+        },
+        icon: icon,
+        fontSize: fontSize,
+        cellpadding: cellPadding,
+        headerPadding: headerPadding,
+        title: title,
+        footerText: footertext,
+        scrollable: scrollable,
+        theme: theme,
+        buttonText: buttonText,
+        data: data,
+        checkablecolumns: checkableColumns,
+        actioncolumns: actionColumns,
+        textcolumns: textColumns,
+        selectcolumns: selectColumns
+    };
+
+
+    if (cssClass && cssClass !== "") {
+        this.options.classname = cssClass;
+    }
+    this.customTable = new GrowableTable(this.options);
+    this.customTable.build(this.htmlElement);
+
+
+};
+
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {SearchableTableView}
+ */
+function SearchableTableView(wkspc, node) {
+    GrowableTableView.call(this, wkspc, node);
+}
+
+SearchableTableView.prototype.createElement = function (node) {
+    this.htmlElement = document.createElement('div');
+    this.assignId();
+
+
+    let hasCaption = node.getAttribute(attrKeys.hasCaption);
+    let caption = node.getAttribute(attrKeys.caption);
+    let scrollHeight = node.getAttribute(attrKeys.scrollHeight);
+    let withNumbering = node.getAttribute(attrKeys.withNumbering);
+    let hasContainer = node.getAttribute(attrKeys.hasContainer);
+
+    let entries = node.getAttribute(attrKeys.tableItems);
+    let hasFooter = node.getAttribute(attrKeys.hasFooter);
+
+    let data = [];
+    let title = node.getAttribute(attrKeys.title);
+    let showBorders = node.getAttribute(attrKeys.showBorders);
+    let pagingEnabled = node.getAttribute(attrKeys.pagingEnabled);
+    let icon = PATH_TO_IMAGES + node.getAttribute(attrKeys.src);
+    let cellPadding = node.getAttribute(attrKeys.cellPadding);
+    let headerPadding = node.getAttribute(attrKeys.headerPadding);
+    let fontSize = node.getAttribute(attrKeys.fontSize);
+    let cssClass = node.getAttribute(attrKeys.cssClass);
+    let theme = node.getAttribute(attrKeys.tableTheme);
+    let scrollable = node.getAttribute(attrKeys.scrollable);
+    let footertext = node.getAttribute(attrKeys.footerText);
+    let buttonText = node.getAttribute(attrKeys.buttonText);
+    let showLeftBtn = node.getAttribute(attrKeys.showLeftBtn);
+    let actionColumns = node.getAttribute(attrKeys.actionColumns);
+    let checkableColumns = node.getAttribute(attrKeys.checkableColumns);
+    let textColumns = node.getAttribute(attrKeys.textColumns);
+    let selectColumns = node.getAttribute(attrKeys.selectColumns);
+
+
+
+
+    if (attributeNotEmpty(hasFooter)) {
+        hasFooter = hasFooter === 'true';
+    } else {
+        hasFooter = false;
+    }
+
+
+    if (attributeNotEmpty(showBorders)) {
+        showBorders = showBorders === 'true';
+    } else {
+        showBorders = true;
+    }
+
+    if (attributeNotEmpty(showLeftBtn)) {
+        showLeftBtn = showLeftBtn === 'true';
+    } else {
+        showLeftBtn = true;
+    }
+    if (attributeNotEmpty(hasCaption)) {
+        hasCaption = hasCaption === 'true';
+    } else {
+        hasCaption = attributeNotEmpty(caption);
+    }
+
+    if (attributeNotEmpty(hasContainer)) {
+        hasContainer = hasContainer === 'true';
+    } else {
+        hasContainer = true;
+    }
+
+    if (attributeNotEmpty(withNumbering)) {
+        withNumbering = withNumbering === 'true';
+    } else {
+        withNumbering = false;
+    }
+
+    if (attributeEmpty(scrollHeight)) {
+        scrollHeight = '120px';
+    }
+    if (attributeNotEmpty(pagingEnabled)) {
+        pagingEnabled = pagingEnabled === 'true';
+    } else {
+        pagingEnabled = false;//set to true to enable paging by default
+    }
+
+    if (attributeNotEmpty(scrollable)) {
+        scrollable = scrollable === 'true';
+    } else {
+        scrollable = true;
+    }
+
+    if (attributeNotEmpty(entries)) {
+        data = parseTableItems(entries);
+    } else {
+        data = [];
+    }
+
+
+    if (attributeEmpty(title)) {
+        title = 'Set Title';
+    }
+
+
+    if (attributeEmpty(icon)) {
+        icon = "";
+    }
+
+    if (attributeEmpty(cellPadding)) {
+        cellPadding = "4px";
+    }
+
+    if (attributeEmpty(headerPadding)) {
+        headerPadding = "4px";
+    }
+
+    if (attributeEmpty(fontSize)) {
+        fontSize = "1.0em";
+    }
+
+    if (attributeEmpty(cssClass)) {
+        cssClass = "";
+    }
+
+    if (attributeEmpty(theme)) {
+        theme = "#444444";
+    }
+
+    if (attributeEmpty(footertext)) {
+        footertext = "FOOTER TEXT GOES HERE";
+    }
+
+    if (attributeEmpty(buttonText)) {
+        buttonText = "Button";
+    }
+
+    if (attributeEmpty(caption)) {
+        caption = "";
+    }
+
+    if (attributeEmpty(actionColumns)) {
+        actionColumns = [];
+    } else {
+        actionColumns = JSON.parse(actionColumns);
+    }
+    if (attributeEmpty(checkableColumns)) {
+        checkableColumns = [];
+    } else {
+        checkableColumns = JSON.parse(checkableColumns);
+    }
+    if (attributeEmpty(textColumns)) {
+        textColumns = [];
+    } else {
+        textColumns = JSON.parse(textColumns);
+    }
+    if (attributeEmpty(selectColumns)) {
+        selectColumns = [];
+    } else {
+        selectColumns = JSON.parse(selectColumns);
+    }
+
+    this.options = {
+        id: this.htmlElement.id + '_core',
+        hasCaption: hasCaption,
+        hasContainer: hasContainer,
+        caption: caption,
+        scrollHeight: scrollHeight,
+        withNumbering: withNumbering,
+        width: "100%",
+        hasFooter: hasFooter,
+        showBorders: showBorders,
+        pagingEnabled: pagingEnabled,
+        onAddBtnClicked: function () {},
+        'main-style': {
+            'margin-top': '1.2em'
+        },
+        icon: icon,
+        fontSize: fontSize,
+        showLeftBtn: showLeftBtn,
+        cellPadding: cellPadding,
+        headerPadding: headerPadding,
+        title: title,
+        footerText: footertext,
+        scrollable: scrollable,
+        theme: theme,
+        buttonText: buttonText,
+        data: data,
+        checkablecolumns: checkableColumns,
+        actioncolumns: actionColumns,
+        textcolumns: textColumns,
+        selectcolumns: selectColumns
+    };
+    console.log(this.options);
+
+    if (cssClass && cssClass !== "") {
+        this.options.classname = cssClass;
+    }
+    this.customTable = new SearchableTable(this.options);
+    this.customTable.build(this.htmlElement);
+
+
 
 
 
@@ -1359,12 +2112,12 @@ SearchableTableView.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function TextField(node) {
-    View.call(this, node);
+function TextField(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 TextField.prototype.createElement = function (node) {
@@ -1418,14 +2171,14 @@ TextField.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function ProgressBar(node) {
+function ProgressBar(wkspc, node) {
     this.options = {};
     this.progress = null;
-    View.call(this, node);
+    View.call(this, wkspc, node);
 }
 
 ProgressBar.prototype.createElement = function (node) {
@@ -1471,12 +2224,12 @@ ProgressBar.prototype.runProgress = function () {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function TextArea(node) {
-    View.call(this, node);
+function TextArea(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 /**
@@ -1539,22 +2292,30 @@ TextArea.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function DropDown(node) {
-    View.call(this, node);
+function DropDown(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 
 DropDown.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('SELECT');
     var items = node.getAttribute(attrKeys.items);
+    items = items.replace(/\n|\r/g,'');//remove new lines
+    let regex1 = /(')(\s*)(,)(\s*)(')/g;
+    let regex2 = /(")(\s*)(,)(\s*)(")/g;
+    
+    items = items.replace(regex1 , "','");
+    items = items.replace(regex2 , '","');
+ 
+   
 
     if (attributeNotEmpty(items)) {
-        let scanner = new Scanner(items, false, new Array('\'', '\"', '[', ']', ','));
-        let data = scanner.scan();
+        console.log('items:\n',items);
+    let data = JSON.parse(items);
         for (var i = 0; i < data.length; i++) {
             this.htmlElement.options[this.htmlElement.options.length] = new Option(data[i], i + "");
         }
@@ -1568,12 +2329,12 @@ DropDown.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function List(node) {
-    View.call(this, node);
+function List(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 List.prototype.createElement = function (node) {
@@ -1587,12 +2348,12 @@ List.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function Label(node) {
-    View.call(this, node);
+function Label(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 
@@ -1601,7 +2362,12 @@ Label.prototype.createElement = function (node) {
     var text = node.getAttribute(attrKeys.text);
     var value = node.getAttribute(attrKeys.value);
     var fontSz = node.getAttribute(attrKeys.fontSize);
-    this.style.addStyleElementCss('text-align:center;');
+
+
+    this.style.addStyleElementCss('display: -webkit-inline-box;');
+    this.style.addStyleElementCss('display: -ms-inline-flexbox;');
+    this.style.addStyleElementCss('display: inline-flex;');
+    this.style.addStyleElementCss('align-items: center;');
 
 
     if (attributeNotEmpty(text)) {
@@ -1621,12 +2387,12 @@ Label.prototype.calculateWrapContentSizes = function (node) {
 
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function MultiLineLabel(node) {
-    View.call(this, node);
+function MultiLineLabel(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 
@@ -1652,9 +2418,14 @@ MultiLineLabel.prototype.createElement = function (node) {
 MultiLineLabel.prototype.calculateWrapContentSizes = function (node) {
     this.getWrapSize(node);
 };
-
-function CanvasView(node) {
-    View.call(this, node);
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {CanvasView}
+ */
+function CanvasView(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 CanvasView.prototype.createElement = function (node) {
@@ -1682,11 +2453,16 @@ CanvasView.prototype.calculateWrapContentSizes = function (node) {
     this.wrapWidth = this.htmlElement.getAttribute('width');
     this.wrapHeight = this.htmlElement.getAttribute('height');
 };
-
-function ClockView(node) {
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {ClockView}
+ */
+function ClockView(wkspc, node) {
     this.clockOptions = {};
     this.clock = null;
-    View.call(this, node);
+    View.call(this, wkspc, node);
 
 }
 
@@ -1774,12 +2550,12 @@ ClockView.prototype.calculateWrapContentSizes = function (node) {
 
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function RadioGroup(node) {
-    View.call(this, node);
+function RadioGroup(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 RadioGroup.prototype.createElement = function (node) {
@@ -1791,12 +2567,12 @@ RadioGroup.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function Radio(node) {
-    View.call(this, node);
+function Radio(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 Radio.prototype.createElement = function (node) {
@@ -1821,8 +2597,14 @@ Radio.prototype.calculateWrapContentSizes = function (node) {
 
 };
 
-function ImageView(node) {
-    View.call(this, node);
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {ImageView}
+ */
+function ImageView(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 ImageView.prototype.createElement = function (node) {
@@ -1837,12 +2619,12 @@ ImageView.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function Separator(node) {
-    View.call(this, node);
+function Separator(wkspc, node) {
+    View.call(this, wkspc, node);
 
 }
 
@@ -1868,12 +2650,12 @@ Separator.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- *
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function Guideline(node) {
-    View.call(this, node);
+function Guideline(wkspc, node) {
+    View.call(this, wkspc, node);
 }
 
 Guideline.prototype.createElement = function (node) {
@@ -1914,11 +2696,11 @@ Guideline.prototype.makeVFL = function () {
 
     let val = 0;
     if (endsWith(guidePct, '%')) {
-        if (Number.isNaN(val = parseInt(guidePct))) {
+        if (isNaN(val = parseInt(guidePct))) {
             throw 'Please specify a floating point number between 0 and 1 to signify 0 - 100% of width';
         }
         val += '%';
-    } else if (Number.isNaN(val = parseFloat(guidePct))) {
+    } else if (isNaN(val = parseFloat(guidePct))) {
         throw 'Please specify a floating point number between 0 and 1 to signify 0 - 100% of width';
     } else {
         if (val >= 1) {
@@ -1940,9 +2722,24 @@ Guideline.prototype.makeVFL = function () {
     return vfl.toString();
 
 };
-
-function IncludedView(node) {
-    View.call(this, node);
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {PopupView}
+ */
+function PopupView(wkspc, node){
+    this.hidden = true;
+    IncludedView.call(this, wkspc, node);
+}
+/**
+ * 
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {IncludedView}
+ */
+function IncludedView(wkspc, node) {
+    View.call(this, wkspc, node);
 
     let rawLayoutName = node.getAttribute(attrKeys.layout);
     let layout = rawLayoutName;
@@ -1959,12 +2756,10 @@ function IncludedView(node) {
      * @type {string[]}
      */
     this.directChildConstraints = [];
-    this.constraints = [];
 
-    let xmlLayout = xmlIncludes.get(layout);
+    let xmlLayout = wkspc.xmlIncludes.get(layout);
 
-
-    let mp = new Parser(xmlLayout, this.id);
+    let mp = new Parser(wkspc, xmlLayout, this.id);
 
     this.constraints = mp.constraints;
 
