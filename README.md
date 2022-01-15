@@ -172,6 +172,69 @@ Your ui scripts should be defined in the `uiscripts` directory. You may create f
 Define an `imports` tag anywhere in the xml layout and the library will load the scripts defined in the `imports` tag.<br>
 This allows you to separate your ui(the xml layout) from its logic and other related logic.
 
+The library allows you to define at most one viewcontroller per xml layout. Specify the name of the viewcontroller in the controller attribute of the `imports` tag.
+Your controller must be defined in one of the files that you have imported in the `files` attribute of the `imports` tag.
+
+#### ViewControllers
+
+A `ViewController` is a standard way of interacting with your UI from code.
+Your view controller must inherit from the base `ViewController` class of the library.
+
+The minimum code to do this is:
+
+Say you have created your `ViewController class` in the `uiscripts` folder; let's say its name is `TestController` in a file called `test.js`.
+
+
+
+```Javascript
+/* global ViewController */
+
+TestController.prototype = Object.create(ViewController.prototype);
+TestController.prototype.constructor = TestController;
+
+function TestController(workspace){
+    ViewController.call(this, workspace);
+}
+
+
+/**
+ * Don't try to access your views here please.
+ * The views may or may not be ready yet! 
+ * This only signifies that your ViewController has been created.
+ * @param {string} wid The workspace id
+ * @returns {undefined}
+ */
+TestController.prototype.onCreate = function(wid){
+     ViewController.prototype.onCreate.call(this, wid);
+//Your code goes below here
+};
+
+/**
+ * You may now begin to use your views.
+ * @param {string} wid The workspace id
+ * @returns {undefined}
+ */
+TestController.prototype.onViewsAttached = function(wid){
+         ViewController.prototype.onViewsAttached.call(this, wid);
+//Your code goes below here
+
+//e.g let view = this.findHtmlViewById('site_title');
+ 
+
+};
+```
+
+For now, the `ViewController` has only 2 implemented lifecycle methods; these are:
+`onCreate` and `onViewsAttached`.
+
+1. `onCreate` is fired when the ViewController has been successfully instantiated by the JS runtime. Do not try to access your UI Elements within this method!
+  They may or may not be created yet!
+2. `onViewsAttached` This is fired when all your ui elements have been successfully created and attached to the `DOM`. You may freely access them from within this method.
+
+
+
+
+
 
 
 
