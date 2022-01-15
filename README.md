@@ -231,11 +231,32 @@ For now, the `ViewController` has only 2 implemented lifecycle methods; these ar
   They may or may not be created yet!
 2. `onViewsAttached` This is fired when all your ui elements have been successfully created and attached to the `DOM`. You may freely access them from within this method.
 
+Your `ViewController` has also inherited some methods from the base viewcontroller which it may use to locate html elements in the DOM.
+
+From within your `onViewsAttached` method or a method called from within that method, you may call: `this.findHtmlViewById(elementId)` to select a html element, and then use it in your code.
+
+**_More methods will be added as needed_**
+
+Now add this view controller to your xml layout, like this:
+
+```XML
+<?xml version="1.0" encoding="utf-8"?>
+<ConstraintLayout
+    width="match_parent"
+    height="match_parent">
+
+    <imports
+        files="test.js;networking.js;" controller="TestController"
+    />
+    
+    <!--- ...Other xml tags -->
+</ConstraintLayout>
+```
 
 
+## Workspace
 
-
-
+To load an xml file. the library uses the concept of a `Workspace`. A workspace is a Javascript class which on its is able to completely process an xml layout of valid syntax into a html document suitably laid out using autolayout technology. It has the ability to identify all included xml layouts, and load and process them also.
 
 
 
