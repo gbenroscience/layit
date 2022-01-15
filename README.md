@@ -159,7 +159,7 @@ To import scripts, use the imports tag as such:
     height="match_parent">
 
     <imports
-        files="aa/aaa.js;mm/mmm.js;"
+        files="aa/aaa.js;mm/mmm.js;" controller="controller_name"
     />
     
     <!--- ...Other xml tags -->
