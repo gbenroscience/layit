@@ -256,7 +256,7 @@ Now add this view controller to your xml layout, like this:
 
 ## Workspace
 
-To load an xml file. the library uses the concept of a `Workspace`. A workspace is a Javascript class which on its is able to completely process an xml layout of valid syntax into a html document suitably laid out using autolayout technology. It has the ability to identify all included xml layouts, and load and process them also.
+To load an xml file. the library uses the concept of a `Workspace`. A workspace is a Javascript class which on its own is able to completely process an xml layout of valid syntax into a html document suitably laid out using autolayout technology. It has the ability to identify all included xml layouts, and load and process them also.
 
 
 
