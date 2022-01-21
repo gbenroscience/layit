@@ -33,28 +33,116 @@ const nativeScripts = [
     SCRIPTS_BASE + 'sys/main.js',
     SCRIPTS_BASE + 'sys/compiler-constants.js',
     SCRIPTS_BASE + 'sys/sdk/viewcontroller.js',
+    SCRIPTS_BASE + 'libs/utils/domutils.js',
     SCRIPTS_BASE + 'libs/utils/colorutils.js',
     SCRIPTS_BASE + 'libs/utils/constants.js',
     SCRIPTS_BASE + 'libs/utils/stringutils.js',
     SCRIPTS_BASE + 'libs/utils/graphics.js',
-    SCRIPTS_BASE + 'libs/compilerui/clock.js',
-    SCRIPTS_BASE + 'libs/compilerui/iconbtn.js',
-    SCRIPTS_BASE + 'libs/compilerui/iconlabel.js',
-    SCRIPTS_BASE + 'libs/compilerui/imagebox.js',
-    SCRIPTS_BASE + 'libs/compilerui/list.js',
-    SCRIPTS_BASE + 'libs/compilerui/pager.js',
-    SCRIPTS_BASE + 'libs/compilerui/popupview.js',
-    SCRIPTS_BASE + 'libs/compilerui/progress.js',
-    SCRIPTS_BASE + 'libs/compilerui/style.js',
-    SCRIPTS_BASE + 'libs/compilerui/textwithlines.js',
-    SCRIPTS_BASE + 'libs/compilerui/tables/table.js',
-    SCRIPTS_BASE + 'libs/compilerui/tables/inputtable.js',
-    SCRIPTS_BASE + 'libs/compilerui/tables/growabletable.js',
-    SCRIPTS_BASE + 'libs/compilerui/tables/searchabletable.js'
+    SCRIPTS_BASE + 'libs/ui/clock.js',
+    SCRIPTS_BASE + 'libs/ui/iconbtn.js',
+    SCRIPTS_BASE + 'libs/ui/iconlabel.js',
+    SCRIPTS_BASE + 'libs/ui/imagebox.js',
+    SCRIPTS_BASE + 'libs/ui/list.js',
+    SCRIPTS_BASE + 'libs/ui/pager.js',
+    SCRIPTS_BASE + 'libs/ui/popupview.js',
+    SCRIPTS_BASE + 'libs/ui/sidemenu.js',
+    SCRIPTS_BASE + 'libs/ui/customsidemenu.js',
+    SCRIPTS_BASE + 'libs/ui/progress.js',
+    SCRIPTS_BASE + 'libs/ui/style.js',
+    SCRIPTS_BASE + 'libs/ui/textwithlines.js',
+    SCRIPTS_BASE + 'libs/ui/tables/table.js',
+    SCRIPTS_BASE + 'libs/ui/tables/inputtable.js',
+    SCRIPTS_BASE + 'libs/ui/tables/growabletable.js',
+    SCRIPTS_BASE + 'libs/ui/tables/searchabletable.js'
 ];
 
 
+
 let workspaces = new Map();
+
+
+/**
+ * 
+ * 
+ * This method will help fetch this workspace from the cache if it has been previously created, or create a new one if not.
+ * The Workspace options may take 3 or 4 properties:
+ * 
+ * They do different things so please take note!
+ 
+ {
+ layoutName: 'layout.xml',
+ bindingElemId: 'id_of_element_layout_will_be_attached_to',
+ onComplete: 'A function to run when the layout has been parsed and loaded',
+ }
+ 
+ OR 
+ 
+ {
+ layoutName: 'layout.xml',
+ bindingElemId: 'id_of_element_layout_will_be_attached_to',
+ xmlContent: 'You do not wish to load the xml from the supplied layout name. So supply the xml here directly',
+ onComplete: 'A function to run when the layout has been parsed and loaded',
+ }
+ 
+ 
+ * If it takes 3, then the args are:
+ * 
+ * 1. The layout name...e.g test.xml,
+ * 2. The html id of the DOM element that the generated html layout
+ * will be bound to, and lastly, 
+ * 3. A callback function to run when the xml document has been parsed into html.
+ * 
+ * If it takes 4, then the args are:
+ * 
+ * 1. The layout name...e.g test.xml, may be a dummy name! It is only required for identifying the xml content supplied
+ * 2. The html id of the DOM element that the generated html layout
+ * will be bound to
+ * 3. The xml content of the specified layout, and lastly, 
+ * 4. A callback function to run when the xml document has been parsed into html.
+ * 
+ * The 4 args property-type options is important because, a user may have generated some xml dynamically and wish to load it on the interface.
+ * This dummy content of course has no file representation in the layouts folder. So we need the user to supply a unique file name that we may use to
+ * identify this xml.
+ * 
+ * 
+ * 
+ * @param {Object} options An object that defines the properties needed to load the workspace
+ * @returns {Workspace}
+ */
+function getWorkspace(options) {
+
+    let rootLayoutName = null;
+    if (options.layoutName && typeof options.layoutName === 'string') {
+        rootLayoutName = options.layoutName;
+    } else {
+        throw new Error('Please supply the root layout name! even if you are supplying your xmlcontent directly, specify a dummy layout name for it! we need it to create a unique id for your layout');
+    }
+
+    let bindingElemId = BODY_ID;
+    if (options.bindingElemId && typeof options.bindingElemId === 'string') {
+        bindingElemId = options.bindingElemId;
+    }
+
+
+    let spaceId = bindingElemId + '_' + rootLayoutName;
+    let space = workspaces.get(spaceId);
+    if (!space) {
+        return new Workspace(options);
+    }
+
+    let onComplete = function () {};
+    if (options.onComplete) {
+        if (typeof options.onComplete === 'function') {
+            onComplete = options.onComplete;
+        } else {
+            throw new Error('If you are supplying this callback, then it must be a function!');
+        }
+    }
+    if (onComplete) {
+        onComplete();
+    }
+    return space;
+}
 
 let isNumber = function (number) {
     return isNaN(number) === false;
@@ -70,27 +158,94 @@ document.currentScript = document.currentScript || (function () {
 
 /**
  * 
- * @param {string} rootLayoutName The name of the xml file to be loaded and parsed... Just the simple file name, no path needed.
- * @param {string} destElemId The id of the element that the parsed document will be attached to
- * @param {Function} onComplete 
+ * Creates a new Workspace.
+ * The Workspace options may take 3 or 4 properties:
+ * 
+ * They do different things so please take note!
+ 
+ {
+ layoutName: 'layout.xml',
+ bindingElemId: 'id_of_element_layout_will_be_attached_to',
+ onComplete: 'A function to run when the layout has been parsed and loaded',
+ }
+ 
+ OR 
+ 
+ {
+ layoutName: 'layout.xml',
+ bindingElemId: 'id_of_element_layout_will_be_attached_to',
+ xmlContent: 'You do not wish to load the xml from the supplied layout name. So supply the xml here directly',
+ onComplete: 'A function to run when the layout has been parsed and loaded',
+ }
+ 
+ 
+ * If it takes 3, then the args are:
+ * 
+ * 1. The layout name...e.g test.xml,
+ * 2. The html id of the DOM element that the generated html layout
+ * will be bound to, and lastly, 
+ * 3. A callback function to run when the xml document has been parsed into html.
+ * 
+ * If it takes 4, then the args are:
+ * 
+ * 1. The layout name...e.g test.xml, may be a dummy name! It is only required for identifying the xml content supplied
+ * 2. The html id of the DOM element that the generated html layout
+ * will be bound to
+ * 3. The xml content of the specified layout, and lastly, 
+ * 4. A callback function to run when the xml document has been parsed into html.
+ * 
+ * The 4 args property-type options is important because, a user may have generated some xml dynamically and wish to load it on the interface.
+ * This dummy content of course has no file representation in the layouts folder. So we need the user to supply a unique file name that we may use to
+ * identify this xml.
+ * 
+ * 
+ * 
+ * @param {Object} options An object that defines the properties needed to load the workspace
  * @returns {Workspace}
  */
-function Workspace(rootLayoutName, destElemId, onComplete) {
+function Workspace(options) {
 
-
-    if (onComplete && typeof onComplete !== 'function') {
-        throw new Error('`onComplete` must be a function!');
+    if (!options) {
+        throw new Error("Please supply the options to create this workspace");
     }
-    
-    this.systemRootId = destElemId;//;
-    this.id = destElemId + '_' + rootLayoutName;//This is the workspace id.
+
+    let rootLayoutName = null;
+    if (options.layoutName && typeof options.layoutName === 'string') {
+        rootLayoutName = options.layoutName;
+    } else {
+        throw new Error('Please supply the root layout name! even if you are supplying your xmlcontent directly, specify a dummy layout name for it! we need it to create a unique id for your layout');
+    }
+
+
+    this.systemRootId = BODY_ID;
+    if (options.bindingElemId && typeof options.bindingElemId === 'string') {
+        this.systemRootId = options.bindingElemId;
+    }
+
+    let xmlContent = null;
+    if (options.xmlContent && typeof options.xmlContent === 'string') {
+        xmlContent = options.xmlContent;
+    }
+
+
+    this.onComplete = function () {};
+    if (options.onComplete) {
+        if (typeof options.onComplete === 'function') {
+            this.onComplete = options.onComplete;
+        } else {
+            throw new Error('If you are supplying this callback, then it must be a function!');
+        }
+    }
+
+
+    this.id = this.systemRootId + '_' + rootLayoutName.replace("." , "_");//This is the workspace id.
+
     this.viewMap = new Map();
     this.allStyles = [];
     this.xmlIncludes = new Map();
     this.workersMap = new Map();
     this.rootCount = 0;
     this.rootParser = null;
-    this.rootLayoutName = rootLayoutName;
     this.layoutCount = 0;
     this.loadedCount = 0;
     this.deadEnds = 0;
@@ -101,10 +256,15 @@ function Workspace(rootLayoutName, destElemId, onComplete) {
      * The ViewController that can be used with the view.
      */
     this.controller = null;
-    this.onComplete = onComplete;
 
     workspaces.set(this.id, this);
-    this.setContentView(rootLayoutName);
+    console.log(arguments);
+
+    if (xmlContent) {
+        this.setContentView(rootLayoutName, xmlContent);
+    } else {
+        this.setContentView(rootLayoutName);
+    }
 
 }
 
@@ -116,7 +276,6 @@ function Workspace(rootLayoutName, destElemId, onComplete) {
  * @returns {Parser}
  */
 function Parser(workspace, xml, parentId) {
-
 
     this.constraints = [];
     this.html = new StringBuffer('');
@@ -211,6 +370,15 @@ function getScriptBaseUrl() {
 
     return null;
 }
+/**
+ * The root view is the root of the expanded xml layout, not the view that the layout was attached to!
+ * @returns {undefined}
+ */
+Workspace.prototype.rootView = function () {
+    //let id = 'root_html_main_test_xml_1';
+    //"root_menu_x_id_side_menux_frame_popup_xml_1"
+    return this.viewMap.get('root_'+this.id + "_1"); 
+};
 
 Workspace.prototype.resetLoaderIndices = function () {
     this.layoutCount = this.loadedCount = this.deadEnds = 0;
@@ -226,7 +394,7 @@ Workspace.prototype.resetAllIndices = function () {
     this.resetLoaderIndices();
 };
 
-Workspace.prototype.setContentView = function (layoutFileName) {
+Workspace.prototype.setContentView = function (layoutFileName, xmlContent) {
 
 
     let self = this;
@@ -255,8 +423,10 @@ Workspace.prototype.setContentView = function (layoutFileName) {
             }
 
         } else {
-            console.log('Compiler Scripts Fully Loaded');
-            self.prefetchAllLayouts(layoutFileName, function () {
+            console.log('Compiler Scripts Fully Loaded... xmlContent: ', xmlContent);
+
+
+            self.prefetchAllLayouts(layoutFileName, xmlContent, function () {
                 console.log('Resetting engine parameters...');
                 self.resetAllIndices();
                 console.log('Now loading layout and associated layouts(included layouts)');
@@ -269,6 +439,8 @@ Workspace.prototype.setContentView = function (layoutFileName) {
                     console.log('Awaiting loaded file!');
                 }
             });
+
+
 
         }
     }
@@ -311,8 +483,18 @@ function loadScripts(scripts, onload) {
 
 }
 
+/**
+ * 
+ * @param {type} rootLayoutName The name of the layout
+ * @param {type} xmlContent The xmlcontent(Optional), if the Workspace constructor specified any xml content
+ * @param {type} onPreStart A function to call before loading of any xml files start
+ * @param {type} onload The function to call when all layouts including the included ones have been loaded
+ * @returns {undefined}
+ */
+Workspace.prototype.prefetchAllLayouts = function (rootLayoutName, xmlContent, onPreStart, onload) {
 
-Workspace.prototype.prefetchAllLayouts = function (rootLayout, onPreStart, onload) {
+
+    let self = this;
 
     if (onload.length !== 1) {
         throw new Error('onload must have only one argument.');
@@ -322,9 +504,37 @@ Workspace.prototype.prefetchAllLayouts = function (rootLayout, onPreStart, onloa
         throw new Error('onPreStart must have no argument.');
     }
 
-    let self = this;
-    function findIncludes(xml) {
+    let callback = function (layoutXml) {
+        let layouts = findIncludes(layoutXml);
+        self.loadedCount++;
+        self.xmlIncludes.set(rootLayoutName, layoutXml);
+        if (layouts.length === 0) {
+            self.deadEnds++;
+            if (self.layoutCount === self.loadedCount - 1) {
+                console.log("DONE! , layout: " + rootLayoutName + ", layoutCount: " + self.layoutCount + ", loadedCount: " + self.loadedCount, ", deadEnds: ", self.deadEnds);
+                onload(self.rootXml);
+                self.resetLoaderIndices();
 
+                for (let m in self.workersMap) {
+                    for (let i = 0; i < self.workersMap[m].length; i++) {
+                        let worker = self.workersMap[m][i];
+                        let workerName = worker.name;
+                        self.stopFetchWorker(workerName);
+                        console.log('closed: ' + workerName);
+                    }
+                }
+            }
+        } else {
+            for (let i = 0; i < layouts.length; i++) {
+                let rawLayoutName = layouts[i];
+                let layout = rawLayoutName + '.xml';
+                self.prefetchAllLayouts(layout, xmlContent, onPreStart, onload);
+            }
+        }
+    };
+
+
+    function findIncludes(xml) {
         let check = attrKeys.layout + '=';
 
         //change layout[space....]=[space.....] to layout=
@@ -352,34 +562,12 @@ Workspace.prototype.prefetchAllLayouts = function (rootLayout, onPreStart, onloa
     }
 
 
-    this.startFetchWorker(rootLayout, function (layoutXml) {
-        let layouts = findIncludes(layoutXml);
-        self.loadedCount++;
-        self.xmlIncludes.set(rootLayout, layoutXml);
-        if (layouts.length === 0) {
-            self.deadEnds++;
-            if (self.layoutCount === self.loadedCount - 1) {
-                console.log("DONE! , layout: " + rootLayout + ", layoutCount: " + self.layoutCount + ", loadedCount: " + self.loadedCount, ", deadEnds: ", self.deadEnds);
-                onload(self.rootXml);
-                self.resetLoaderIndices();
+    if (xmlContent) {
+        callback(xmlContent);
+    } else {
+        this.startFetchWorker(rootLayoutName, callback);
+    }
 
-                for (let m in self.workersMap) {
-                    for (let i = 0; i < self.workersMap[m].length; i++) {
-                        let worker = self.workersMap[m][i];
-                        let workerName = worker.name;
-                        self.stopFetchWorker(workerName);
-                        console.log('closed: ' + workerName);
-                    }
-                }
-            }
-        } else {
-            for (let i = 0; i < layouts.length; i++) {
-                let rawLayoutName = layouts[i];
-                let layout = rawLayoutName + '.xml';
-                self.prefetchAllLayouts(layout, onPreStart, onload);
-            }
-        }
-    });
 
 
 };
@@ -433,7 +621,7 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
             let nodeId = node.getAttribute(attrKeys.id);
             if (!nodeId || nodeId === '') {
                 wkspc.rootCount += 1;
-                node.setAttribute('id', 'root_' + wkspc.rootCount);
+                node.setAttribute('id', 'root_'+wkspc.id.replace('.','_')+'_' + wkspc.rootCount);
             }
 
             view = new View(wkspc, node);//view adds to viewMap automatically in constructor
@@ -696,17 +884,17 @@ Parser.prototype.buildUI = function (wkspc) {
         }
 
 
-        baseRoot.style.backgroundColor = 'red';
+        baseRoot.style.backgroundColor = 'white';
         baseRoot.appendChild(this.rootView.htmlElement);
 
 
-    //If the baseRoot is the document.body, then specify its own constraints on the page
-    if(baseRoot === document.body){
-        // main layout
-        autoLayout(undefined, [
-            'HV:|-0-[' + wkspc.systemRootId + ']-0-|'
-        ]);
-    }
+        //If the baseRoot is the document.body, then specify its own constraints on the page
+        if (baseRoot === document.body) {
+            // main layout
+            autoLayout(undefined, [
+                'HV:|-0-[' + wkspc.systemRootId + ']-0-|'
+            ]);
+        }
 
         // layout the root layout on the baseRoot(the element we are attaching the xml layout to)
         autoLayout(baseRoot, [
@@ -758,21 +946,13 @@ Parser.prototype.buildUI = function (wkspc) {
         wkspc.controller.onResume(wkspc);
     }
 
-  if(wkspc.onComplete){
+    if (wkspc.onComplete) {
         wkspc.onComplete();
-      }
+    }
 
     console.log('UI construction logic done...', wkspc.viewMap.size);
 
 };
-
-
-function addClass(element, className) {
-    let arr = element.className.split(" ");
-    if (arr.indexOf(className) === -1) {
-        element.className += " " + className;
-    }
-}
 
 Workspace.prototype.startFetchWorker = function (layoutFileName, onSucc) {
 
@@ -897,7 +1077,7 @@ function launcher(fileName, elemId) {
             const isXML = fileName.lastIndexOf(endItem) === len - endLen;
 
             if (isXML === true) {
-                let workspace = new Workspace(fileName, elemId);
+                let workspace = new Workspace({layoutName: fileName, bindingElemId: elemId});
             } else {
                 throw new Error('Invalid xml file specified in data-launcher attribute of `layit.js` script tag.');
             }

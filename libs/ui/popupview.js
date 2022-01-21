@@ -15,14 +15,16 @@ var popupZIndex = 1000;
  * Format is:
  * 
  * {
- *   layitId: "id_generated_for_view_by_layit_compiler",
+ *   id: "id",
  *   width : '10em',
  *   height : '6em',
+ *   layout: 'popup_xml_layout_name'
  *   bg: '#ffffff',
- *   'container-style' : {
- *   //valid css. e.g.
- *   border-radius : 1em,
- *   width : 30%,
+ *   
+ *   containerStyle{
+ *     width: 23%,
+ *     border-radius : 1em, blah-blah-blah
+ *   },
  *   onOpen : function(){},
  *   onClose : function(){}   
  * }
@@ -37,12 +39,11 @@ function Popup(options) {
         console.log("No options specified for creating this popup");
         return;
     }
-    if (!options.layitId || typeof options.layitId !== 'string') {
+    if (!options.id || typeof options.id !== 'string') {
         throw new Error("Hi! You have not specified a value for options.layitId! Popup cannot be created");
     }
-    this.layitId = options.layitId;
-    this.id = options.layitId+'_popup';
-    
+    this.id = options.id + '_popup';
+
     if (typeof options.width !== 'string') {
         console.log("Hi! options.width must be a valid css dimension! Defaulting to 90%");
         options.width = "90%";
@@ -66,6 +67,14 @@ function Popup(options) {
         this.background = options.bg;
     }
 
+    this.layout = '';
+
+    if (typeof options.layout === 'string') {
+        this.layout = options.layout;
+    } else {
+        throw new Error('Please supply the name of the xml layout');
+    }
+
 
 
     if (options.onOpen && {}.toString.call(options.onOpen) === '[object Function]') {
@@ -81,20 +90,23 @@ function Popup(options) {
         this.onClose = function () {};
     }
 
-            //this.injectableHTML = '<p style="padding: 1em;font-size: 1em; color : red;font-weight:bold">Home made OOP Popup!</p>';
+    //this.injectableHTML = '<p style="padding: 1em;font-size: 1em; color : red;font-weight:bold">Home made OOP Popup!</p>';
 
     this.registry = {};//register css classes and map them to their styles.
 
-var body = document.body,
-    html = document.documentElement;
+    var body = document.body,
+            html = document.documentElement;
 
-var height = Math.max( body.scrollHeight, body.offsetHeight, 
-                       html.clientHeight, html.scrollHeight, html.offsetHeight );
+    let bgWidth = Math.max(body.scrollWidth, body.offsetWidth,
+            html.clientWidth, html.scrollWidth, html.offsetWidth);
+    let bgHeight = Math.max(body.scrollHeight, body.offsetHeight,
+            html.clientHeight, html.scrollHeight, html.offsetHeight);
 
 
     this.opaqueBgStyle = new Style('#' + this.id, []);
     this.containerStyle = new Style('#' + this.id, []);
 
+    this.noScrollStyle = new Style(".noscroll", []);
     this.closeBtnStyle = new Style("#" + this.id, []);
 
     popupZIndex += 10;
@@ -109,10 +121,12 @@ var height = Math.max( body.scrollHeight, body.offsetHeight,
         bottom: '0',
         right: '0',
         'z-index': popupZIndex + '',
-        width: '100%',
-        height: height+'px'
+        width: bgWidth + 'px',
+        height: bgHeight + 'px'
     });
-
+   this.noScrollStyle.addFromOptions({
+        overflow: 'hidden'
+    });
 
     this.width = options.width;
     this.height = options.height;
@@ -143,8 +157,8 @@ var height = Math.max( body.scrollHeight, body.offsetHeight,
             'border-radius': '0.3em'
         });
 
-        if (typeof options["container-style"] === "object") {
-            var containerCss = options["container-style"];
+        if (typeof options["containerStyle"] === "object") {
+            var containerCss = options.containerStyle;
             for (var key in containerCss) {
                 this.containerStyle.addStyleElement(key, containerCss[key]);
             }
@@ -152,28 +166,37 @@ var height = Math.max( body.scrollHeight, body.offsetHeight,
     }
 
     initCloseBtnStyle:{
-    this.closeBtnStyle.addFromOptions({
-        "top": "0.1em",
-        "right":"0.1em",
-        "position" : "fixed",
-        "font-size" : "4rem",
-        "font-weight":"bold",
-        "font-family":"monospace",
-        "cursor":"pointer",
-        "color":"white",
-        "background-color" : "transparent",
-        "border" : "none",
-        "padding" : "none"
-    });
+        this.closeBtnStyle.addFromOptions({
+            "top": "0.1em",
+            "right": "0.1em",
+            "position": "fixed",
+            "font-size": "4rem",
+            "font-weight": "bold",
+            "font-family": "monospace",
+            "cursor": "pointer",
+            "color": "white",
+            "background-color": "transparent",
+            "border": "none",
+            "padding": "none"
+        });
     }
 
-    this.registry[this.overlayClass()] = this.opaqueBgStyle;
-    this.registry[this.containerClass()] = this.containerStyle;
-    this.registry[this.closeBtnClass()] = this.closeBtnStyle;
+
+    
+    
+    this.registerStyle(this.opaqueBgStyle);
+    this.registerStyle(this.containerStyle);
+    this.registerStyle(this.closeBtnStyle);
+    this.registerStyle(this.noScrollStyle);
 
 
 
 }
+
+
+Popup.prototype.registerStyle = function (style) {
+    this.registry[style.name] = style;
+};
 
 Popup.prototype.hide = function () {
     var overlay = document.getElementById(this.overlayId());
@@ -185,6 +208,8 @@ Popup.prototype.hide = function () {
     if (dialog) {
         dialog.style.display = 'none';
     }
+    
+        removeClass(document.body , this.noScrollStyle.name.substring(1));
     this.onClose();
 
 };
@@ -196,94 +221,78 @@ Popup.prototype.build = function () {
 
     var popup = this;
 
-
+    let freshCall = false;
 
     var overlay = document.getElementById(this.overlayId());
     var dialog = document.getElementById(this.containerId());
 
-    if (overlay) {
-        overlay.parentNode.removeChild(overlay);
+    if (!overlay) {
+        freshCall = true;
+        overlay = document.createElement('div');
+        overlay.setAttribute("id", this.overlayId());
+        this.addClass(overlay, this.overlayClass());
+        document.body.appendChild(overlay);
     }
 
-    if (dialog) {
-        dialog.parentNode.removeChild(dialog);
-    }
-
-
-
-
-    var elem = document.createElement('div');
-    document.body.appendChild(elem);
-    elem.setAttribute("id", this.overlayId());
-
-
-
-
-
-    elem.onclick = function () {
+    overlay.style.display = 'block';
+    overlay.onclick = function () {
         popup.hide();
     };
 
 
 
-    dialog = document.createElement('div');
-    document.body.appendChild(dialog);
-    dialog.setAttribute("id", this.containerId());
+
+    if (!dialog) {
+        dialog = document.createElement('div');
+        dialog.setAttribute("id", this.containerId());
+        this.addClass(dialog, this.containerClass());
+        document.body.appendChild(dialog);
+    }
+
+
+
+
 
 
 
     let closeBtn = document.createElement("input");
-    closeBtn.type = "button";
-    closeBtn.value = "\u02DF";
-
-    this.addClass(dialog, this.containerClass());
-    this.addClass(elem, this.overlayClass());
-    this.addClass(closeBtn, this.closeBtnClass());
-
-    
-
-let workspace = new Workspace( 'popup.xml' , dialog.id, function () {
-     
-    });
-
-
-    
-
-
-
+    if (!closeBtn) {
+        closeBtn = document.createElement("input");
+        closeBtn.setAttribute("id", this.closeBtnId());
+        this.addClass(closeBtn, this.closeBtnClass());
+        closeBtn.type = "button";
+        closeBtn.value = "\u02DF";
+        overlay.appendChild(closeBtn);
+    }
 
     closeBtn.onclick = function () {
         popup.hide();
     };
-    elem.appendChild(closeBtn);
-    closeBtn.setAttribute("id" , this.closeBtnId());
-
-
-//myPara.setAttribute("id", "id_you_like");
 
 
 
 
+    if (freshCall) {
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        var css = new StringBuffer();
+        for (var key in this.registry) {
+            css.append(this.registry[key].styleSheetEntry("." + key));
+        }
+        style.innerHTML = css.toString();
+        document.getElementsByTagName('head')[0].appendChild(style);
 
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    var css = new StringBuffer();
-
-
-
-    for (var key in this.registry) {
-        css.append(this.registry[key].styleSheetEntry("." + key));
+        let workspace = getWorkspace({
+            layoutName: this.layout,
+            bindingElemId: dialog.id,
+            onComplete: function () {}});
     }
-
-    style.innerHTML = css.toString();
-
-
-    document.getElementsByTagName('head')[0].appendChild(style);
-
+    
+    addClass(document.body , this.noScrollStyle.name.substring(1));
     popup.onOpen();
-
-
 };
+
+
 
 Popup.prototype.overlayId = function () {
     return this.id + "-main-overlay";

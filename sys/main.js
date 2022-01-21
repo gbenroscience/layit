@@ -5,6 +5,7 @@
  */
 
 let AutoLayout = window.AutoLayout;
+let TEMPLATE_INDEX = 0;
 
 
 /**
@@ -2136,8 +2137,8 @@ TextField.prototype.createElement = function (node) {
         type = 'text';//default
     }
     if (type && type !== 'text' && type !== 'password' && type !== 'file' && type !== 'date' && type !== 'search' && type !== 'datetime'
-            && type !== 'tel' && type !== 'phone' && type !== 'time' && type !== 'color' && type !== 'url') {
-        throw 'Unsupported input type';
+            && type !== 'tel' && type !== 'phone' && type !== 'time' && type !== 'color' && type !== 'url' && type !== 'email') {
+        throw 'Unsupported input type---('+type+')';
     }
 
     if (attributeNotEmpty(value)) {
@@ -2778,6 +2779,35 @@ IncludedView.prototype.createElement = function (node) {
 IncludedView.prototype.calculateWrapContentSizes = function (node) {
     this.wrapWidth = 300;
     this.wrapHeight = 320;
+};
+
+
+/**
+ * 
+ * Processes an html node that represents a generated view and produces reusable duplicates with changed ids.
+ * A template view is one which can be reused in a list or other recurring structure
+ * @param {Workspace} wkspc
+ * @param {HtmlNode} node
+ * @returns {undefined}
+ */
+
+let indexAllNodes = function (htmlNode){
+    let templateIndex = (TEMPLATE_INDEX+=1);
+    
+    if (htmlNode.hasChildNodes()) {
+        childNodes = htmlNode.childNodes;
+        for (let j = 0; j < childNodes.length; j++) {
+            let childNode = childNodes[j];
+            if (childNode.nodeName !== '#text' && childNode.nodeName !== '#comment') {
+                let childId = childNode.getAttribute(attrKeys.id);
+                childNode.setAttribute(attrKeys.id , childId+'_index_'+templateIndex);
+                this.createIndexedNodes(childNode);
+            }
+        }//end for loop
+    }
+    
+    
+    
 };
 
 

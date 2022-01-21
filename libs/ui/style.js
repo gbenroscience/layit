@@ -66,7 +66,7 @@ Style.prototype.getStyleElements = function(){
  */
 Style.prototype.isEmpty = function (){
     return this.styleElements.length === 0;
-}
+};
 
 
 /**

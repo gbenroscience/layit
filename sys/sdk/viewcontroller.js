@@ -13,7 +13,6 @@ function ViewController(wid) {
     }else{
         throw new Error('Invalid type for workspace id');
     }
-    
 }
 
 /**
@@ -57,11 +56,12 @@ ViewController.prototype.findViewById = function(viewId){
     if(wkspc){
         return wkspc.findViewById(viewId);
     }
+    return null;
 };
 
 /**
  * Locates the actual html view which is what most users will need
- * @param {type} viewId The id of the view
+ * @param {string} viewId The id of the view
  * @returns {unresolved}
  */
 ViewController.prototype.findHtmlViewById = function(viewId){
@@ -72,4 +72,32 @@ ViewController.prototype.findHtmlViewById = function(viewId){
     if(wkspc){
         return wkspc.findHtmlViewById(viewId);
     }
+    return null;
+};
+
+/**
+ * Locates the root view
+ * @returns {unresolved}
+ */
+ViewController.prototype.rootView = function(){
+     let wkspc = workspaces.get(this.workspaceId);
+    if(wkspc){
+        return wkspc.rootView();
+    }
+    return null;
+};
+
+/**
+ * Locates the root view
+ * @returns {unresolved}
+ */
+ViewController.prototype.rootHtmlView = function(){
+     let wkspc = workspaces.get(this.workspaceId);
+    if(wkspc){
+        let rv = wkspc.rootView();
+        if(rv){
+            return rv.htmlElement;
+        }
+    }
+    return null;
 };
