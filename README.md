@@ -258,6 +258,59 @@ Now add this view controller to your xml layout, like this:
 
 To load an xml file, the library uses the concept of a `Workspace`. A workspace is a Javascript class which on its own is able to completely process an xml layout of valid syntax into a html document suitably laid out using autolayout technology. It has the ability to identify all included xml layouts, and load and process them also.
 
+The `Workspace` constructor takes an `options` parameter which has 3 or 4 fields, depending on what you wish to achieve.
+
+
+### Anatomy of the `options` object
+
+```Javascript
+let options =  {
+ layoutName: 'layout.xml',
+ bindingElemId: 'id_of_element_layout_will_be_attached_to',
+ onComplete: 'A function to run when the layout has been parsed and loaded'
+ }
+```
+
+ OR 
+
+```Javascript
+let options = {
+ layoutName: 'layout.xml',
+ bindingElemId: 'id_of_element_layout_will_be_attached_to',
+ xmlContent: 'You do not wish to load the xml from the supplied layout name. So supply the xml here directly',
+ onComplete: 'A function to run when the layout has been parsed and loaded'
+ }
+```
+
+The first structure of the `options` object should be used if you wish to load the `xml` layout from a file, specified by the `layoutName` field.
+The `bindingElemId` field is the id of an existing(existing already in the DOM) html element. When the xml layout is loaded and parsed into HTML, the parsed layout will be attached to the element whose id is `bindingElemId`.
+
+
+If however you wish to load the xml layout from already loaded xml or dynamically generated xml, then use the second structure. In this case, the `layoutName` field is not the name of a real xml file; neither should it be! It should be a unique name which you assign to this `Workspace` so the library can use it to generate an id for the `Workspace` when it caches it.
+
+### Create the `Workspace`
+
+To create the `Workspace`, do:
+
+```Javascript
+let workspace = new Workspace(options);
+```
+
+In some cases, you will want to do:
+
+```Javascript
+let workspace = getWorkspace(options);
+```
+
+The function `getWorkspace(options)` is a global function that will be available from all files. It checks if a `Workspace` defined by the supplied `options` has been previously created. If so, it loads it from the cache, else it creates a new `Workspace` object and returns it.
+
+The `Workspace` object is what owns the `ViewController` class which you can use to interact with the layout loaded by the `Workspace`
+
+
+
+
+
+
 
 
 _**ReadME still under-development**_
