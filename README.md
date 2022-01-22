@@ -169,8 +169,11 @@ This will load the files `aaa.js` and `mmm.js` in the directories `aa` and `mm` 
 Your ui scripts should be defined in the `uiscripts` directory. You may create folders and subfolders within the `uiscripts` directory
 
 
-Define an `imports` tag anywhere in the xml layout and the library will load the scripts defined in the `imports` tag.<br>
+Define an `imports` tag anywhere in the root xml layout and the library will load the scripts defined in the `imports` tag.<br>
 This allows you to separate your ui(the xml layout) from its logic and other related logic.
+
+
+Each xml layout cannot have more than one `ViewController` and that must be defined in the root xml file
 
 The library allows you to define at most one viewcontroller per xml layout. Specify the name of the viewcontroller in the controller attribute of the `imports` tag.
 Your controller must be defined in one of the files that you have imported in the `files` attribute of the `imports` tag.
@@ -302,9 +305,26 @@ In some cases, you will want to do:
 let workspace = getWorkspace(options);
 ```
 
+The `Workspace's` work is done within its constructor, but if for some reason you need a reference to the `Workspace` after it has been created, then you may use the `getWorkspace(options)` function.
 The function `getWorkspace(options)` is a global function that will be available from all files. It checks if a `Workspace` defined by the supplied `options` has been previously created. If so, it loads it from the cache, else it creates a new `Workspace` object and returns it.
 
-The `Workspace` object is what owns the `ViewController` class which you can use to interact with the layout loaded by the `Workspace`
+The `Workspace` object is what owns the `ViewController` class which you can use to interact with the layout loaded by the `Workspace`.
+
+The `Workspace` is a pretty powerful tool as far as the library goes. It is what loads and parses the xml layout whether from files or generated dynamically and creates the html layout from it. It also controls the loading of the ViewController from the xml and is responsible for firing its lifecycle methods.
+
+If you wish to load an xml layout and attach it to the body of the page, e.g. your layout is to be the html page, then the `bindingElemId` field of the `options` object used to create the Workspace must be set to: `BODY_ID` ...e.g:
+
+```Javascript
+let options =  {
+ layoutName: 'layout.xml',
+ bindingElemId: BODY_ID,
+ onComplete: function(){//'Code to run when the layout has been parsed and loaded'}
+ }
+```
+`BODY_ID` is a predefined constant and is globally available.
+
+If you have a `div` or some other html element that you wish to load the parsed xml layout into, then set the html element's id into the `options` object and the view should load on the element just fine.<br><br>
+
 
 
 
