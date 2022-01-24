@@ -98,6 +98,8 @@ const attrKeys = {
     layout_constraintGuide_percent: "guide_percent",
     dimension_ratio: "dim_ratio",
     orientation: "orientation", //
+    
+    listType: 'listType',//ol or ul
 
     items: "items", // an array of items to display in a list or a dropdown
     tableItems: 'tableItems', //a 2d array of items to display on a table
@@ -117,7 +119,7 @@ const attrKeys = {
     textColumns: "textColumns", // a list of columns on an InputTableView, GrowableTableView or a SearchableTableView that will be rendered as textfields
     selectColumns: "selectColumns", // a list of columns on an InputTableView, GrowableTableView or a SearchableTableView that will be rendered as dropdowns
 
-
+    
 
     hasCaption: "hasCaption",
     caption: "caption",

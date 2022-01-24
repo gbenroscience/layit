@@ -216,7 +216,7 @@ function List(options) {
 
 List.prototype.build = function (parent) {
 
-var self = this;
+    var self = this;
 
     var list = document.getElementById(this.id);
     var checkMainDiv = document.getElementById(this.getContainerDivClass());
@@ -224,9 +224,6 @@ var self = this;
     if (checkMainDiv) {
        parent.removeChild(checkMainDiv);
     }
-
-
-
 
     var mainDiv = document.createElement('div');
     parent.appendChild(mainDiv);

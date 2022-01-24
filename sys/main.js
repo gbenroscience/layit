@@ -2304,7 +2304,7 @@ function DropDown(wkspc, node) {
 
 DropDown.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('SELECT');
-    var items = node.getAttribute(attrKeys.items);
+    let items = node.getAttribute(attrKeys.items);
     items = items.replace(/\n|\r/g,'');//remove new lines
     let regex1 = /(')(\s*)(,)(\s*)(')/g;
     let regex2 = /(")(\s*)(,)(\s*)(")/g;
@@ -2339,13 +2339,61 @@ function List(wkspc, node) {
 }
 
 List.prototype.createElement = function (node) {
-    this.htmlElement = document.createElement('ul');
+    
+    let listType = node.getAttribute(attrKeys.listType);
+    
+    
+    if(attributeEmpty(listType)){
+        listType = 'ul';
+    }
+    
+    this.htmlElement = document.createElement(listType);
+    
+    let items = node.getAttribute(attrKeys.items);
+    items = items.replace(/\n|\r/g,'');//remove new lines
+    let regex1 = /(')(\s*)(,)(\s*)(')/g;
+    let regex2 = /(")(\s*)(,)(\s*)(")/g;
+    
+    items = items.replace(regex1 , "','");
+    items = items.replace(regex2 , '","');
+ 
+    if (attributeNotEmpty(items)) {
+
+    let data = JSON.parse(items);
+        for (var i = 0; i < data.length; i++) {
+            let li = document.createElement('li');
+            li.appendChild(document.createTextNode(data[i]));
+            this.htmlElement.appendChild(li);
+        }
+    }
+
+    
     this.assignId();
+    this.calculateWrapContentSizes(node);
 
 };
 
 List.prototype.calculateWrapContentSizes = function (node) {
-
+    
+    let elems = this.htmlElement.getElementsByTagName("li");
+    let elemCount = elems.length;
+    
+    
+    let minWidth = 0;
+    let netHeight = 0;
+    
+    for(let i=0; i < elemCount; i++){
+        let li = elems[i];
+        View.prototype.getWrapSize.call(this, li.textContent);
+        if(minWidth < this.wrapWidth){
+            minWidth = this.wrapWidth;
+        }
+        netHeight += this.wrapHeight;
+        
+    }
+    
+    this.wrapWidth =   minWidth;
+    this.wrapHeight =  netHeight;
 };
 
 /**
@@ -2855,7 +2903,7 @@ function parseTableItems(input) {
         let len = tableData[0].length;
         for (let i = 1; i < tableData.length; i++) {
             if (tableData[i].length !== len) {
-                throw new Error('The rows of your table should have equal lenth, please');
+                throw new Error('The rows of your table should have equal length, please');
             }
         }
 
