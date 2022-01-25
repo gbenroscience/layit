@@ -169,8 +169,11 @@ This will load the files `aaa.js` and `mmm.js` in the directories `aa` and `mm` 
 Your ui scripts should be defined in the `uiscripts` directory. You may create folders and subfolders within the `uiscripts` directory
 
 
-Define an `imports` tag anywhere in the xml layout and the library will load the scripts defined in the `imports` tag.<br>
+Define an `imports` tag anywhere in the root xml layout and the library will load the scripts defined in the `imports` tag.<br>
 This allows you to separate your ui(the xml layout) from its logic and other related logic.
+
+
+Each xml layout cannot have more than one `ViewController` and that must be defined in the root xml file
 
 The library allows you to define at most one viewcontroller per xml layout. Specify the name of the viewcontroller in the controller attribute of the `imports` tag.
 Your controller must be defined in one of the files that you have imported in the `files` attribute of the `imports` tag.
@@ -257,6 +260,141 @@ Now add this view controller to your xml layout, like this:
 ## Workspace
 
 To load an xml file, the library uses the concept of a `Workspace`. A workspace is a Javascript class which on its own is able to completely process an xml layout of valid syntax into a html document suitably laid out using autolayout technology. It has the ability to identify all included xml layouts, and load and process them also.
+
+The `Workspace` constructor takes an `options` parameter which has 4 or 5 fields, depending on what you wish to achieve.
+
+
+### Anatomy of the `options` object
+
+```Javascript
+let options =  {
+ layoutName: 'layout.xml',
+ bindingElemId: 'id_of_element_layout_will_be_attached_to',
+ templateData:  'A json object that can be used to parse values into the xml layouts.. this allows for templating',
+ xmlContent: 'You do not wish to load the xml from the supplied layout name. So supply the xml here directly',
+ onComplete: 'A function to run when the layout has been parsed and loaded'
+ }
+```
+
+If you wish to load the xml layout from a file, then specify the file name (as it is in your layouts folder), using the `options.layoutName` field and **DO NOT** specify the`options.xmlContent` field at all.
+
+If you already have the xml content that you want to render, then the `Workspace` will still require you to supply a dummy but **UNIQUE** file name on `options.layoutName`.
+It needs to be a unique name which you assign to this `Workspace` so the library can use it to generate an id for the `Workspace` when it caches it.
+Then supply the xml layout to the `options.xmlContent` field.
+
+
+
+The `options.bindingElemId` field is the id of an existing(already existing in the DOM) html element. When the xml layout is loaded and parsed into HTML, the parsed layout will be attached to the element whose id is `bindingElemId`.
+
+
+
+### Create the `Workspace`
+
+To create the `Workspace`, do:
+
+```Javascript
+let workspace = new Workspace(options);
+```
+
+In some cases, you will want to do:
+
+```Javascript
+let workspace = getWorkspace(options);
+```
+
+The `Workspace's` work is done within its constructor, but if for some reason you need a reference to the `Workspace` after it has been created, then you may use the `getWorkspace(options)` function.
+The function `getWorkspace(options)` is a global function that will be available from all files. It checks if a `Workspace` defined by the supplied `options` has been previously created. If so, it loads it from the cache, else it creates a new `Workspace` object and returns it.
+
+The `Workspace` object is what owns the `ViewController` class which you can use to interact with the layout loaded by the `Workspace`.
+
+The `Workspace` is a pretty powerful tool as far as the library goes. It is what loads and parses the xml layout whether from files or generated dynamically and creates the html layout from it. It also controls the loading of the ViewController from the xml and is responsible for firing its lifecycle methods.
+
+If you wish to load an xml layout and attach it to the body of the page, e.g. your layout is to be the html page, then the `bindingElemId` field of the `options` object used to create the Workspace must be set to: `BODY_ID` ...e.g:
+
+```Javascript
+let options =  {
+ layoutName: 'layout.xml',
+ bindingElemId: BODY_ID,
+ onComplete: function(){//'Code to run when the layout has been parsed and loaded'}
+ }
+```
+`BODY_ID` is a predefined constant and is globally available.
+
+If you have a `div` or some other html element that you wish to load the parsed xml layout into, then set the html element's id into the `options` object and the view should load on the element just fine.<br><br>
+
+
+### XML Templates
+
+To make the library more useful, especially with server-side technologies, we support templating with the xml layouts.
+Developers will mainly need templates when assigning values to the attributes of nodes in the layout.
+
+_**Note** we use [Mustache](https://github.com/janl/mustache.js)_ for xml templates.
+
+
+The `options.templateData` field takes a Javascript object which can be used to pass templating information to the xml layout.
+Also, if you are loading the `Workspace` from the html page's script tag, you can use the `data-template` attribute to specify the template data to apply to your xml layouots. e.g:
+
+```html
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type="text/javascript" src="correct/path/to/layit.js" data-launcher="test.xml" data-template='{"name":"Developer Africanus"}'></script>
+
+        
+    </head>
+    <body></body>
+</html>
+```
+
+Note how we apply the json string to the `data-template` attribute.
+
+So, from your backend you may encode your template data as a json string and apply it to the `data-template` attribute of the script tag.
+
+Or if you are applying the data from your front end, do something like:
+
+
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <script type="text/javascript" src="layit/sys/layit.js"></script>
+
+        <script>
+            let view = {
+                "name": "Gbemiro Jiboye",
+                "workDays": ["Monday", "Wednesday", "Friday"],
+                "designation": "Chief Software Engineer"
+            };
+
+            let workspace = new Workspace({
+                layoutName: 'test.xml',
+                bindingElemId: BODY_ID,
+                templateData: view,
+                onComplete: null
+            });
+
+        </script> 
+
+    </head>
+    <body>
+
+    </body>
+</html>
+```
+
+Now, there are no `data-xxx` attributes on the script tag again. We do all the work in the script tag just after it.
+
+
+
+
+
+
 
 
 
