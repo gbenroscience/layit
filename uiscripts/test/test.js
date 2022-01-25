@@ -38,6 +38,19 @@ TestController.prototype.onViewsAttached = function(wid){
          ViewController.prototype.onViewsAttached.call(this, wid);
 //Your code goes below here
 
+/*
+let data = {
+    name: "Wiliam Tyndale",
+    profession: "Bible Scholar",
+    diedAs: "Martyr"
+};
+
+data = JSON.stringify(data);
+data = JSON.parse(data);
+let template = '<View id="dum_dum" name="{{ name }}" info="{{ profession }}"/>';
+
+console.log(Mustache.render(template, data));
+*/
 
 let view = this.findHtmlViewById('site_title');
     view.style.color = 'white';

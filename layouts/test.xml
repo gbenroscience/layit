@@ -20,11 +20,12 @@
         id="site_title"
         width="wrap_content"
         height="wrap_content"
+        maxWidth="250px"
         start_start='section_top'
         cy_align="section_top"
         marginStart="16"
         textColor="#eee"
-        value="Layit Framework By Example"
+        value="Layit Framework By Example by {{ name }}"
         textSize="1.5em"
         textStyle="bold italic"
         fontFamily="Kartika"

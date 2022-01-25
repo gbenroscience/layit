@@ -29,6 +29,7 @@ const SCRIPTS_BASE = getScriptBaseUrl();
 
 
 const nativeScripts = [
+    SCRIPTS_BASE + 'sys/mustache420.js',
     SCRIPTS_BASE + 'sys/autolayout.js',
     SCRIPTS_BASE + 'sys/main.js',
     SCRIPTS_BASE + 'sys/compiler-constants.js',
@@ -159,13 +160,14 @@ document.currentScript = document.currentScript || (function () {
 /**
  * 
  * Creates a new Workspace.
- * The Workspace options may take 3 or 4 properties:
+ * The Workspace options may take a maximum of 4 or 5 properties:
  * 
  * They do different things so please take note!
  
  {
  layoutName: 'layout.xml',
  bindingElemId: 'id_of_element_layout_will_be_attached_to',
+ templateData: A JSON object that contains data that can be passed into specified areas of the xml. This allows the lbrary to work with server-side technology.
  onComplete: 'A function to run when the layout has been parsed and loaded',
  }
  
@@ -174,31 +176,35 @@ document.currentScript = document.currentScript || (function () {
  {
  layoutName: 'layout.xml',
  bindingElemId: 'id_of_element_layout_will_be_attached_to',
+ templateData: A JSON object that contains data that can be passed into specified areas of the xml. This allows the lbrary to work with server-side technology.
  xmlContent: 'You do not wish to load the xml from the supplied layout name. So supply the xml here directly',
  onComplete: 'A function to run when the layout has been parsed and loaded',
  }
  
  
- * If it takes 3, then the args are:
+ * If it takes 4, then the args are:
  * 
  * 1. The layout name...e.g test.xml,
  * 2. The html id of the DOM element that the generated html layout
  * will be bound to, and lastly, 
- * 3. A callback function to run when the xml document has been parsed into html.
+ * 3. A JSON object that contains data that can be passed into the xml layouts using the appropriate syntax
+ * 4. A callback function to run when the xml document has been parsed into html.
  * 
- * If it takes 4, then the args are:
+ * If it takes 5, then the args are:
  * 
  * 1. The layout name...e.g test.xml, may be a dummy name! It is only required for identifying the xml content supplied
  * 2. The html id of the DOM element that the generated html layout
  * will be bound to
- * 3. The xml content of the specified layout, and lastly, 
- * 4. A callback function to run when the xml document has been parsed into html.
+ * 3. A JSON object that contains data that can be passed into the xml layouts using the appropriate syntax
+ * 4. The xml content of the specified layout, and lastly, 
+ * 5. A callback function to run when the xml document has been parsed into html.
  * 
  * The 4 args property-type options is important because, a user may have generated some xml dynamically and wish to load it on the interface.
  * This dummy content of course has no file representation in the layouts folder. So we need the user to supply a unique file name that we may use to
  * identify this xml.
  * 
- * 
+ * Basically, the discriminator here is the xmlContent field. Once it exists, the constructor's behaviour changes from trying to load xml from a source,
+ * to using the supplied xml string and creating a dummy key for it in the cache.
  * 
  * @param {Object} options An object that defines the properties needed to load the workspace
  * @returns {Workspace}
@@ -220,6 +226,11 @@ function Workspace(options) {
     this.systemRootId = BODY_ID;
     if (options.bindingElemId && typeof options.bindingElemId === 'string') {
         this.systemRootId = options.bindingElemId;
+    }
+    
+    this.templateData = null;
+    if(options.templateData && typeof options.templateData === 'object'){
+        this.templateData = options.templateData;
     }
 
     let xmlContent = null;
@@ -276,6 +287,10 @@ function Workspace(options) {
  * @returns {Parser}
  */
 function Parser(workspace, xml, parentId) {
+
+if(workspace.templateData){//RCN: 2015483397
+    xml = Mustache.render(xml ,workspace.templateData);
+}
 
     this.constraints = [];
     this.html = new StringBuffer('');
@@ -662,6 +677,7 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
                     if (viewController && viewController instanceof ViewController) {
                         wkspc.controller = viewController;
                         wkspc.controller.onCreate(wkspc);
+                        console.log('workspace id: ', wkspc.id);
                         if (wkspc.rootParser.doneParsing === true) {
                             wkspc.controller.onViewsAttached(wkspc);
                         }
@@ -866,7 +882,6 @@ Parser.prototype.buildUI = function (wkspc) {
                 progressBars.push(child);
             }
         }
-
     });
 
 
@@ -938,8 +953,6 @@ Parser.prototype.buildUI = function (wkspc) {
         progressBars.forEach((child) => {
             child.runProgress();
         });
-
-
     }
 
     if (wkspc.controller && wkspc.controller instanceof ViewController) {
@@ -1052,21 +1065,23 @@ function isScriptLoaded(scriptURL) {
 
 /**
  * Runs a default workspace based on the file name supplied by the user on the layit.js script tag in the html file.
- * The 
  * @returns {undefined}
  */
 function baseLauncher() {
+    let templateJson = document.currentScript.getAttribute('data-template');
     let fileName = document.currentScript.getAttribute('data-launcher');
-    launcher(fileName, BODY_ID);
+    if(fileName && typeof fileName === 'string' && fileName.length > 0)
+    launcher(fileName, BODY_ID, templateJson);
 }
 
 /**
  * Runs a workspace based on the file name supplied by the user and the id of the element that the layout should be attached to.
  * @param {string} fileName
  * @param {string} elemId
+ * @param {string} templateData A json string containing information to pass into the xml layout 
  * @returns {undefined}
  */
-function launcher(fileName, elemId) {
+function launcher(fileName, elemId, templateData) {
 
     if (elemId && typeof elemId === 'string' && elemId.length > 0) {
         if (fileName && typeof fileName === 'string' && fileName.length > 0) {
@@ -1077,7 +1092,27 @@ function launcher(fileName, elemId) {
             const isXML = fileName.lastIndexOf(endItem) === len - endLen;
 
             if (isXML === true) {
-                let workspace = new Workspace({layoutName: fileName, bindingElemId: elemId});
+                let workspace;
+                if(templateData){
+                    if(typeof templateData === 'string'){
+                        if(templateData.length > 0){
+                            try{
+                                let data = JSON.parse(templateData);
+                                 workspace = new Workspace({layoutName: fileName, bindingElemId: elemId, templateData: data});
+                            }catch (err){
+                              throw new Error('Template data specified but is not valid JSON!...'+templateData);   
+                            }
+                        }else{
+                            throw new Error('Template data specified but has no content');
+                        }
+                    }else if(typeof templateData === 'object'){
+                         workspace = new Workspace({layoutName: fileName, bindingElemId: elemId, templateData: templateData});
+                    }else{
+                        throw new Error('Template data specified but its typeis invalid');
+                    }
+                }else{
+                    workspace = new Workspace({layoutName: fileName, bindingElemId: elemId});
+                }
             } else {
                 throw new Error('Invalid xml file specified in data-launcher attribute of `layit.js` script tag.');
             }
