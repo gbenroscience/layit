@@ -148,7 +148,7 @@ The above tag specifies that a div should be created and assigned the identity: 
 
 ### imports: Loading scripts to control your ui elements
 
-`**imports**` are an important feature introduced here. They allow the library dynamically load scripts that the user wishes to use in working with the xml ui; e.g. a controller.
+**`imports`** are an important feature introduced here. They allow the library dynamically load scripts that the user wishes to use in working with the xml ui; e.g. a controller.
 
 To import scripts, use the imports tag as such:
 
