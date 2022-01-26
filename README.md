@@ -123,7 +123,7 @@ These are all supported.
 
 #### cx_align and cy_align
 
-Allows a layout's center to be constrained horizontally or vertically to another layout's center.<br>
+Allows a view's center to be constrained horizontally or vertically to another view's center.<br>
 The values accepted are either, `parent` or `view_id`; where `view_id` is the id of the view we are constraining this view with respect to.
 
 
@@ -148,7 +148,7 @@ The above tag specifies that a div should be created and assigned the identity: 
 
 ### imports: Loading scripts to control your ui elements
 
-`**imports**` are an important feature introduced here. They allow the library dynamically load scripts that the user wishes to use in working with the xml ui; e.g. a controller.
+**`imports`** are an important feature introduced here. They allow the library dynamically load scripts that the user wishes to use in working with the xml ui; e.g. a controller.
 
 To import scripts, use the imports tag as such:
 
