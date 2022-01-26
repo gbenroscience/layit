@@ -391,8 +391,10 @@ Or if you are applying the data from your front end, do something like:
 Now, there are no `data-xxx` attributes on the script tag again. We do all the work in the script tag just after it.
 
 
+## Styling
 
-
+The library can be used to style your elements but it is not designed for this. Instead, it is more optimal to use a special attribute called the `cssClass` to link your xml elements to a corresponding css class in your styleheets.
+There are lots of attributes that can be used to specify text color, background color etc directly from the xml layout. But using the `cssClass` attribute is of course more powerful since of course, stylesheets.
 
 
 
