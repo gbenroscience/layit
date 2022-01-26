@@ -123,7 +123,7 @@ These are all supported.
 
 #### cx_align and cy_align
 
-Allows a layout's center to be constrained horizontally or vertically to another layout's center.<br>
+Allows a view's center to be constrained horizontally or vertically to another view's center.<br>
 The values accepted are either, `parent` or `view_id`; where `view_id` is the id of the view we are constraining this view with respect to.
 
 
