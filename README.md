@@ -332,7 +332,7 @@ _**Note** we use [Mustache](https://github.com/janl/mustache.js)_ for xml templa
 
 
 The `options.templateData` field takes a Javascript object which can be used to pass templating information to the xml layout.
-Also, if you are loading the `Workspace` from the html page's script tag, you can use the `data-template` attribute to specify the template data to apply to your xml layouots. e.g:
+Also, if you are loading the `Workspace` from the html page's script tag, you can use the `data-template` attribute to specify the template data to apply to your xml layouts. e.g:
 
 ```html
 <html>
