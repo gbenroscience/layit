@@ -215,9 +215,9 @@ function Workspace(options) {
         throw new Error("Please supply the options to create this workspace");
     }
 
-    let rootLayoutName = null;
+    this.layoutName = null;
     if (options.layoutName && typeof options.layoutName === 'string') {
-        rootLayoutName = options.layoutName;
+        this.layoutName = options.layoutName;
     } else {
         throw new Error('Please supply the root layout name! even if you are supplying your xmlcontent directly, specify a dummy layout name for it! we need it to create a unique id for your layout');
     }
@@ -227,9 +227,9 @@ function Workspace(options) {
     if (options.bindingElemId && typeof options.bindingElemId === 'string') {
         this.systemRootId = options.bindingElemId;
     }
-    
+
     this.templateData = null;
-    if(options.templateData && typeof options.templateData === 'object'){
+    if (options.templateData && typeof options.templateData === 'object') {
         this.templateData = options.templateData;
     }
 
@@ -249,7 +249,7 @@ function Workspace(options) {
     }
 
 
-    this.id = this.systemRootId + '_' + rootLayoutName.replace("." , "_");//This is the workspace id.
+    this.id = this.systemRootId + '_' + this.layoutName.replace(".", "_");//This is the workspace id.
 
     this.viewMap = new Map();
     this.allStyles = [];
@@ -272,9 +272,9 @@ function Workspace(options) {
     console.log(arguments);
 
     if (xmlContent) {
-        this.setContentView(rootLayoutName, xmlContent);
+        this.setContentView(this.layoutName, xmlContent);
     } else {
-        this.setContentView(rootLayoutName);
+        this.setContentView(this.layoutName);
     }
 
 }
@@ -288,9 +288,9 @@ function Workspace(options) {
  */
 function Parser(workspace, xml, parentId) {
 
-if(workspace.templateData){//RCN: 2015483397
-    xml = Mustache.render(xml ,workspace.templateData);
-}
+    if (workspace.templateData) {//RCN: 2015483397
+        xml = Mustache.render(xml, workspace.templateData);
+    }
 
     this.constraints = [];
     this.html = new StringBuffer('');
@@ -319,6 +319,9 @@ if(workspace.templateData){//RCN: 2015483397
      */
     this.doneParsing = false;
     this.errorOccured = false;
+    if(!workspace.rootParser){
+        workspace.rootParser = this;
+    }
 
     this.nodeProcessor(workspace, new NodeMaker(xml).rootNode);
 
@@ -392,7 +395,7 @@ function getScriptBaseUrl() {
 Workspace.prototype.rootView = function () {
     //let id = 'root_html_main_test_xml_1';
     //"root_menu_x_id_side_menux_frame_popup_xml_1"
-    return this.viewMap.get('root_'+this.id + "_1"); 
+    return this.viewMap.get('root_' + this.id + "_1");
 };
 
 Workspace.prototype.resetLoaderIndices = function () {
@@ -440,7 +443,6 @@ Workspace.prototype.setContentView = function (layoutFileName, xmlContent) {
         } else {
             console.log('Compiler Scripts Fully Loaded... xmlContent: ', xmlContent);
 
-
             self.prefetchAllLayouts(layoutFileName, xmlContent, function () {
                 console.log('Resetting engine parameters...');
                 self.resetAllIndices();
@@ -448,7 +450,7 @@ Workspace.prototype.setContentView = function (layoutFileName, xmlContent) {
             }, function (xml) {
                 console.log('Loaded layout and ' + (self.xmlIncludes.size - 1) + ' included layouts');
                 if (xml.length > 0) {
-                    self.rootParser = new Parser(self, xml, null);
+                    let parser = new Parser(self, xml, null);
                     console.log('Parsed loaded file!');
                 } else {
                     console.log('Awaiting loaded file!');
@@ -636,7 +638,7 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
             let nodeId = node.getAttribute(attrKeys.id);
             if (!nodeId || nodeId === '') {
                 wkspc.rootCount += 1;
-                node.setAttribute('id', 'root_'+wkspc.id.replace('.','_')+'_' + wkspc.rootCount);
+                node.setAttribute('id', 'root_' + wkspc.id.replace('.', '_') + '_' + wkspc.rootCount);
             }
 
             view = new View(wkspc, node);//view adds to viewMap automatically in constructor
@@ -667,26 +669,31 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
             break;
 
         case xmlKeys.imports:
-            let files = node.getAttribute(attrKeys.files);
-            let scripts = parseImports(files);
-            loadScripts(scripts, function () {
-                let controllerName = node.getAttribute(attrKeys.controller);
-                if (typeof controllerName === 'string' && controllerName.length > 0) {
-                    let viewController = new window[controllerName](wkspc.id);
+            if (this === wkspc.rootParser) {
+                let files = node.getAttribute(attrKeys.files);
+                let scripts = parseImports(files);
+                loadScripts(scripts, function () {
+                    let controllerName = node.getAttribute(attrKeys.controller);
+                    if (typeof controllerName === 'string' && controllerName.length > 0) {
+                        let viewController = new window[controllerName](wkspc.id);
 
-                    if (viewController && viewController instanceof ViewController) {
-                        wkspc.controller = viewController;
-                        wkspc.controller.onCreate(wkspc);
-                        console.log('workspace id: ', wkspc.id);
-                        if (wkspc.rootParser.doneParsing === true) {
-                            wkspc.controller.onViewsAttached(wkspc);
+                        if (viewController && viewController instanceof ViewController) {
+                            wkspc.controller = viewController;
+                            wkspc.controller.onCreate(wkspc);
+                            if (wkspc.rootParser.doneParsing === true) {
+                                wkspc.controller.onViewsAttached(wkspc);
+                            }
+                        } else {
+                            throw new Error("Couldn't initialize ViewController...");
                         }
-                    } else {
-                        throw new Error("Couldn't initialize ViewController...");
-                    }
 
-                }
-            });
+                    }
+                });
+            }else{
+                console.log(wkspc.rootParser);
+                throw new Error('Please insert your imports in the root xml layout('+wkspc.id+') alone. ');
+            }
+
 
 
             break;
@@ -1070,8 +1077,8 @@ function isScriptLoaded(scriptURL) {
 function baseLauncher() {
     let templateJson = document.currentScript.getAttribute('data-template');
     let fileName = document.currentScript.getAttribute('data-launcher');
-    if(fileName && typeof fileName === 'string' && fileName.length > 0)
-    launcher(fileName, BODY_ID, templateJson);
+    if (fileName && typeof fileName === 'string' && fileName.length > 0)
+        launcher(fileName, BODY_ID, templateJson);
 }
 
 /**
@@ -1093,24 +1100,24 @@ function launcher(fileName, elemId, templateData) {
 
             if (isXML === true) {
                 let workspace;
-                if(templateData){
-                    if(typeof templateData === 'string'){
-                        if(templateData.length > 0){
-                            try{
+                if (templateData) {
+                    if (typeof templateData === 'string') {
+                        if (templateData.length > 0) {
+                            try {
                                 let data = JSON.parse(templateData);
-                                 workspace = new Workspace({layoutName: fileName, bindingElemId: elemId, templateData: data});
-                            }catch (err){
-                              throw new Error('Template data specified but is not valid JSON!...'+templateData);   
+                                workspace = new Workspace({layoutName: fileName, bindingElemId: elemId, templateData: data});
+                            } catch (err) {
+                                throw new Error('Template data specified but is not valid JSON!...' + templateData);
                             }
-                        }else{
+                        } else {
                             throw new Error('Template data specified but has no content');
                         }
-                    }else if(typeof templateData === 'object'){
-                         workspace = new Workspace({layoutName: fileName, bindingElemId: elemId, templateData: templateData});
-                    }else{
+                    } else if (typeof templateData === 'object') {
+                        workspace = new Workspace({layoutName: fileName, bindingElemId: elemId, templateData: templateData});
+                    } else {
                         throw new Error('Template data specified but its typeis invalid');
                     }
-                }else{
+                } else {
                     workspace = new Workspace({layoutName: fileName, bindingElemId: elemId});
                 }
             } else {

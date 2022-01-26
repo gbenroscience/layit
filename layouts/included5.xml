@@ -10,7 +10,7 @@ and open the template in the editor.
         width="90px"
         height="match_parent"
 >
-    
+
     <Label
         id="block_title_5"
         width="wrap_content"
