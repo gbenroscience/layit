@@ -16,11 +16,12 @@
         end_end='parent'
 
     />
-    <Label
+    <MultiLineLabel
         id="site_title"
         width="wrap_content"
-        height="wrap_content"
+        height="80px"
         maxWidth="250px"
+        padding="0"
         start_start='section_top'
         cy_align="section_top"
         marginStart="16"
@@ -288,7 +289,7 @@
         borderRadius="1em"
     />
 
-     <PopupView
+    <PopupView
         layout="popup"
         id="states_popup"
         width="120px"
@@ -351,12 +352,12 @@
         fontWeight='bold'
         hasFooter="false"
         textColor="midnightblue"
-        tableItems="[row[23,44,90],row[1001,873,202],row[34,98,188]]"
+        tableItems="[[23,44,90],[1001,873,202],[34,98,188]]"
     
     
     />
     
-  <Label
+    <Label
         id="custom_table_label"
         width="wrap_content"
         height="wrap_content"
@@ -394,10 +395,24 @@
         checkableColumns='["RED" , "BLUE"]'
         textColumns='["Value 1","Value 2","Value 3"]'
         selectColumns='[{"Countries": ["Nigeria","Portugal","Chile","Colombia","South Africa"]},{"Capitals": ["Abuja","Lisbon","Santiago","Bogota","Pretoria"]},{"Continents": ["Africa","Europe","South America","South America","Africa"]}]'
-        tableItems="[row[FIRST,SECOND,THIRD],row[1001,873,202],row[34,98,188],row[394,598,1086],row[COOL,NUMBERS,HERE]]"
+        tableItems='[[1,2,3],[1001,873,202],[34,98,188],[394,598,1086],["COOL","NUMBERS","HERE"]]'
     
     
     />
 
         
+    
+    <VideoView
+        id="video_1"
+        width="250px"
+        height="160px"
+        cx_align="progress"
+        top_top="table_two"
+        sources='[{"src": "/videos/stuff.mp4","type": "video/mp4", "codecs": "avc1.42E01E, mp4a.40.2, theora, vorbis"}]'
+        autoplay='true'
+        muted='true'
+        controls='true'
+        preload='true'                                                                                                                                                                 
+                    
+    />
 </ConstraintLayout>

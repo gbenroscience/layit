@@ -305,7 +305,8 @@ function Parser(workspace, xml, parentId) {
             'padding': '0',
             'box-sizing': 'border-box',
             '-webkit-box-sizing': 'border-box',
-            '-moz-box-sizing': 'border-box'
+            '-moz-box-sizing': 'border-box',
+            'overscroll-behavior': 'none'
         });
         injectStyleSheets(workspace.styleSheet, [generalStyle]);
         workspace.allStyles.push(generalStyle);
@@ -319,7 +320,7 @@ function Parser(workspace, xml, parentId) {
      */
     this.doneParsing = false;
     this.errorOccured = false;
-    if(!workspace.rootParser){
+    if (!workspace.rootParser) {
         workspace.rootParser = this;
     }
 
@@ -689,9 +690,9 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
 
                     }
                 });
-            }else{
+            } else {
                 console.log(wkspc.rootParser);
-                throw new Error('Please insert your imports in the root xml layout('+wkspc.id+') alone. ');
+                throw new Error('Please insert your imports in the root xml layout(' + wkspc.id + ') alone. ');
             }
 
 
@@ -778,6 +779,15 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
         case xmlKeys.canvas:
             view = new CanvasView(wkspc, node);
             break;
+
+        case xmlKeys.video:
+            view = new VideoView(wkspc, node);
+            break;
+        case xmlKeys.audio:
+            view = new AudioView(wkspc, node);
+            break;
+
+
         default:
             break;
     }

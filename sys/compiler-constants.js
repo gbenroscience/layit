@@ -34,6 +34,8 @@ const xmlKeys = {
     button: "Button",
     field: "TextField",
     area: "TextArea",
+    video: 'VideoView',
+    audio: 'AudioView',
     imageView: "ImageView",
     progress: "ProgressBar",
     check: "CheckBox",
@@ -98,8 +100,8 @@ const attrKeys = {
     layout_constraintGuide_percent: "guide_percent",
     dimension_ratio: "dim_ratio",
     orientation: "orientation", //
-    
-    listType: 'listType',//ol or ul
+
+    listType: 'listType', //ol or ul
 
     items: "items", // an array of items to display in a list or a dropdown
     tableItems: 'tableItems', //a 2d array of items to display on a table
@@ -119,8 +121,15 @@ const attrKeys = {
     textColumns: "textColumns", // a list of columns on an InputTableView, GrowableTableView or a SearchableTableView that will be rendered as textfields
     selectColumns: "selectColumns", // a list of columns on an InputTableView, GrowableTableView or a SearchableTableView that will be rendered as dropdowns
 
-    
 
+//for video and audio
+    sources: 'sources', // sources='[{"src": "/videos/stuff.mp4","type": "/videos/stuff.mp4", "codecs": "avc1.42E01E, mp4a.40.2, theora, vorbis"},]'
+    autoplay: 'autoplay', //boolean
+    muted: 'muted', //boolean
+    controls: 'controls', // boolean
+    preload: 'preload', //boolean
+    
+    
     hasCaption: "hasCaption",
     caption: "caption",
     scrollHeight: "scrollHeight",

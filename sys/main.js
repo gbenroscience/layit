@@ -206,24 +206,25 @@ function View(wkspc, node) {
         if (this.margin.startsWith("-")) {
             throw 'Negative margins (margin) on view(' + this.id + ') not supported by layout engine';
         }
-        
-        
+
+
         this.width = node.getAttribute(attrKeys.layout_width);
         this.height = node.getAttribute(attrKeys.layout_height);
-        
-        
+
+
         changePxToUnitLess:{
-            
-            if(endsWith(this.width , 'px')){
+
+            if (endsWith(this.width, 'px')) {
                 this.width = parseInt(this.width);
-            }if(endsWith(this.height , 'px')){
+            }
+            if (endsWith(this.height, 'px')) {
                 this.height = parseInt(this.height);
             }
-            
+
         }
-        
-        
-        
+
+
+
         this.dimRatio = -1;//Not specified... dimRatio is width/height
 
         this.wrapWidth = "";
@@ -583,17 +584,17 @@ View.prototype.makeVFL = function (wkspc) {
     let mb = parseInt(this.marginBottom);
     let ms = parseInt(this.marginStart);
     let me = parseInt(this.marginEnd);
-    
+
     let mh = parseInt(this.marginHorizontal);
     let mv = parseInt(this.marginVertical);
-    
-    if(isNumber(mh) && mh > 0){
+
+    if (isNumber(mh) && mh > 0) {
         ms = me = mh;//override individual horizontal margins if a general horizontal margin is defined
     }
-   if(isNumber(mv) && mv > 0){
+    if (isNumber(mv) && mv > 0) {
         mt = mb = mv;//override individual horizontal margins if a general horizontal margin is defined
     }
-    
+
 
 
     let maxWid = this.refIds.get(attrKeys.layout_maxWidth);
@@ -1162,6 +1163,14 @@ IncludedView.prototype.constructor = IncludedView;
 PopupView.prototype = Object.create(IncludedView.prototype);
 PopupView.prototype.constructor = PopupView;
 
+VideoView.prototype = Object.create(View.prototype);
+VideoView.prototype.constructor = VideoView;
+
+AudioView.prototype = Object.create(View.prototype);
+AudioView.prototype.constructor = AudioView;
+
+
+
 /**
  * @param {Workspace} wkspc 
  * @param {type} node key-value object
@@ -1267,7 +1276,14 @@ NativeTable.prototype.createElement = function (node) {
     }
 
     if (attributeNotEmpty(entries)) {
-        let array = parseTableItems(entries);
+        let array;
+        try {
+            array = JSON.parse(entries);
+            validateTableJson(array);
+        } catch (e) {
+            throw new Error('Invalid table json! JSON should be a 2D array of table rows');
+        }
+
         let tableSize = array.length;
         for (var i = 0; i < tableSize; i++) {
             let tr = document.createElement('tr');
@@ -1337,7 +1353,7 @@ NativeTable.prototype.calculateWrapContentSizes = function (node) {
  * @param {type} node
  * @returns {CustomTableView}
  */
-function CustomTableView(wkspc,node) {
+function CustomTableView(wkspc, node) {
     this.options = {};
     this.customTable = null;
     View.call(this, wkspc, node);
@@ -1425,7 +1441,12 @@ CustomTableView.prototype.createElement = function (node) {
     }
 
     if (attributeNotEmpty(entries)) {
-        data = parseTableItems(entries);
+        try {
+            data = JSON.parse(entries);
+            validateTableJson(data);
+        } catch (e) {
+            throw new Error('Invalid table json! JSON should be a 2D array of table rows');
+        }
     } else {
         data = [];
     }
@@ -1595,7 +1616,12 @@ InputTableView.prototype.createElement = function (node) {
     }
 
     if (attributeNotEmpty(entries)) {
-        data = parseTableItems(entries);
+        try {
+            data = JSON.parse(entries);
+            validateTableJson(data);
+        } catch (e) {
+            throw new Error('Invalid table json! JSON should be a 2D array of table rows');
+        }
     } else {
         data = [];
     }
@@ -1697,7 +1723,7 @@ InputTableView.prototype.createElement = function (node) {
 
 /**
  * 
-  @param {Workspace} wkspc
+ @param {Workspace} wkspc
  * @param {type} node
  * @returns {GrowableTableView}
  */
@@ -1789,7 +1815,12 @@ GrowableTableView.prototype.createElement = function (node) {
     }
 
     if (attributeNotEmpty(entries)) {
-        data = parseTableItems(entries);
+        try {
+            data = JSON.parse(entries);
+            validateTableJson(data);
+        } catch (e) {
+            throw new Error('Invalid table json! JSON should be a 2D array of table rows');
+        }
     } else {
         data = [];
     }
@@ -1993,7 +2024,12 @@ SearchableTableView.prototype.createElement = function (node) {
     }
 
     if (attributeNotEmpty(entries)) {
-        data = parseTableItems(entries);
+        try {
+            data = JSON.parse(entries);
+            validateTableJson(data);
+        } catch (e) {
+            throw new Error('Invalid table json! JSON should be a 2D array of table rows...' + e);
+        }
     } else {
         data = [];
     }
@@ -2138,7 +2174,7 @@ TextField.prototype.createElement = function (node) {
     }
     if (type && type !== 'text' && type !== 'password' && type !== 'file' && type !== 'date' && type !== 'search' && type !== 'datetime'
             && type !== 'tel' && type !== 'phone' && type !== 'time' && type !== 'color' && type !== 'url' && type !== 'email') {
-        throw 'Unsupported input type---('+type+')';
+        throw 'Unsupported input type---(' + type + ')';
     }
 
     if (attributeNotEmpty(value)) {
@@ -2305,18 +2341,18 @@ function DropDown(wkspc, node) {
 DropDown.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('SELECT');
     let items = node.getAttribute(attrKeys.items);
-    items = items.replace(/\n|\r/g,'');//remove new lines
+    items = items.replace(/\n|\r/g, '');//remove new lines
     let regex1 = /(')(\s*)(,)(\s*)(')/g;
     let regex2 = /(")(\s*)(,)(\s*)(")/g;
-    
-    items = items.replace(regex1 , "','");
-    items = items.replace(regex2 , '","');
- 
-   
+
+    items = items.replace(regex1, "','");
+    items = items.replace(regex2, '","');
+
+
 
     if (attributeNotEmpty(items)) {
-        console.log('items:\n',items);
-    let data = JSON.parse(items);
+        console.log('items:\n', items);
+        let data = JSON.parse(items);
         for (var i = 0; i < data.length; i++) {
             this.htmlElement.options[this.htmlElement.options.length] = new Option(data[i], i + "");
         }
@@ -2339,27 +2375,27 @@ function List(wkspc, node) {
 }
 
 List.prototype.createElement = function (node) {
-    
+
     let listType = node.getAttribute(attrKeys.listType);
-    
-    
-    if(attributeEmpty(listType)){
+
+
+    if (attributeEmpty(listType)) {
         listType = 'ul';
     }
-    
+
     this.htmlElement = document.createElement(listType);
-    
+
     let items = node.getAttribute(attrKeys.items);
-    items = items.replace(/\n|\r/g,'');//remove new lines
+    items = items.replace(/\n|\r/g, '');//remove new lines
     let regex1 = /(')(\s*)(,)(\s*)(')/g;
     let regex2 = /(")(\s*)(,)(\s*)(")/g;
-    
-    items = items.replace(regex1 , "','");
-    items = items.replace(regex2 , '","');
- 
+
+    items = items.replace(regex1, "','");
+    items = items.replace(regex2, '","');
+
     if (attributeNotEmpty(items)) {
 
-    let data = JSON.parse(items);
+        let data = JSON.parse(items);
         for (var i = 0; i < data.length; i++) {
             let li = document.createElement('li');
             li.appendChild(document.createTextNode(data[i]));
@@ -2367,33 +2403,33 @@ List.prototype.createElement = function (node) {
         }
     }
 
-    
+
     this.assignId();
     this.calculateWrapContentSizes(node);
 
 };
 
 List.prototype.calculateWrapContentSizes = function (node) {
-    
+
     let elems = this.htmlElement.getElementsByTagName("li");
     let elemCount = elems.length;
-    
-    
+
+
     let minWidth = 0;
     let netHeight = 0;
-    
-    for(let i=0; i < elemCount; i++){
+
+    for (let i = 0; i < elemCount; i++) {
         let li = elems[i];
         View.prototype.getWrapSize.call(this, li.textContent);
-        if(minWidth < this.wrapWidth){
+        if (minWidth < this.wrapWidth) {
             minWidth = this.wrapWidth;
         }
         netHeight += this.wrapHeight;
-        
+
     }
-    
-    this.wrapWidth =   minWidth;
-    this.wrapHeight =  netHeight;
+
+    this.wrapWidth = minWidth;
+    this.wrapHeight = netHeight;
 };
 
 /**
@@ -2411,12 +2447,14 @@ Label.prototype.createElement = function (node) {
     var text = node.getAttribute(attrKeys.text);
     var value = node.getAttribute(attrKeys.value);
     var fontSz = node.getAttribute(attrKeys.fontSize);
+    
 
 
     this.style.addStyleElementCss('display: -webkit-inline-box;');
     this.style.addStyleElementCss('display: -ms-inline-flexbox;');
     this.style.addStyleElementCss('display: inline-flex;');
     this.style.addStyleElementCss('align-items: center;');
+    this.style.addStyleElementCss('white-space: nowrap;');
 
 
     if (attributeNotEmpty(text)) {
@@ -2448,7 +2486,9 @@ function MultiLineLabel(wkspc, node) {
 MultiLineLabel.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('p');
 
-
+    this.style.addStyleElementCss('overflow: hidden;');
+    this.style.addStyleElementCss('text-overflow: ellipsis;');
+    
     var text = node.getAttribute(attrKeys.text);
     var value = node.getAttribute(attrKeys.value);
     if (attributeNotEmpty(text)) {
@@ -2777,7 +2817,7 @@ Guideline.prototype.makeVFL = function () {
  * @param {type} node
  * @returns {PopupView}
  */
-function PopupView(wkspc, node){
+function PopupView(wkspc, node) {
     this.hidden = true;
     IncludedView.call(this, wkspc, node);
 }
@@ -2829,6 +2869,278 @@ IncludedView.prototype.calculateWrapContentSizes = function (node) {
     this.wrapHeight = 320;
 };
 
+/**
+ * 
+ * @param {type} wkspc
+ * @param {type} node
+ * @returns {VideoView}
+ */
+function VideoView(wkspc, node) {
+    View.call(this, wkspc, node);
+}
+
+VideoView.prototype.createElement = function (node) {
+    this.htmlElement = document.createElement('video');
+
+    let id = node.getAttribute(attrKeys.id);
+    if (attributeEmpty(id)) {
+        throw new Error('`id` must be specified for view!');
+    }
+
+    let sources = node.getAttribute(attrKeys.sources);
+    let autoplay = node.getAttribute(attrKeys.autoplay);
+    let muted = node.getAttribute(attrKeys.muted);
+    let controls = node.getAttribute(attrKeys.controls);
+    let preload = node.getAttribute(attrKeys.preload);
+
+    if (attributeEmpty(sources)) {
+        throw new Error('`sources` must be specified for view!');
+    }
+
+    try {
+        sources = JSON.parse(sources);
+    } catch (e) {
+        throw new Error('`sources` must be a valid JSON string');
+    }
+
+
+    if (attributeNotEmpty(autoplay)) {
+        autoplay = autoplay === 'true';
+    } else {
+        autoplay = false;
+    }
+    if (attributeNotEmpty(muted)) {
+        muted = muted === 'true';
+    } else {
+        muted = false;
+    }
+    if (attributeNotEmpty(controls)) {
+        controls = controls === 'true';
+    } else {
+        controls = false;
+    }
+    if (attributeNotEmpty(preload)) {
+        preload = preload === 'true';
+    } else {
+        preload = false;
+    }
+
+    if (this.validateSources(sources) === true) {
+        for (let i = 0; i < sources.length; i++) {
+            let srcData = sources[i];
+            let source = document.createElement("source");
+            if (srcData.src) {
+                source.src = srcData.src;
+            }
+            if (srcData.type) {
+                source.type = srcData.type;
+            }else{
+                throw new Error('Please specify a media type(e.g. video/mp4 or video/ogg or video/webm) for the given source');
+            }
+            if (srcData.codecs) {
+                source.codecs = srcData.codecs;
+            }
+            if (this.htmlElement.canPlayType(source.type)) {
+                this.htmlElement.appendChild(source);
+            }
+        }
+
+        if (autoplay) {
+            this.htmlElement.autoplay = true;
+        }
+        if (muted) {
+            this.htmlElement.muted = true;
+        }
+        if (controls) {
+            this.htmlElement.controls = true;
+        }
+        if (preload) {
+            this.htmlElement.preload = true;
+        }
+
+
+    } else {
+        throw new Error("Video source(s) are invalid!");
+    }
+
+    this.htmlElement.id = id;
+    this.calculateWrapContentSizes(node);
+};
+
+VideoView.prototype.calculateWrapContentSizes = function (node) {
+    this.wrapWidth = 300;
+    this.wrapHeight = 320;
+};
+
+VideoView.prototype.validateSources = function (jsonObj) {
+    if (Object.prototype.toString.call(jsonObj) === '[object Array]') {
+        for (let i = 0; i < jsonObj.length; i++) {
+            let item = jsonObj[i];
+            let keys = Object.keys(item);
+            for (let j = 0; j < keys.length; j++) {
+                if (keys[j] !== 'src' && keys[j] !== 'type' && keys[j] !== 'codecs') {
+                    throw new Error("Invalid key found: `" + keys[j] + "`");
+                }
+            }
+        }
+        return true;
+    }
+    return false;
+};
+
+
+/**
+ * 
+ * @param {type} wkspc
+ * @param {type} node
+ * @returns {VideoView}
+ */
+function AudioView(wkspc, node) {
+    View.call(this, wkspc, node);
+}
+
+AudioView.prototype.createElement = function (node) {
+    this.htmlElement = document.createElement('audio');
+
+    let id = node.getAttribute(attrKeys.id);
+    if (attributeEmpty(id)) {
+        throw new Error('`id` must be specified for view!');
+    }
+
+    let sources = node.getAttribute(attrKeys.sources);
+    let autoplay = node.getAttribute(attrKeys.autoplay);
+    let muted = node.getAttribute(attrKeys.muted);
+    let controls = node.getAttribute(attrKeys.controls);
+    let preload = node.getAttribute(attrKeys.preload);
+
+    if (attributeEmpty(sources)) {
+        throw new Error('`sources` must be specified for view!');
+    }
+
+    try {
+        sources = JSON.parse(sources);
+    } catch (e) {
+        throw new Error('`sources` must be a valid JSON string');
+    }
+
+
+    if (attributeNotEmpty(autoplay)) {
+        autoplay = autoplay === 'true';
+    } else {
+        autoplay = false;
+    }
+    if (attributeNotEmpty(muted)) {
+        muted = muted === 'true';
+    } else {
+        muted = false;
+    }
+    if (attributeNotEmpty(controls)) {
+        controls = controls === 'true';
+    } else {
+        controls = false;
+    }
+    if (attributeNotEmpty(preload)) {
+        preload = preload === 'true';
+    } else {
+        preload = false;
+    }
+
+    if (this.validateSources(sources) === true) {
+        for (let i = 0; i < sources.length; i++) {
+            let srcData = sources[i];
+            let source = document.createElement("source");
+            if (srcData.src) {
+                source.src = srcData.src;
+            }
+            if (srcData.type) {
+                source.type = srcData.type;
+            }
+            if (srcData.codecs) {
+                source.codecs = srcData.codecs;
+            }
+
+            this.htmlElement.appendChild(source);
+        }
+
+        if (autoplay) {
+            this.htmlElement.autoplay = true;
+        }
+        if (muted) {
+            this.htmlElement.muted = true;
+        }
+        if (controls) {
+            this.htmlElement.controls = true;
+        }
+        if (preload) {
+            this.htmlElement.preload = true;
+        }
+
+
+    } else {
+        throw new Error("Audio source(s) are invalid!");
+    }
+
+
+    this.htmlElement.id = id;
+    this.calculateWrapContentSizes(node);
+};
+
+AudioView.prototype.validateSources = function (jsonObj) {
+    if (Object.prototype.toString.call(jsonObj) === '[object Array]') {
+        for (let i = 0; i < jsonObj.length; i++) {
+            let item = jsonObj[i];
+            let keys = Object.keys(item);
+            for (let j = 0; j < keys.length; j++) {
+                if (keys[j] !== 'src' && keys[j] !== 'type' && keys[j] !== 'codecs') {
+                    throw new Error("Invalid key found: `" + keys[j] + "`");
+                }
+            }
+        }
+        return true;
+    }
+    return false;
+};
+
+function is2DArray(arr) {
+
+    if (Object.prototype.toString.call(arr) === '[object Array]') {
+
+        for (var i = 0; i < arr.length; i++) {
+            if (Object.prototype.toString.call(arr[i]) !== '[object Array]') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    return false;
+}
+;
+
+function validateTableJson(jsonObj) {
+    if (is2DArray(jsonObj)) {
+
+        let colSize = -1;
+        //validate row size.
+        for (let i = 0; i < jsonObj.length; i++) {
+            let obj = jsonObj[i];
+            if (colSize === -1) {
+                colSize = obj.length;
+                continue;
+            }
+
+            if (colSize !== obj.length) {
+                throw new Error("Table must have same number of columns on all rows!");
+            }
+
+        }
+        return true;
+    } else {
+        throw new Error("The table json must be a 2d array!");
+    }
+
+
+}
 
 /**
  * 
@@ -2839,23 +3151,23 @@ IncludedView.prototype.calculateWrapContentSizes = function (node) {
  * @returns {undefined}
  */
 
-let indexAllNodes = function (htmlNode){
-    let templateIndex = (TEMPLATE_INDEX+=1);
-    
+let indexAllNodes = function (htmlNode) {
+    let templateIndex = (TEMPLATE_INDEX += 1);
+
     if (htmlNode.hasChildNodes()) {
         childNodes = htmlNode.childNodes;
         for (let j = 0; j < childNodes.length; j++) {
             let childNode = childNodes[j];
             if (childNode.nodeName !== '#text' && childNode.nodeName !== '#comment') {
                 let childId = childNode.getAttribute(attrKeys.id);
-                childNode.setAttribute(attrKeys.id , childId+'_index_'+templateIndex);
+                childNode.setAttribute(attrKeys.id, childId + '_index_' + templateIndex);
                 this.createIndexedNodes(childNode);
             }
         }//end for loop
     }
-    
-    
-    
+
+
+
 };
 
 

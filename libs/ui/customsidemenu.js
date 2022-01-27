@@ -116,7 +116,7 @@ function SideMenuX(options) {
             'z-index': popupZIndex + '',
             'background-color': this.background,
             'overflow-x': 'hidden',
-            'overflow-y': 'hidden',
+            'overflow-y': 'auto',
             transition: '0.05s',
             'padding': '0'
         });

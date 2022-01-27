@@ -299,7 +299,7 @@ function SideMenu(options) {
             'user-select': 'none',
             'background-color': this.background,
             'overflow-x': 'hidden',
-            'overflow-y': 'hidden',
+            'overflow-y': 'auto',
             'transition': '0.5s',
             'padding-top': '0px'
         });
