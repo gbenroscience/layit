@@ -315,7 +315,9 @@ If you wish to load an xml layout and attach it to the body of the page, e.g. yo
 let options =  {
  layoutName: 'layout.xml',
  bindingElemId: BODY_ID,
- onComplete: function(){//'Code to run when the layout has been parsed and loaded'}
+ onComplete: function(){
+     //'Code to run when the layout has been parsed and loaded'
+   }
  }
 ```
 `BODY_ID` is a predefined constant and is globally available.
