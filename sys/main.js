@@ -1114,8 +1114,8 @@ DropDown.prototype = Object.create(View.prototype);
 DropDown.prototype.constructor = DropDown;
 
 
-List.prototype = Object.create(View.prototype);
-List.prototype.constructor = List;
+NativeList.prototype = Object.create(View.prototype);
+NativeList.prototype.constructor = NativeList;
 
 
 Label.prototype = Object.create(View.prototype);
@@ -1215,7 +1215,7 @@ function Button(wkspc, node) {
 Button.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('input');
     this.htmlElement.type = 'button';
-    this.style.addStyleElementCss('text-align:center;');
+    this.style.addStyleElementCss('text-align: center;');
 
     let id = node.getAttribute(attrKeys.id);
     this.htmlElement.id = id;
@@ -1235,8 +1235,6 @@ Button.prototype.createElement = function (node) {
     }
 
     this.calculateWrapContentSizes(node);
-
-
 };
 
 Button.prototype.calculateWrapContentSizes = function (node) {
@@ -2370,11 +2368,11 @@ DropDown.prototype.calculateWrapContentSizes = function (node) {
  * @param {type} node key-value object
  * @returns {undefined}
  */
-function List(wkspc, node) {
+function NativeList(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-List.prototype.createElement = function (node) {
+NativeList.prototype.createElement = function (node) {
 
     let listType = node.getAttribute(attrKeys.listType);
 
@@ -2384,6 +2382,13 @@ List.prototype.createElement = function (node) {
     }
 
     this.htmlElement = document.createElement(listType);
+    this.style.addStyleElementCss('list-style-position: inside;');
+    
+    
+    
+    
+    
+    let showBullets = node.getAttribute(attrKeys.showBullets);
 
     let items = node.getAttribute(attrKeys.items);
     items = items.replace(/\n|\r/g, '');//remove new lines
@@ -2402,6 +2407,13 @@ List.prototype.createElement = function (node) {
             this.htmlElement.appendChild(li);
         }
     }
+    
+    if (attributeNotEmpty(showBullets)) {
+        showBullets = showBullets === 'true';
+    }
+    if(showBullets === false){
+        this.style.addStyleElementCss('list-style-type: none;');
+    }
 
 
     this.assignId();
@@ -2409,7 +2421,7 @@ List.prototype.createElement = function (node) {
 
 };
 
-List.prototype.calculateWrapContentSizes = function (node) {
+NativeList.prototype.calculateWrapContentSizes = function (node) {
 
     let elems = this.htmlElement.getElementsByTagName("li");
     let elemCount = elems.length;

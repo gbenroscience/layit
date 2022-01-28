@@ -56,7 +56,7 @@ and open the template in the editor.
         cx_align='parent'
         top_bottom="pop_title_us_states_drop_down"
         marginTop="16"
-        textColor="red"
+        textColor="yellow"
         value="Quick Login"
         textSize="1.2em"
         textStyle="bold italic"
@@ -106,7 +106,7 @@ and open the template in the editor.
     <Button
         id="side_login_btn_ux"
         width="side_field_ux"
-        height="side_field_ux/0.8"
+        height="side_field_ux"
         top_bottom="side_passkey_ux"
         cx_align="side_field_ux"
         marginTop="8px"
@@ -118,7 +118,6 @@ and open the template in the editor.
         textSize="1.2em"
         textStyle="bold"
         borderRadius="8px"
-
     />
 
 

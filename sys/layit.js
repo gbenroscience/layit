@@ -758,7 +758,7 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
             break;
 
         case xmlKeys.list:
-            view = new List(wkspc, node);
+            view = new NativeList(wkspc, node);
 
             break;
 

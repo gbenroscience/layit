@@ -24,7 +24,7 @@
         padding="0"
         start_start='section_top'
         cy_align="section_top"
-        marginStart="16"
+        marginStart="24"
         textColor="#eee"
         value="Layit Framework By Example by {{ name }}"
         textSize="1.5em"
@@ -341,6 +341,21 @@
         textStyle="bold"
         fontFamily="Arial"
     />
+    
+    <NativeList
+        id='ul_list'
+        width='table_one'
+        height='wrap_content'
+        end_start='table_one'
+        top_top='table_one'
+        bottom_bottom='table_one'
+        marginEnd='16'
+        listType='ol'
+        showBullets='false'
+        items='["Antelope","Buffalo","Chimpanzee","Dog","Elephant","Frog","Gorilla","Hen","Impala","Jaguar"]'
+        border='1px solid red'
+        
+        />
     <NativeTable
         id="table_one"
         width="120"
@@ -407,7 +422,7 @@
         width="250px"
         height="160px"
         cx_align="progress"
-        top_top="table_two"
+        top_bottom="progress"
         sources='[{"src": "/videos/stuff.mp4","type": "video/mp4", "codecs": "avc1.42E01E, mp4a.40.2, theora, vorbis"}]'
         autoplay='true'
         muted='true'

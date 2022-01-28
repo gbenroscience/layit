@@ -44,12 +44,13 @@ const xmlKeys = {
     separator: "Separator",
     dropDown: "DropDown",
     guide: "Guideline",
+    customList: "CustomList",
+    list: "NativeList",
     table: "NativeTable",
     inputTable: "InputTableView",
     growableTable: "GrowableTableView",
     searchableTable: "SearchableTableView",
     customTable: "CustomTableView",
-    list: "List",
     label: "Label",
     multiLabel: "MultiLineLabel",
     clock: "Clock",
@@ -102,6 +103,7 @@ const attrKeys = {
     orientation: "orientation", //
 
     listType: 'listType', //ol or ul
+    showBullets: 'showBullets', //for lists, if true, will show the bullets
 
     items: "items", // an array of items to display in a list or a dropdown
     tableItems: 'tableItems', //a 2d array of items to display on a table
