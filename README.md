@@ -104,20 +104,20 @@ The constraint properties with long names have been renamed to shorter forms to 
     layout_constraintGuide_percent     -> guide_percent
 ```
 
-#### layout_width and layout_height
+#### width and height
 
-These properties are used to specify the size of the view. You may specify the values without a dimension, e.g. `layout_width='200'`, or with a dimension, e.g. `layout_width='200px'` or `layout_width='45%'` , or relative to another view in the same layout file, e.g `layout_width='another_views_id/2'` or `layout_width='another_views_id/0.85'` or `layout_width='another_views_id'`. Multiplication operation is not supported here, only division.
+These properties are used to specify the size of the view. You may specify the values without a dimension, e.g. `width='200'`, or with a dimension, e.g. `width='200px'` or `width='45%'` , or relative to another view in the same layout file, e.g `width='another_views_id/2'` or `width='another_views_id/0.85'` or `width='another_views_id'`. Multiplication operation is not supported here, only division.
 
-`layout_width='match_parent'` and `layout_height='match_parent'` are supported.
-`layout_width='wrap_content'` and `layout_height='wrap_content'` are only partially supported. The implementation is not yet complete as regards these, for various reasons.
+`width='match_parent'` and `height='match_parent'` are supported.
+`width='wrap_content'` and `height='wrap_content'` are only partially supported. The implementation is not yet complete as regards these, for various reasons.
 
 The underlying `autolayout.js` library does not seem to support `wrap_content`,so we are trying to provide some implementation for it.
 
-Note that where no units are specified, pixels are used. So `layout_width='200'` and `layout_width='200px'` are equivalent.
-All these apply to `layout_height` also.<br>
+Note that where no units are specified, pixels are used. So `width='200'` and `width='200px'` are equivalent.
+All these apply to `height` also.<br>
 **CSS calc operations are not supported**<br>
 
-#### layout_maxWidth and layout_maxHeight , layout_minWidth and layout_minHeight 
+#### maxWidth and maxHeight , minWidth and minHeight 
 These are all supported.
     
 
