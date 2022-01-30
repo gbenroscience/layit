@@ -38,7 +38,7 @@ SideMenuController.prototype.onViewsAttached = function (wid) {
     ViewController.prototype.onViewsAttached.call(this, wid);
 //Your code goes below here
 
-alert('In view controller');
+
 let controller = this;
     let btn = this.findHtmlViewById('side_login_btn_ux');
     btn.onclick = function(){
