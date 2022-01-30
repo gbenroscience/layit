@@ -226,7 +226,7 @@ function Workspace(options) {
     this.systemRootId = BODY_ID;
     if (options.bindingElemId && typeof options.bindingElemId === 'string') {
         this.systemRootId = options.bindingElemId;
-    }alert("systemRootId: "+this.systemRootId+" , options.bindingElemId: "+options.bindingElemId);
+    }
 
     this.templateData = null;
     if (options.templateData && typeof options.templateData === 'object') {
@@ -863,7 +863,6 @@ Parser.prototype.buildUI = function (wkspc) {
 
     let clocks = [];
     let includes = [];
-    let popups = [];
     let progressBars = [];
     wkspc.viewMap.forEach(function (view, id) {
 
@@ -940,20 +939,6 @@ Parser.prototype.buildUI = function (wkspc) {
             //layout the xml of an included layout with respect to its root
             autoLayout(rootChild.htmlElement, include.constraints);
             //console.log('Generated Child Constraints for ', view.id, view.constraints);
-        });
-
-
-//layout the popups
-        popups.forEach((popupView) => { // Each view is a PopupView
-            // body.appendChild(popupView.htmlElement);
-            let rootChild = wkspc.viewMap.get(popupView.childrenIds[0]);
-            //layout the root of an included layout with respect to its include parent element(which is just a div)
-            autoLayout(popupView.htmlElement, popupView.directChildConstraints);
-            //console.log('id:  ', view.id, '    ', view.directChildConstraints);
-            //layout the xml of an included layout with respect to its root
-            autoLayout(rootChild.htmlElement, popupView.constraints);
-            //console.log('Generated Child Constraints for ', view.id, view.constraints);
-            // popupView.htmlElement.remove();
         });
 
         clocks.forEach((child) => {

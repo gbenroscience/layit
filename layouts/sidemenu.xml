@@ -11,7 +11,7 @@ and open the template in the editor.
     height="300px"
     backgroundColor="midnightblue"
 >
-    <imports files="sidemenucontroller.js" controller="SideMenuController"/>
+    <imports files="sidemenucontroller.js;" controller="SideMenuController"/>
     
     <Label
         id="pop_title"
