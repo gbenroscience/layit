@@ -1,10 +1,4 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
-let AutoLayout = window.AutoLayout;
 let TEMPLATE_INDEX = 0;
 
 
@@ -1016,41 +1010,6 @@ View.prototype.toHTML = function () {
     }
     throw 'Please specify an HTML element here!';
 };
-
-/**
- * Lays out the child elements of a parent element absolutely
- * using the visual format language.
- *
- * When the window is resized, the AutoLayout view is re-evaluated
- * and the child elements are resized and repositioned.
- *
- * @param {Element} parentElm Parent DOM element
- * @param {String|Array} visualFormat One or more visual format strings
- */
-function autoLayout(parentElm, visualFormat) {
-    let view = new AutoLayout.View();
-    view.addConstraints(AutoLayout.VisualFormat.parse(visualFormat, {extended: true}));
-    let elements = {};
-    for (let key in view.subViews) {
-        let elm = document.getElementById(key);
-        if (elm) {
-            elm.className += elm.className ? ' abs' : 'abs';
-            elements[key] = elm;
-        }
-    }
-    var updateLayout = function () {
-        view.setSize(parentElm ? parentElm.clientWidth : window.innerWidth, parentElm ? parentElm.clientHeight : window.innerHeight);
-        for (key in view.subViews) {
-            var subView = view.subViews[key];
-            if (elements[key]) {
-                setAbsoluteSizeAndPosition(elements[key], subView.left, subView.top, subView.width, subView.height);
-            }
-        }
-    };
-    window.addEventListener('resize', updateLayout);
-    updateLayout();
-    return updateLayout;
-}
 
 /**
  *
@@ -3195,43 +3154,4 @@ function attributeEmpty(attrVal) {
         return true;
     }
     return false;
-}
-
-/**
- * Parses bracketed expressions of the type: [row['a',bb,c,dd],row[],row[],row[],...row[]]
- * @param {type} input The expression containing a kind of bracketed structure
- * @returns {Array[]} a 2d array of table data
- */
-function parseTableItems(input) {
-
-    input = input.trim();
-    if (startsWith(input, '[') && endsWith(input, ']')) {
-        input = input.substring(1, input.length - 1);
-    } else {
-        throw new Error('Data in table not in correct format! Must be: [row[row-data],row[row-data]...]');
-    }
-
-
-    let tokens = new Scanner(input, false, new Array(',row', 'row')).scan();
-
-
-    let tableData = [];
-    for (let i = 0; i < tokens.length; i++) {
-        let rowStr = tokens[i];
-        let rowData = new Scanner(rowStr, false, ['[', ',', ']']).scan();
-        tableData.push(rowData);
-    }
-
-
-    if (tableData.length > 0) {
-        let len = tableData[0].length;
-        for (let i = 1; i < tableData.length; i++) {
-            if (tableData[i].length !== len) {
-                throw new Error('The rows of your table should have equal length, please');
-            }
-        }
-
-    }
-
-    return tableData;
 }

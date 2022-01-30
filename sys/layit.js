@@ -984,6 +984,50 @@ Parser.prototype.buildUI = function (wkspc) {
 
 };
 
+
+/**
+ * Lays out the child elements of a parent element absolutely
+ * using the visual format language.
+ *
+ * When the window is resized, the AutoLayout view is re-evaluated
+ * and the child elements are resized and repositioned.
+ *
+ * @param {Element} parentElm Parent DOM element
+ * @param {String|Array} visualFormat One or more visual format strings
+ */
+function autoLayout(parentElm, visualFormat) {
+    /* 
+     * To change this license header, choose License Headers in Project Properties.
+     * To change this template file, choose Tools | Templates
+     * and open the template in the editor.
+     */
+
+    let AutoLayout = window.AutoLayout;
+    let view = new AutoLayout.View();
+    view.addConstraints(AutoLayout.VisualFormat.parse(visualFormat, {extended: true}));
+    let elements = {};
+    for (let key in view.subViews) {
+        let elm = document.getElementById(key);
+        if (elm) {
+            elm.className += elm.className ? ' abs' : 'abs';
+            elements[key] = elm;
+        }
+    }
+    var updateLayout = function () {
+        view.setSize(parentElm ? parentElm.clientWidth : window.innerWidth, parentElm ? parentElm.clientHeight : window.innerHeight);
+        for (key in view.subViews) {
+            var subView = view.subViews[key];
+            if (elements[key]) {
+                setAbsoluteSizeAndPosition(elements[key], subView.left, subView.top, subView.width, subView.height);
+            }
+        }
+    };
+    window.addEventListener('resize', updateLayout);
+    updateLayout();
+    return updateLayout;
+}
+
+
 Workspace.prototype.startFetchWorker = function (layoutFileName, onSucc) {
 
     let worker = new WorkerBot("worker-" + layoutFileName, PATH_TO_COMPILER_SCRIPTS + 'layout-worker.js',
