@@ -289,17 +289,6 @@
         borderRadius="1em"
     />
 
-    <PopupView
-        layout="popup"
-        id="states_popup"
-        width="120px"
-        height="75px"
-        marginTop="40"
-        cx_align="parent"
-        top_bottom="notes_area"
-        border="1px solid green"
-        borderRadius="1em"
-    />
         
     <Radio
         id='yes'

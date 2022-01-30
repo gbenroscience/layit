@@ -7,18 +7,20 @@ and open the template in the editor.
 
 
 <ConstraintLayout
-    width="88%"
+    width="100%"
     height="300px"
+    backgroundColor="midnightblue"
 >
+    <imports files="sidemenucontroller.js" controller="SideMenuController"/>
     
     <Label
-        id="side_menu_title"
+        id="pop_title"
         width="wrap_content"
         height="wrap_content"
         cx_align='parent'
         top_top="parent"
         marginTop="16"
-        textColor="purple"
+        textColor="white"
         value="The United States"
         textSize="1.2em"
         textStyle="bold italic"
@@ -27,11 +29,11 @@ and open the template in the editor.
 
 
     <DropDown
-            id="side_menu_us_states_drop_down"
+            id="pop_title_us_states_drop_down"
             width="220px"
             height="32px"
             cx_align="parent"
-            top_bottom="side_menu_title"
+            top_bottom="pop_title"
             marginEnd="8"
             items='["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho",
                     "Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Mississippi","Minnesota","Missouri",
@@ -46,6 +48,77 @@ and open the template in the editor.
             textColor="black"
             textSize="1.5em"
             textStyle="bold"
+    />
+    
+    <Label
+        id="side_label_ux"
+        width="wrap_content"
+        height="wrap_content"
+        cx_align='parent'
+        top_bottom="pop_title_us_states_drop_down"
+        marginTop="16"
+        textColor="yellow"
+        value="Quick Login"
+        textSize="1.2em"
+        textStyle="bold italic"
+        fontFamily="Arial"
+    />
+    
+      <TextField
+        id="side_field_ux"
+        width="220px"
+        height="36px"
+        top_bottom="side_label_ux"
+        cx_align="side_label_ux"
+        marginTop="16"
+        placeholder="Email"
+        background="white"
+        fontFamily="Avenir"
+        padding="8px"
+        text=""
+        value=""
+        textColor="black"
+        textSize="1.2em"
+        textStyle="bold"
+        borderRadius="10px"
+        inputType='email'
+    />
+    
+       <TextField
+        id="side_passkey_ux"
+        width="side_field_ux"
+        height="side_field_ux"
+        top_bottom="side_field_ux"
+        cx_align="side_field_ux"
+        marginTop="16"
+        placeholder="Password"
+        background="white"
+        fontFamily="Avenir"
+        padding="8px"
+        text=""
+        value=""
+        textColor="black"
+        textSize="1.2em"
+        textStyle="bold"
+        borderRadius="10px"
+        inputType='password'
+    />
+    
+    <Button
+        id="side_login_btn_ux"
+        width="side_field_ux"
+        height="side_field_ux"
+        top_bottom="side_passkey_ux"
+        cx_align="side_field_ux"
+        marginTop="8px"
+        background="darkgreen"
+        fontFamily="Times New Roman"
+        padding="8px"
+        value="SEND"
+        textColor="white"
+        textSize="1.2em"
+        textStyle="bold"
+        borderRadius="8px"
     />
 
 

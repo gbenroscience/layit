@@ -55,8 +55,7 @@ const xmlKeys = {
     multiLabel: "MultiLineLabel",
     clock: "Clock",
     canvas: "Canvas",
-    include: "include",
-    popupView: "PopupView"
+    include: "include"
 };
 
 

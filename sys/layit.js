@@ -226,7 +226,7 @@ function Workspace(options) {
     this.systemRootId = BODY_ID;
     if (options.bindingElemId && typeof options.bindingElemId === 'string') {
         this.systemRootId = options.bindingElemId;
-    }
+    }alert("systemRootId: "+this.systemRootId+" , options.bindingElemId: "+options.bindingElemId);
 
     this.templateData = null;
     if (options.templateData && typeof options.templateData === 'object') {
@@ -269,7 +269,6 @@ function Workspace(options) {
     this.controller = null;
 
     workspaces.set(this.id, this);
-    console.log(arguments);
 
     if (xmlContent) {
         this.setContentView(this.layoutName, xmlContent);
@@ -659,12 +658,6 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
             break;
         case xmlKeys.include:
             view = new IncludedView(wkspc, node);
-
-
-            break;
-
-        case xmlKeys.popupView:
-            view = new PopupView(wkspc, node);
 
 
             break;

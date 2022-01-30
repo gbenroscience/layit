@@ -9,10 +9,10 @@
 
 /* global ViewController */
 
-TestController.prototype = Object.create(ViewController.prototype);
-TestController.prototype.constructor = TestController;
+SideMenuController.prototype = Object.create(ViewController.prototype);
+SideMenuController.prototype.constructor = SideMenuController;
 
-function TestController(workspace) {
+function SideMenuController(workspace) {
     ViewController.call(this, workspace);
 }
 
@@ -24,7 +24,7 @@ function TestController(workspace) {
  * @param {string} wid The workspace id
  * @returns {undefined}
  */
-TestController.prototype.onCreate = function (wid) {
+SideMenuController.prototype.onCreate = function (wid) {
     ViewController.prototype.onCreate.call(this, wid);
 //Your code goes below here
 };
@@ -34,15 +34,23 @@ TestController.prototype.onCreate = function (wid) {
  * @param {string} wid The workspace id
  * @returns {undefined}
  */
-TestController.prototype.onViewsAttached = function (wid) {
+SideMenuController.prototype.onViewsAttached = function (wid) {
     ViewController.prototype.onViewsAttached.call(this, wid);
 //Your code goes below here
 
 
-    let view = this.findHtmlViewById('site_title');
-    view.style.color = 'yellow';
-    let loginBtn = this.findHtmlViewById('login_btn');
-    let checkBtn = this.findHtmlViewById('check_btn');
+let controller = this;
+    let btn = this.findHtmlViewById('side_login_btn_ux');
+    btn.onclick = function(e){
+       let email = controller.findHtmlViewById('side_field_ux');
+       let pwd = controller.findHtmlViewById('side_passkey_ux');
+       
+       alert('Email: '+email);
+       alert('Password: '+pwd);
+       
+       
+    };
+    
 
     let self = this;
 

@@ -664,7 +664,7 @@ View.prototype.makeVFL = function (wkspc) {
     let parent, hasIncludedParent;
     if (attributeNotEmpty(this.parentId)) {
         parent = wkspc.viewMap.get(this.parentId);
-        hasIncludedParent = parent && (parent.constructor.name === 'IncludedView' || parent.constructor.name === 'PopupView');
+        hasIncludedParent = parent && (parent.constructor.name === 'IncludedView');
     }
     /**
      * Must be the root node in an included file
@@ -1117,10 +1117,6 @@ ClockView.prototype.constructor = ClockView;
 
 IncludedView.prototype = Object.create(View.prototype);
 IncludedView.prototype.constructor = IncludedView;
-
-
-PopupView.prototype = Object.create(IncludedView.prototype);
-PopupView.prototype.constructor = PopupView;
 
 VideoView.prototype = Object.create(View.prototype);
 VideoView.prototype.constructor = VideoView;
@@ -2782,16 +2778,7 @@ Guideline.prototype.makeVFL = function () {
     return vfl.toString();
 
 };
-/**
- * 
- * @param {Workspace} wkspc
- * @param {type} node
- * @returns {PopupView}
- */
-function PopupView(wkspc, node) {
-    this.hidden = true;
-    IncludedView.call(this, wkspc, node);
-}
+
 /**
  * 
  * @param {Workspace} wkspc
