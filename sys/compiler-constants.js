@@ -102,7 +102,7 @@ const attrKeys = {
     orientation: "orientation", //
 
     listType: 'listType', //ol or ul
-    showBullets: 'showBullets', //for lists, if true, will show the bullets
+    showBullets: 'showBullets', //for lists, if true, will show the bullets or numbers
 
     items: "items", // an array of items to display in a list or a dropdown
     tableItems: 'tableItems', //a 2d array of items to display on a table

@@ -230,7 +230,7 @@ Popup.prototype.build = function () {
         freshCall = true;
         overlay = document.createElement('div');
         overlay.setAttribute("id", this.overlayId());
-        this.addClass(overlay, this.overlayClass());
+        addClass(overlay, this.overlayClass());
         document.body.appendChild(overlay);
     }
 
@@ -245,7 +245,7 @@ Popup.prototype.build = function () {
     if (!dialog) {
         dialog = document.createElement('div');
         dialog.setAttribute("id", this.containerId());
-        this.addClass(dialog, this.containerClass());
+        addClass(dialog, this.containerClass());
         document.body.appendChild(dialog);
     }
 
@@ -259,7 +259,7 @@ Popup.prototype.build = function () {
     if (!closeBtn) {
         closeBtn = document.createElement("input");
         closeBtn.setAttribute("id", this.closeBtnId());
-        this.addClass(closeBtn, this.closeBtnClass());
+        addClass(closeBtn, this.closeBtnClass());
         closeBtn.type = "button";
         closeBtn.value = "\u02DF";
         overlay.appendChild(closeBtn);
@@ -323,12 +323,4 @@ Popup.prototype.closeBtnClass = function () {
 
 Popup.prototype.closeBtnId = function () {
     return this.id + "-close-btn-class";
-};
-
-Popup.prototype.addClass = function (element, className) {
-
-    var arr = element.className.split(" ");
-    if (arr.indexOf(className) === -1) {
-        element.className += " " + className;
-    }
 };

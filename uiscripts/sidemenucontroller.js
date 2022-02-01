@@ -42,11 +42,24 @@ SideMenuController.prototype.onViewsAttached = function (wid) {
 let controller = this;
     let btn = this.findHtmlViewById('side_login_btn_ux');
     btn.onclick = function(){
-       let email = controller.findHtmlViewById('side_field_ux');
-       let pwd = controller.findHtmlViewById('side_passkey_ux');
+        
+       let statesDropDown = controller.findHtmlViewById('pop_title_us_states_drop_down'); 
+       let emailField = controller.findHtmlViewById('side_field_ux');
+       let pwdField = controller.findHtmlViewById('side_passkey_ux');
+       //notes_area
        
-       alert('Email: '+email.value);
-       alert('Password: '+pwd.value);
+       
+       
+        let state = statesDropDown.options[statesDropDown.selectedIndex].innerText;
+        
+        let json = {
+            state: state,
+            email: emailField.value,
+            key: pwdField.value
+        };
+        
+       alert('POST json: '+JSON.stringify(json)); 
+       statesDropDown.options[statesDropDown.selectedIndex].innerText = 'CHANGE-IT-NOW';
        
        
     };

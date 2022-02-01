@@ -2318,6 +2318,16 @@ DropDown.prototype.calculateWrapContentSizes = function (node) {
 
 };
 
+DropDown.prototype.editCurrentElement = function (value) {
+    this.htmlElement.options[this.htmlElement.selectedIndex].innerText = value;
+};
+
+DropDown.prototype.editElement = function (index, value) {
+    if (index < this.htmlElement.options.length) {
+        this.htmlElement.options[index].innerText = value;
+    }
+};
+
 /**
  * @param {Workspace} wkspc
  * @param {type} node key-value object
@@ -2338,11 +2348,11 @@ NativeList.prototype.createElement = function (node) {
 
     this.htmlElement = document.createElement(listType);
     this.style.addStyleElementCss('list-style-position: inside;');
-    
-    
-    
-    
-    
+
+
+
+
+
     let showBullets = node.getAttribute(attrKeys.showBullets);
 
     let items = node.getAttribute(attrKeys.items);
@@ -2362,11 +2372,11 @@ NativeList.prototype.createElement = function (node) {
             this.htmlElement.appendChild(li);
         }
     }
-    
+
     if (attributeNotEmpty(showBullets)) {
         showBullets = showBullets === 'true';
     }
-    if(showBullets === false){
+    if (showBullets === false) {
         this.style.addStyleElementCss('list-style-type: none;');
     }
 
@@ -2414,7 +2424,7 @@ Label.prototype.createElement = function (node) {
     var text = node.getAttribute(attrKeys.text);
     var value = node.getAttribute(attrKeys.value);
     var fontSz = node.getAttribute(attrKeys.fontSize);
-    
+
 
 
     this.style.addStyleElementCss('display: -webkit-inline-box;');
@@ -2455,7 +2465,7 @@ MultiLineLabel.prototype.createElement = function (node) {
 
     this.style.addStyleElementCss('overflow: hidden;');
     this.style.addStyleElementCss('text-overflow: ellipsis;');
-    
+
     var text = node.getAttribute(attrKeys.text);
     var value = node.getAttribute(attrKeys.value);
     if (attributeNotEmpty(text)) {
@@ -2892,7 +2902,7 @@ VideoView.prototype.createElement = function (node) {
             }
             if (srcData.type) {
                 source.type = srcData.type;
-            }else{
+            } else {
                 throw new Error('Please specify a media type(e.g. video/mp4 or video/ogg or video/webm) for the given source');
             }
             if (srcData.codecs) {
