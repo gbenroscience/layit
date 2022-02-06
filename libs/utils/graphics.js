@@ -7,8 +7,8 @@
 
 const PIXEL_RATIO = (function () {
     let ctx = document.createElement("canvas").getContext("2d"),
-        dpr = window.devicePixelRatio || 1,
-        bsr = ctx.webkitBackingStorePixelRatio ||
+            dpr = window.devicePixelRatio || 1,
+            bsr = ctx.webkitBackingStorePixelRatio ||
             ctx.mozBackingStorePixelRatio ||
             ctx.msBackingStorePixelRatio ||
             ctx.oBackingStorePixelRatio ||
@@ -31,9 +31,44 @@ const CssSizeUnits = {
 
 const FontStyle = {
     REGULAR: "normal",
-    BOLD: "bold",
+    OBLIQUE: "oblique",
     ITALIC: "italic",
-    BOLD_ITALIC: "italic bold"
+    BOLD: "bold",
+    BOLDER: "bolder",
+    LIGHTER: "lighter",
+    REGULAR_100: "100",
+    REGULAR_200: "200",
+    REGULAR_300: "300",
+    REGULAR_400: "400",
+    REGULAR_500: "500",
+    REGULAR_600: "600",
+    REGULAR_700: "700",
+    REGULAR_800: "800",
+    REGULAR_900: "900",
+    ITALIC_100: "italic 100",
+    ITALIC_200: "italic 200",
+    ITALIC_300: "italic 300",
+    ITALIC_400: "italic 400",
+    ITALIC_500: "italic 500",
+    ITALIC_600: "italic 600",
+    ITALIC_700: "italic 700",
+    ITALIC_800: "italic 800",
+    ITALIC_900: "italic 900",
+    OBLIQUE_100: "oblique 100",
+    OBLIQUE_200: "oblique 200",
+    OBLIQUE_300: "oblique 300",
+    OBLIQUE_400: "oblique 400",
+    OBLIQUE_500: "oblique 500",
+    OBLIQUE_600: "oblique 600",
+    OBLIQUE_700: "oblique 700",
+    OBLIQUE_800: "oblique 800",
+    OBLIQUE_900: "oblique 900",
+    BOLD_ITALIC: "italic bold",
+    BOLDER_ITALIC: "italic bolder",
+    LIGHTER_ITALIC: "italic lighter",
+    BOLD_OBLIQUE: "oblique bold",
+    BOLDER_OBLIQUE: "oblique bolder",
+    LIGHTER_OBLIQUE: "oblique lighter"
 };
 
 /**
@@ -284,9 +319,9 @@ function Font(style, size, name, sizeUnits) {
 }
 
 Font.prototype.string = function () {
-    if(this.variant && this.variant !== 'normal'){
-        return this.variant+ ' '+this.style + ' ' + this.size * PIXEL_RATIO + this.sizeUnits + ' ' + this.name;
-    }else{
+    if (this.variant && this.variant !== 'normal') {
+        return this.variant + ' ' + this.style + ' ' + this.size * PIXEL_RATIO + this.sizeUnits + ' ' + this.name;
+    } else {
         return this.style + ' ' + this.size * PIXEL_RATIO + this.sizeUnits + ' ' + this.name;
     }
 
@@ -299,8 +334,10 @@ Font.prototype.getSize = function () {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-createHiDPICanvas = function(canvas , w, h, ratio) {
-    if (!ratio) { ratio = PIXEL_RATIO; }
+createHiDPICanvas = function (canvas, w, h, ratio) {
+    if (!ratio) {
+        ratio = PIXEL_RATIO;
+    }
     canvas.width = w * ratio;
     canvas.height = h * ratio;
     canvas.style.width = w + "px";
@@ -330,7 +367,7 @@ function Graphics(canvas) {
         // don't have to worry about the difference.
         this.ctx.scale(1, 1);
 
-       canvas.style.width = canvasRect.width + 'px';
+        canvas.style.width = canvasRect.width + 'px';
         canvas.style.height = canvasRect.height + 'px';
 
     }
@@ -349,17 +386,30 @@ function Graphics(canvas) {
     this.height = canvas.height;
 }
 
+
+Graphics.prototype.destroy = function () {
+    this.ctx.canvas = null;
+    this.ctx = null;
+    this.width = this.height = null;
+};
+
 Graphics.prototype.clear = function () {
     // clear canvas
     this.ctx.clearRect(0, 0, this.width, this.height);
 };
-
+/**
+ * 
+ * @returns {HTMLCanvasElement}
+ */
+Graphics.prototype.getCanvas = function () {
+    return this.ctx.canvas;
+};
 /**
  * Changes may occur to the canvas, such as stretching due to changing the css width or height(e.g when the screen is resized or rotated)
  * Call this method to force the Graphics object to scale with the dimensions of the canvas accordingly
- * @param canvas
  */
-Graphics.prototype.reloadCanvas = function (canvas){
+Graphics.prototype.reloadCanvas = function () {
+    let canvas = this.getCanvas();
     const dpr = PIXEL_RATIO;
 
 
@@ -385,10 +435,10 @@ Graphics.prototype.reloadCanvas = function (canvas){
     this.width = canvas.width;
     this.height = canvas.height;
 };
- 
 
-Graphics.prototype.scale = function (w , h){
-    this.ctx.scale(w , h);
+
+Graphics.prototype.scale = function (w, h) {
+    this.ctx.scale(w, h);
 };
 
 
@@ -426,12 +476,12 @@ Graphics.prototype.setBackground = function (bg) {
 };
 
 
-Graphics.prototype.setTextBaseLine = function (baseline){
+Graphics.prototype.setTextBaseLine = function (baseline) {
     this.ctx.textBaseline = baseline;
 };
 
 
-Graphics.prototype.setTextAlign = function (txtAlign){
+Graphics.prototype.setTextAlign = function (txtAlign) {
     this.ctx.textAlign = txtAlign;
 };
 
@@ -485,11 +535,11 @@ Graphics.prototype.lineCapStyle = function (lineCapStyle) {
     }
 };
 
-Graphics.prototype.normalizeQuantity = function (qty){
-    if(typeof qty === 'number'){
+Graphics.prototype.normalizeQuantity = function (qty) {
+    if (typeof qty === 'number') {
         return qty * PIXEL_RATIO;
     }
-    throw new Error("Only numbers can be normalized")
+    throw new Error("Only numbers can be normalized");
 };
 
 
@@ -502,10 +552,8 @@ Graphics.prototype.normalizeQuantity = function (qty){
  * @returns {undefined}
  */
 Graphics.prototype.drawRect = function (x, y, width, height) {
-
     if (typeof x === 'number' && typeof y === 'number' && typeof width === 'number' && typeof height === 'number') {
-
-        this.ctx.strokeRect(x,y, PIXEL_RATIO * width, PIXEL_RATIO * height);
+        this.ctx.strokeRect(x, y, PIXEL_RATIO * width, PIXEL_RATIO * height);
     }
 };
 
@@ -520,7 +568,6 @@ Graphics.prototype.drawRect = function (x, y, width, height) {
  */
 Graphics.prototype.fillRect = function (x, y, width, height) {
     if (typeof x === 'number' && typeof y === 'number' && typeof width === 'number' && typeof height === 'number') {
-
         this.ctx.fillRect(x, y, PIXEL_RATIO * width, PIXEL_RATIO * height);
     }
 };
@@ -530,17 +577,14 @@ Graphics.prototype.fillRect = function (x, y, width, height) {
  * Draws a rectangular shape's outline
  * @param {number} x The left coordinates of the rectangle
  * @param {number} y The right top coordinates of the rectangle
- * @param {number} width The width of the rectangle
- * @param {number} height The height of the rectangle
- * @param {number} radius The radius of the rectangle
  * @returns {undefined}
  */
 Graphics.prototype.drawPoint = function (x, y) {
     if (typeof x === 'number' && typeof y === 'number') {
 
         this.ctx.beginPath();
-        this.ctx.moveTo(x , y);
-        this.ctx.lineTo(x+0.1,y);
+        this.ctx.moveTo(x, y);
+        this.ctx.lineTo(x + 0.1, y);
         this.ctx.closePath();
         this.ctx.stroke();
     }
@@ -554,9 +598,9 @@ Graphics.prototype.beginPath = function () {
  * @param x
  * @param y
  */
-Graphics.prototype.moveTo = function (x , y) {
+Graphics.prototype.moveTo = function (x, y) {
     if (typeof x === 'number' && typeof y === 'number') {
-        this.ctx.moveTo(x,y);
+        this.ctx.moveTo(x, y);
     }
 };
 
@@ -565,9 +609,9 @@ Graphics.prototype.moveTo = function (x , y) {
  * @param x
  * @param y
  */
-Graphics.prototype.lineTo = function (x , y) {
+Graphics.prototype.lineTo = function (x, y) {
     if (typeof x === 'number' && typeof y === 'number') {
-        this.ctx.lineTo(x,y);
+        this.ctx.lineTo(x, y);
     }
 };
 
@@ -576,15 +620,15 @@ Graphics.prototype.lineTo = function (x , y) {
  *
  */
 Graphics.prototype.closePath = function () {
-        this.ctx.closePath();
+    this.ctx.closePath();
 };
 
 Graphics.prototype.stroke = function () {
-        this.ctx.stroke();
+    this.ctx.stroke();
 };
 
 Graphics.prototype.fill = function () {
-        this.ctx.fill();
+    this.ctx.fill();
 };
 
 /**
@@ -611,20 +655,20 @@ Graphics.prototype.drawRoundRect = function (x, y, width, height, radius) {
             }
         }
 
-          this.ctx.beginPath();
-         this.ctx.moveTo(x + radius.tl, y);
-         this.ctx.lineTo(x + width - radius.tr, y);
-         this.ctx.quadraticCurveTo(x + width , y, x + width, y + radius.tr);
-         this.ctx.lineTo(x + width, y + height - radius.br);
-         this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
-         this.ctx.lineTo(x + radius.bl, y + height);
-         this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
-         this.ctx.lineTo(x, y + radius.tl);
-         this.ctx.quadraticCurveTo(x, y, x + radius.tl, y);
-         this.ctx.closePath();
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + radius.tl, y);
+        this.ctx.lineTo(x + width - radius.tr, y);
+        this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+        this.ctx.lineTo(x + width, y + height - radius.br);
+        this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+        this.ctx.lineTo(x + radius.bl, y + height);
+        this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+        this.ctx.lineTo(x, y + radius.tl);
+        this.ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+        this.ctx.closePath();
 
 
-         this.ctx.stroke();
+        this.ctx.stroke();
 
 
     }
@@ -891,13 +935,282 @@ Graphics.prototype.fillPolygon = function (polygon) {
 
 /**
  * Fills a polygon
- * @param {Polygon} polygon
  * @returns {undefined}
  */
 Graphics.prototype.save = function () {
-        this.ctx.save();
+    this.ctx.save();
 };
 
+/**
+ *
+ * @param canvas The canvas
+ * @param mimeType the mimetype e.g image/png or image/jpeg
+ * @param callbackFn A function to run with the arraybuffer as parameter
+ */
+Graphics.prototype.getBlobFromCanvas = function (canvas, mimeType, callbackFn) {
+    canvas.toBlob((blob) => {
+        callbackFn(blob);
+    }, mimeType);
+};
+
+
+/**
+ * When some pixels have been drawn on the underlying canvas, use this method
+ * to obtain the maximum width that the content drawn occupies.
+ * 
+ * The full details of the extent, both horizontal and vertical are returned by the
+ * Graphics.getBoundingBox method. Sometimes you just need the horizontal bounds, so use this.
+ * If you need just the vertical bounds, then use the Graphics.getVerticalExtent method
+ * 
+ * @returns {Rectangle}
+ */
+Graphics.prototype.getHorizontalExtent = function () {
+
+    let ret = {left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0};
+
+    // Get the pixel data from the canvas
+    let data = this.getImageData(0, 0, this.width, this.height).data;
+
+
+    let right = false;
+    let left = false;
+    let width = this.width;
+    let height = this.height;
+
+    let r = height;
+    let c = width;
+
+   
+    // 3. get right
+    c = width;
+    while (!right && c) {
+        c--;
+        for (r = 0; r < height; r++) {
+            if (data[r * width * 4 + c * 4 + 3]) {
+                right = c + 1;
+                ret.right = c + 1;
+                break;
+            }
+        }
+    }
+
+    // 4. get left
+    c = 0;
+    while (!left && c < right) {
+
+        for (r = 0; r < height; r++) {
+            if (data[r * width * 4 + c * 4 + 3]) {
+                left = c;
+                ret.left = c;
+                ret.width = right - left - 1;
+                break;
+            }
+        }
+        c++;
+
+        // If we've got it then return the extent
+        if (left) {
+            return {left: ret.left, right: ret.right};
+        }
+    }
+
+    // A mess-up occurred ...
+    return null;
+};
+
+
+/**
+ * When some pixels have been drawn on the underlying canvas, use this method
+ * to obtain the maximum height that the content drawn occupies.
+ * 
+ * The full details of the extent, both horizontal and vertical are returned by the
+ * Graphics.getBoundingBox method. Sometimes you just need the horizontal bounds, so use this.
+ * If you need just the vertical bounds, then use the Graphics.getVerticalExtent method
+ * 
+ * @returns {Rectangle}
+ */
+Graphics.prototype.getVerticalExtent = function () {
+
+    let ret = {left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0};
+
+    // Get the pixel data from the canvas
+    let data = this.getImageData(0, 0, this.width, this.height).data;
+
+    let first = false;
+    let last = false;
+    let width = this.width;
+    let height = this.height;
+
+    let r = height;
+    let c = 0;
+
+    // 1. get bottom
+    while (!last && r) {
+        r--;
+        for (c = 0; c < width; c++) {
+            if (data[r * width * 4 + c * 4 + 3]) {
+                last = r + 1;
+                ret.bottom = r + 1;
+                break;
+            }
+        }
+    }
+
+    // 2. get top
+    r = 0;
+    while (!first && r < last) {
+
+        for (c = 0; c < width; c++) {
+            if (data[r * width * 4 + c * 4 + 3]) {
+                first = r - 1;
+                ret.top = r - 1;
+                ret.height = last - first - 1;
+                break;
+            }
+        }
+        r++;
+        
+             // If we've got it then return the height
+        if (first) {
+            return {top: ret.top , bottom: ret.bottom};
+        }
+    }
+
+    // A mess-up occurred ...
+    return null;
+};
+
+
+/**
+ * When some pixels have been drawn on the underlying canvas, use this method
+ * to obtain a Rectangle that fits about the content drawn.
+ * You may now use this to crop the drawing area.
+ * @returns {Rectangle}
+ */
+Graphics.prototype.getBoundingBox = function () {
+
+    let ret = {left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0};
+
+    // Get the pixel data from the canvas
+    let data = this.getImageData(0, 0, this.width, this.height).data;
+
+    let first = false;
+    let last = false;
+    let right = false;
+    let left = false;
+    let width = this.width;
+    let height = this.height;
+
+    let r = height;
+    let c = 0;
+
+    // 1. get bottom
+    while (!last && r) {
+        r--;
+        for (c = 0; c < width; c++) {
+            if (data[r * width * 4 + c * 4 + 3]) {
+                last = r + 1;
+                ret.bottom = r + 1;
+                break;
+            }
+        }
+    }
+
+    // 2. get top
+    r = 0;
+    while (!first && r < last) {
+
+        for (c = 0; c < width; c++) {
+            if (data[r * width * 4 + c * 4 + 3]) {
+                first = r - 1;
+                ret.top = r - 1;
+                ret.height = last - first - 1;
+                break;
+            }
+        }
+        r++;
+    }
+
+    // 3. get right
+    c = width;
+    while (!right && c) {
+        c--;
+        for (r = 0; r < height; r++) {
+            if (data[r * width * 4 + c * 4 + 3]) {
+                right = c + 1;
+                ret.right = c + 1;
+                break;
+            }
+        }
+    }
+
+    // 4. get left
+    c = 0;
+    while (!left && c < right) {
+
+        for (r = 0; r < height; r++) {
+            if (data[r * width * 4 + c * 4 + 3]) {
+                left = c;
+                ret.left = c;
+                ret.width = right - left - 1;
+                break;
+            }
+        }
+        c++;
+
+        // If we've got it then return the height
+        if (left) {
+            return new Rectangle(ret.left, ret.top, ret.right, ret.bottom);
+        }
+    }
+    
+console.log('lol!!...'+JSON.stringify(ret));
+    // A mess-up occurred ...
+    return null;
+};
+
+/**
+ * 
+ * @param {number} padding The padding in pixels to apply to the bounding box. Set to zero to make the image
+ * fit as perfectly as possible.
+ * @param {Function} callbackFn A function to call once the fitted png is ready. It is supplied as a blob to this callback
+ * @returns {undefined}
+ */
+Graphics.prototype.getFittedPNG = function (padding, callbackFn) {
+
+    if (callbackFn) {
+        if (typeof callbackFn !== 'function') {
+            throw new Error('If you are supplying a callback, then it has to be a function!');
+        }
+        if (callbackFn.length !== 1) {
+            throw new Error('Your callback function should have only 1 parameter, this is a blob that contains the fitted PNG image');
+        }
+    }
+
+    padding = this.normalizeQuantity(padding);
+
+    let rect = this.getBoundingBox();
+
+
+    let minX = rect.left;
+    let minY = rect.top;
+    let maxX = rect.right;
+    let maxY = rect.bottom;
+
+
+    let cv = document.createElement('canvas');
+    cv.width = maxX - minX;
+    cv.height = maxY - minY;
+
+
+    // Apply a padding
+    cv.width += 2 * padding;
+    cv.height += 2 * padding;
+
+
+    cv.getContext('2d').drawImage(this.getCanvas(), minX - padding, minY - padding, cv.width, cv.height, 0, 0, cv.width, cv.height);
+    return this.getBlobFromCanvas(cv, 'image/png', callbackFn);
+};
 
 
 /**
@@ -1005,7 +1318,7 @@ Graphics.prototype.drawString = function (text, x, y) {
 };
 
 Graphics.prototype.drawImageAt = function (image, dx, dy) {
-    if(typeof dx === 'number' && typeof dy === 'number'){
+    if (typeof dx === 'number' && typeof dy === 'number') {
         this.ctx.drawImage(image, dx, dy);
     }
 
@@ -1013,15 +1326,15 @@ Graphics.prototype.drawImageAt = function (image, dx, dy) {
 
 Graphics.prototype.drawImageAtLocWithSize = function (image, dx, dy, dWidth, dHeight) {
     if (typeof dx === 'number' && typeof dy === 'number' && typeof dWidth === 'number' && typeof dHeight === 'number') {
-    this.ctx.drawImage(image, dx, dy, dWidth, dHeight);
-}
+        this.ctx.drawImage(image, dx, dy, dWidth, dHeight);
+    }
 
 };
 
 
 Graphics.prototype.drawImage = function (image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
     if (typeof sx === 'number' && typeof sy === 'number' && typeof sWidth === 'number' && typeof sHeight === 'number'
-        && typeof dx === 'number' && typeof dy === 'number' && typeof dWidth === 'number' && typeof dHeight === 'number') {
+            && typeof dx === 'number' && typeof dy === 'number' && typeof dWidth === 'number' && typeof dHeight === 'number') {
         this.ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
     }
 
@@ -1036,10 +1349,9 @@ Graphics.prototype.drawImage = function (image, sx, sy, sWidth, sHeight, dx, dy,
  * @returns {ImageData}
  */
 Graphics.prototype.getImageData = function (x, y, width, height) {
-    if(typeof x === "number" && typeof y === "number" && typeof width === "number" && typeof height === "number"){
+    if (typeof x === "number" && typeof y === "number" && typeof width === "number" && typeof height === "number") {
         return this.ctx.getImageData(x, y, width, height);
     }
-
 };
 
 
@@ -1055,6 +1367,118 @@ Graphics.prototype.stringWidth = function (text) {
     return 0;
 };
 
+
+/**
+ *
+ * @param {string} text Text whose width is needed
+ * @returns {number}
+ */
+Graphics.prototype.getTextWidth = function (text) {
+    if (typeof text === 'string') {
+         if(text.length === 0){
+            return 0;
+        }
+        let cv = document.createElement('canvas');
+
+        cv.width = this.width;
+        cv.height = this.height;
+        cv.style.width = this.width+'px';
+        cv.style.height = this.height+'px';
+        document.body.appendChild(cv);
+
+        let gg = new Graphics(cv);
+        
+        gg.ctx.font = this.ctx.font;
+        
+        gg.setBackground('#000');
+        gg.drawString(text, 10 , cv.height/2 );
+
+        let bounds = gg.getHorizontalExtent();
+        cv.remove();
+        gg.clear();
+        gg.destroy();
+        gg = null;
+        if(bounds){
+            return bounds.right - bounds.left;
+        }
+    }
+
+    return null;
+};
+
+
+/**
+ *
+ * @param {string} text Text whose width is needed
+ * @returns {number}
+ */
+Graphics.prototype.getTextHeight = function (text) {
+    if (typeof text === 'string') {
+         if(text.length === 0){
+            return 0;
+        }
+        let cv = document.createElement('canvas');
+
+        cv.width = this.width;
+        cv.height = this.height;
+        cv.style.width = this.width+'px';
+        cv.style.height = this.height+'px';
+        document.body.appendChild(cv);
+
+        let gg = new Graphics(cv);
+        
+        gg.ctx.font = this.ctx.font;
+        
+        gg.setBackground('#000');
+        gg.drawString(text, 10 , cv.height/2 );
+
+        let bounds = gg.getVerticalExtent();
+        cv.remove();
+        gg.clear();
+        gg.destroy();
+        gg = null;
+        if(bounds){
+            return bounds.bottom - bounds.top;
+        }
+    }
+
+    return null;
+};
+
+/**
+ *
+ * @param {string} text Text whose size is needed
+ * @returns {number}
+ */
+Graphics.prototype.getTextSize = function (text) {
+    if (typeof text === 'string') {
+        if(text.length === 0){
+            return new Rectangle(0,0,0,0);
+        }
+        let cv = document.createElement('canvas');
+
+        cv.width = this.width;
+        cv.height = this.height;
+        cv.style.width = this.width+'px';
+        cv.style.height = this.height+'px';
+        document.body.appendChild(cv);
+
+        let gg = new Graphics(cv);
+        gg.ctx.font = this.ctx.font;
+        
+        gg.setBackground('#000');
+        gg.drawString(text, 10 , cv.height/2 );
+
+        let rect = gg.getBoundingBox();
+        cv.remove();
+        gg.clear();
+        gg.destroy();
+        gg = null;
+        return rect;
+    }
+
+    return null;
+};
 
 /**
  *

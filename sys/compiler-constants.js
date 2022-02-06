@@ -158,8 +158,9 @@ const attrKeys = {
     font: "font",
     fontFamily: "fontFamily",
     fontSize: "fontSize",
-    fontWeight: "fontWeight",
-    fontStyle: "fontStyle",
+    fontWeight: "fontWeight", // normal | bold | oblique
+    fontStyle: "fontStyle", // normal | italic | oblique
+    gravity: 'gravity', 
     fontStretch: "fontStretch",
     checked: "checked",
     name: "name",

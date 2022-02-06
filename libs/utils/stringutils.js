@@ -69,6 +69,9 @@ StringBuffer.prototype.append = function (str) {
 StringBuffer.prototype.toString = function () {
     return this.dataArray.join("");
 };
+StringBuffer.prototype.length = function () {
+    return this.dataArray.length;
+};
 
 
 /**

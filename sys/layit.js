@@ -34,6 +34,8 @@ const nativeScripts = [
     SCRIPTS_BASE + 'sys/main.js',
     SCRIPTS_BASE + 'sys/compiler-constants.js',
     SCRIPTS_BASE + 'sys/sdk/viewcontroller.js',
+    SCRIPTS_BASE + 'libs/ext/canvas2blob.js',
+    SCRIPTS_BASE + 'libs/utils/utils.js',
     SCRIPTS_BASE + 'libs/utils/stringutils.js',
     SCRIPTS_BASE + 'libs/utils/domutils.js',
     SCRIPTS_BASE + 'libs/utils/colorutils.js',
@@ -58,8 +60,11 @@ const nativeScripts = [
     SCRIPTS_BASE + 'libs/ui/tables/searchabletable.js'
 ];
 
-
-
+  if (!HTMLCanvasElement.prototype.toBlob) {
+            console.log("Your browser does not support Canvas.toBlob...loading polyfill!");
+        nativeScripts.push(SCRIPTS_BASE + 'libs/ext/canvas2blob.js');
+        }
+        
 let workspaces = new Map();
 
 
@@ -145,7 +150,15 @@ function getWorkspace(options) {
     }
     return space;
 }
-
+/**
+ * This function returns true if the supplied param is a number string
+ * or a number.
+ * For example:
+ * isNumber('2') will return true as will isNumber(2).
+ * But isNumber('2a') will return false 
+ * @param {string|Number} number
+ * @returns {Boolean}
+ */
 let isNumber = function (number) {
     return isNaN(number) === false;
 };
@@ -529,7 +542,7 @@ Workspace.prototype.prefetchAllLayouts = function (rootLayoutName, xmlContent, o
         if (layouts.length === 0) {
             self.deadEnds++;
             if (self.layoutCount === self.loadedCount - 1) {
-                console.log("DONE! , layout: " + rootLayoutName + ", layoutCount: " + self.layoutCount + ", loadedCount: " + self.loadedCount, ", deadEnds: ", self.deadEnds);
+                //console.log("DONE! , layout: " + rootLayoutName + ", layoutCount: " + self.layoutCount + ", loadedCount: " + self.loadedCount, ", deadEnds: ", self.deadEnds);
                 onload(self.rootXml);
                 self.resetLoaderIndices();
 
@@ -759,14 +772,15 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
         case xmlKeys.label:
             view = new Label(wkspc, node);
             break;
-
+            
+        case xmlKeys.multiLabel:
+            view = new MultiLineLabel(wkspc, node);
+            break;
+            
         case xmlKeys.dropDown:
             view = new DropDown(wkspc, node);
             break;
 
-        case xmlKeys.multiLabel:
-            view = new MultiLineLabel(wkspc, node);
-            break;
         case xmlKeys.clock:
             view = new ClockView(wkspc, node);
             break;
@@ -862,7 +876,7 @@ Parser.prototype.buildUI = function (wkspc) {
 
 
 
-    let clocks = [];
+    let compounds = [];
     let includes = [];
     let progressBars = [];
     wkspc.viewMap.forEach(function (view, id) {
@@ -885,11 +899,8 @@ Parser.prototype.buildUI = function (wkspc) {
             }
 
             view.htmlElement.appendChild(child.htmlElement);
-            if (child.constructor.name === 'ClockView') {
-                clocks.push(child);
-            }
-            if (child.constructor.name === 'ProgressBar') {
-                progressBars.push(child);
+            if (child.constructor.name === 'ClockView' || child.constructor.name === 'LabelView' || child.constructor.name === 'ProgressBar') {
+                compounds.push(child);
             }
         }
     });
@@ -942,13 +953,10 @@ Parser.prototype.buildUI = function (wkspc) {
             //console.log('Generated Child Constraints for ', view.id, view.constraints);
         });
 
-        clocks.forEach((child) => {
-            child.runClock();
+        compounds.forEach((child) => {
+            child.runView();
         });
 
-        progressBars.forEach((child) => {
-            child.runProgress();
-        });
     }
 
     if (wkspc.controller && wkspc.controller instanceof ViewController) {
@@ -959,7 +967,7 @@ Parser.prototype.buildUI = function (wkspc) {
         wkspc.onComplete();
     }
 
-    console.log('UI construction logic done...', wkspc.viewMap.size);
+  //  console.log('UI construction logic done...', wkspc.viewMap.size);
 
 };
 

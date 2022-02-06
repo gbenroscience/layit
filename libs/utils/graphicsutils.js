@@ -517,28 +517,33 @@ Quadratic.prototype.solutionArray = function () {
 
 
 function Rectangle(left, top, right, bottom) {
+    this.width = this.height = this.left = this.top = 0;
     if (typeof left === 'number' && typeof top === 'number' && typeof right === 'number' && typeof bottom === 'number') {
         this.left = left;
         this.top = top;
-        this.right = right;
-        this.bottom = bottom;
-    } else {
-        this.left = 0;
-        this.top = 0;
-        this.right = 0;
-        this.bottom = 0;
+        this.width = right - left;
+        this.height = bottom - top;
     }
+
 }
+
+Rectangle.prototype.right = function () {
+    return this.left + this.width;
+};
+
+Rectangle.prototype.bottom = function () {
+    return this.top + this.height;
+};
 
 Rectangle.prototype.setLocation = function (x, y) {
     if (typeof x === 'number' && typeof y === 'number') {
-        this.x = x;
-        this.y = y;
+        this.left = x;
+        this.top = y;
     }
 };
 
 Rectangle.prototype.getLocation = function () {
-    return new Point(this.x, this.y);
+    return new Point(this.left, this.top);
 };
 
 /**
@@ -548,14 +553,14 @@ Rectangle.prototype.getLocation = function () {
  * @returns {undefined}]
  */
 Rectangle.prototype.translate = function (dx, dy) {
-    var oldv = this.x;
+    var oldv = this.left;
     var newv = oldv + dx;
     if (dx < 0) {
         // moving leftward
         if (newv > oldv) {
             // negative overflow
             // Only adjust width if it was valid (>= 0).
-            if (width >= 0) {
+            if (this.width >= 0) {
                 // The right edge is now conceptually at
                 // newv+width, but we may move newv to prevent
                 // overflow.  But we want the right edge to
@@ -563,7 +568,7 @@ Rectangle.prototype.translate = function (dx, dy) {
                 // clipping.  Think of the following adjustment
                 // conceptually the same as:
                 // width += newv; newv = MIN_VALUE; width -= newv;
-                width += newv - Number.MIN_VALUE;
+                this.width += newv - Number.MIN_VALUE;
                 // width may go negative if the right edge went past
                 // MIN_VALUE, but it cannot overflow since it cannot
                 // have moved more than MIN_VALUE and any non-negative
@@ -575,28 +580,28 @@ Rectangle.prototype.translate = function (dx, dy) {
         // moving rightward (or staying still)
         if (newv < oldv) {
             // positive overflow
-            if (width >= 0) {
+            if (this.width >= 0) {
                 // Conceptually the same as:
                 // width += newv; newv = MAX_VALUE; width -= newv;
-                width += newv - Number.MAX_VALUE;
+                this.width += newv - Number.MAX_VALUE;
                 // With large widths and large displacements
                 // we may overflow so we need to check it.
-                if (width < 0)
-                    width = Number.MAX_VALUE;
+                if (this.width < 0)
+                    this.width = Number.MAX_VALUE;
             }
             newv = Number.MAX_VALUE;
         }
     }
-    this.x = newv;
+    this.left = newv;
 
-    oldv = this.y;
+    oldv = this.top;
     newv = oldv + dy;
     if (dy < 0) {
         // moving upward
         if (newv > oldv) {
             // negative overflow
-            if (height >= 0) {
-                height += newv - Number.MIN_VALUE;
+            if (this.height >= 0) {
+                this.height += newv - Number.MIN_VALUE;
                 // See above comment about no overflow in this case
             }
             newv = Number.MIN_VALUE;
@@ -605,15 +610,16 @@ Rectangle.prototype.translate = function (dx, dy) {
         // moving downward (or staying still)
         if (newv < oldv) {
             // positive overflow
-            if (height >= 0) {
-                height += newv - Number.MAX_VALUE;
-                if (height < 0)
-                    height = Number.MAX_VALUE;
+            if (this.height >= 0) {
+                this.height += newv - Number.MAX_VALUE;
+                if (this.height < 0)
+                    this.height = Number.MAX_VALUE;
             }
             newv = Number.MAX_VALUE;
         }
     }
-    this.y = newv;
+    this.top = newv;
+    
 };
 /**
  * 
@@ -649,8 +655,8 @@ Rectangle.prototype.containsPoint = function (X, Y) {
             return false;
         }
         // Note: if either dimension is zero, tests below must return false...
-        var x = this.x;
-        var y = this.y;
+        var x = this.left;
+        var y = this.top;
         if (X < x || Y < y) {
             return false;
         }
@@ -671,7 +677,7 @@ Rectangle.prototype.containsPoint = function (X, Y) {
 Rectangle.prototype.contains = function (rect) {
     if (rect.constructor.name === 'Rectangle') {
         var X = rect.left;
-        var Y = rect.right;
+        var Y = rect.top;
         var W = rect.width;
         var H = rect.height;
 
@@ -682,8 +688,8 @@ Rectangle.prototype.contains = function (rect) {
             return false;
         }
         // Note: if any dimension is zero, tests below must return false...
-        var x = this.x;
-        var y = this.y;
+        var x = this.left;
+        var y = this.top;
         if (X < x || Y < y) {
             return false;
         }
@@ -737,10 +743,10 @@ Rectangle.prototype.intersects = function (r) {
         if (rw <= 0 || rh <= 0 || tw <= 0 || th <= 0) {
             return false;
         }
-        var tx = this.x;
-        var ty = this.y;
-        var rx = r.x;
-        var ry = r.y;
+        var tx = this.left;
+        var ty = this.top;
+        var rx = r.left;
+        var ry = r.top;
         rw += rx;
         rh += ry;
         tw += tx;
@@ -769,10 +775,10 @@ Rectangle.prototype.intersects = function (r) {
  */
 Rectangle.prototype.intersection = function (r) {
     if (r.constructor.name === 'Rectangle') {
-        var tx1 = this.x;
-        var ty1 = this.y;
-        var rx1 = r.x;
-        var ry1 = r.y;
+        var tx1 = this.left;
+        var ty1 = this.top;
+        var rx1 = r.left;
+        var ry1 = r.top;
         var tx2 = tx1;
         tx2 += this.width;
         var ty2 = ty1;
@@ -844,12 +850,12 @@ Rectangle.prototype.union = function (r) {
         if ((rx2 | ry2) < 0) {
             return new Rectangle(this);
         }
-        var tx1 = this.x;
-        var ty1 = this.y;
+        var tx1 = this.left;
+        var ty1 = this.top;
         tx2 += tx1;
         ty2 += ty1;
-        var rx1 = r.x;
-        var ry1 = r.y;
+        var rx1 = r.left;
+        var ry1 = r.top;
         rx2 += rx1;
         ry2 += ry1;
         if (tx1 > rx1)
@@ -888,7 +894,7 @@ Rectangle.prototype.draw = function (canvasId, color, thickness) {
         ctx.rect(this.left, this.top, this.width, this.height);
         ctx.stroke();
     } else {
-        logger("Invalid Line draw args");
+        logger("Invalid Rectangle draw args");
     }
 
 

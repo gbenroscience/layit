@@ -15,10 +15,7 @@ const WINDOWS = 1;
 const OS_X = 2;
 const UNIX = 3;
 
-const PDF_FILE_TYPE = 1;
-const DOC_FILE_TYPE = 2;
-const GENERIC_FILE_TYPE = 3;
-const PATH_TO_WORKER_SCRIPTS = '../../scripts/workers/';
+
 
 
 

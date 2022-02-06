@@ -340,9 +340,10 @@
         bottom_bottom='table_one'
         marginEnd='16'
         listType='ol'
-        showBullets='false'
+        showBullets='true'
         items='["Antelope","Buffalo","Chimpanzee","Dog","Elephant","Frog","Gorilla","Hen","Impala","Jaguar"]'
-        border='1px solid red'
+        border='1px solid midnightblue'
+        backgroundColor='pink'
         
         />
     <NativeTable
@@ -404,8 +405,6 @@
     
     />
 
-        
-    
     <VideoView
         id="video_1"
         width="250px"

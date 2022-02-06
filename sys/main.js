@@ -78,7 +78,7 @@ function setAbsoluteSizeAndPosition(elm, left, top, width, height) {
 }
 
 
-/* global AutoLayout, attrKeys, xmlKeys, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits, PATH_TO_IMAGES */
+/* global AutoLayout, attrKeys, xmlKeys, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits, PATH_TO_IMAGES, FontStyle, Gravity */
 /**
  * 
  * @param {type} node The node that represents this View in the android style xml document
@@ -2081,7 +2081,6 @@ SearchableTableView.prototype.createElement = function (node) {
         textcolumns: textColumns,
         selectcolumns: selectColumns
     };
-    console.log(this.options);
 
     if (cssClass && cssClass !== "") {
         this.options.classname = cssClass;
@@ -2209,7 +2208,7 @@ ProgressBar.prototype.calculateWrapContentSizes = function (node) {
 };
 
 
-ProgressBar.prototype.runProgress = function () {
+ProgressBar.prototype.runView = function () {
     this.progress = new Progress(this.options);
 };
 
@@ -2304,7 +2303,6 @@ DropDown.prototype.createElement = function (node) {
 
 
     if (attributeNotEmpty(items)) {
-        console.log('items:\n', items);
         let data = JSON.parse(items);
         for (var i = 0; i < data.length; i++) {
             this.htmlElement.options[this.htmlElement.options.length] = new Option(data[i], i + "");
@@ -2604,7 +2602,7 @@ ClockView.prototype.createElement = function (node) {
 };
 
 
-ClockView.prototype.runClock = function () {
+ClockView.prototype.runView = function () {
     this.clock = new Clock(this.clockOptions);
     this.clock.run();
 };
@@ -3138,6 +3136,17 @@ let indexAllNodes = function (htmlNode) {
 
 };
 
+
+function isFontWeight(val) {
+    if (val && typeof val === 'string') {
+        if (val === 'bold' || val === 'bolder' || val === 'lighter' || val === 'normal' ||
+                val === '100' || val === '200' || val === '300' || val === '400' ||
+                val === '500' || val === '600' || val === '700' || val === '800' || val === '900') {
+            return true;
+        }
+    }
+    return false;
+}
 
 function attributeNotEmpty(attrVal) {
     if (attrVal && attrVal.trim().length > 0) {
