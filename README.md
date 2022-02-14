@@ -11,6 +11,7 @@ To make things even sweeter, we have changed the long names given to the constra
 ## Usage
 
 You need the entire project folder, so clone this repository and place it(the `layit` folder) in the root of your web project.<br>
+The xml files in the layouts directory are good and simple examples also. But you may delete them as they hold no value for your project.
 When you create an html file in your web project, depending on your code organization, it should look like this:
 ```html
 <html>
