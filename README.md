@@ -44,7 +44,7 @@ This root element is later translated into a `div` anyway, if you care to know.
 Any `<View />` tag is also translated into a div later on.
 
 With this library and similar libs, we are looking at the days of flatter layouts in web ui technologies, just as happened on mobile devices.
-Nested layouts can only result if the user decides to use included files, as these are translated and laid out in their own div, before their parent div is appended into the including div(The div generated from the `<include />` tag.
+Nested layouts can only result if the user decides to use included files, as these are translated and laid out in their own div, before their parent div is appended into the including div(The div generated from the `<include />` tag.)
 
 The file would look like this:
 
