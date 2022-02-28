@@ -11,6 +11,7 @@ To make things even sweeter, we have changed the long names given to the constra
 ## Usage
 
 You need the entire project folder, so clone this repository and place it(the `layit` folder) in the root of your web project.<br>
+The xml files in the layouts directory are good and simple examples also. But you may delete them as they hold no value for your project.
 When you create an html file in your web project, depending on your code organization, it should look like this:
 ```html
 <html>
@@ -43,7 +44,7 @@ This root element is later translated into a `div` anyway, if you care to know.
 Any `<View />` tag is also translated into a div later on.
 
 With this library and similar libs, we are looking at the days of flatter layouts in web ui technologies, just as happened on mobile devices.
-Nested layouts can only result if the user decides to use included files, as these are translated and laid out in their own div, before their parent div is appended into the including div(The div generated from the `<include />` tag.
+Nested layouts can only result if the user decides to use included files, as these are translated and laid out in their own div, before their parent div is appended into the including div(The div generated from the `<include />` tag.)
 
 The file would look like this:
 
