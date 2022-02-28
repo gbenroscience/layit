@@ -30,6 +30,7 @@ const SCRIPTS_BASE = getScriptBaseUrl();
 
 const nativeScripts = [
     SCRIPTS_BASE + 'sys/mustache420.js',
+    SCRIPTS_BASE + 'sys/resizesensor.js',
     SCRIPTS_BASE + 'sys/autolayout.js',
     SCRIPTS_BASE + 'sys/main.js',
     SCRIPTS_BASE + 'sys/compiler-constants.js',
@@ -60,11 +61,13 @@ const nativeScripts = [
     SCRIPTS_BASE + 'libs/ui/tables/searchabletable.js'
 ];
 
-  if (!HTMLCanvasElement.prototype.toBlob) {
-            console.log("Your browser does not support Canvas.toBlob...loading polyfill!");
-        nativeScripts.push(SCRIPTS_BASE + 'libs/ext/canvas2blob.js');
-        }
-        
+
+
+if (!HTMLCanvasElement.prototype.toBlob) {
+    console.log("Your browser does not support Canvas.toBlob...loading polyfill!");
+    nativeScripts.push(SCRIPTS_BASE + 'libs/ext/canvas2blob.js');
+}
+
 let workspaces = new Map();
 
 
@@ -772,11 +775,11 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
         case xmlKeys.label:
             view = new Label(wkspc, node);
             break;
-            
+
         case xmlKeys.multiLabel:
             view = new MultiLineLabel(wkspc, node);
             break;
-            
+
         case xmlKeys.dropDown:
             view = new DropDown(wkspc, node);
             break;
@@ -878,17 +881,11 @@ Parser.prototype.buildUI = function (wkspc) {
 
     let compounds = [];
     let includes = [];
-    let progressBars = [];
     wkspc.viewMap.forEach(function (view, id) {
 
         if (view.constructor.name === 'IncludedView') {
             includes.push(view);
         }
-
-        if (view.constructor.name === 'PopupView') {
-            popups.push(view);
-        }
-
 
         for (let i = 0; i < view.childrenIds.length; i++) {
             let childId = view.childrenIds[i];
@@ -899,7 +896,8 @@ Parser.prototype.buildUI = function (wkspc) {
             }
 
             view.htmlElement.appendChild(child.htmlElement);
-            if (child.constructor.name === 'ClockView' || child.constructor.name === 'LabelView' || child.constructor.name === 'ProgressBar') {
+            if (child.constructor.name === 'ClockView' || child.constructor.name === 'LabelView' 
+                    || child.constructor.name === 'ProgressBar' || child instanceof CustomTableView) {
                 compounds.push(child);
             }
         }
@@ -967,7 +965,7 @@ Parser.prototype.buildUI = function (wkspc) {
         wkspc.onComplete();
     }
 
-  //  console.log('UI construction logic done...', wkspc.viewMap.size);
+    //  console.log('UI construction logic done...', wkspc.viewMap.size);
 
 };
 
@@ -993,22 +991,30 @@ function autoLayout(parentElm, visualFormat) {
     let view = new AutoLayout.View();
     view.addConstraints(AutoLayout.VisualFormat.parse(visualFormat, {extended: true}));
     let elements = {};
+
+
     for (let key in view.subViews) {
         let elm = document.getElementById(key);
         if (elm) {
             elm.className += elm.className ? ' abs' : 'abs';
             elements[key] = elm;
+           /* new ResizeSensor(elm, function () {
+                console.log('Changed to ' + elm.clientWidth);
+                updateLayout();
+            });*/
         }
     }
     var updateLayout = function () {
         view.setSize(parentElm ? parentElm.clientWidth : window.innerWidth, parentElm ? parentElm.clientHeight : window.innerHeight);
         for (key in view.subViews) {
             var subView = view.subViews[key];
-            if (elements[key]) {
-                setAbsoluteSizeAndPosition(elements[key], subView.left, subView.top, subView.width, subView.height);
+            let elm = elements[key];
+            if (elm) {
+                setAbsoluteSizeAndPosition(elm, subView.left, subView.top, subView.width, subView.height);
             }
         }
     };
+
     window.addEventListener('resize', updateLayout);
     updateLayout();
     return updateLayout;

@@ -7,6 +7,13 @@
 
 /* global Table */
 
+
+const inputTypes = {
+    SELECT: 'select',
+    BUTTON: 'button',
+    TEXTFIELD: 'textfield',
+    CHECK: 'check'
+};
 /**
  * 
  * @param {type} options Normal options of a Table element. Add to the options the `checkablecolumns`
@@ -37,9 +44,16 @@ function InputTable(options) {
         return;
     }
 
+
     this.clickedRow = -1;
     this.clickedColumn = -1;
 
+/**
+ * Cache all listeners attached to html components on the table here.
+ * These listeners are lost during a Search. Restore them from here.
+ * Make the column as the key and the listener as the value
+ */
+    this.listenersMap = new Map();
 
     if (typeof options.checkablecolumns !== 'undefined' && this.isOneDimensionalArray(options.checkablecolumns)) {
         this.checkablecolumns = options.checkablecolumns;
@@ -543,13 +557,8 @@ InputTable.prototype.build = function (parent) {
  * @returns {undefined}
  */
 InputTable.prototype.addRows = function (data) {
-
-
     if (this.is2DArray(data)) {
-
-
         for (var i = 0; i < data.length; i++) {
-
             var rw = data[i];
             var row = new TableRow(rw, this.rows.length === 0, false);
             row.className = this.id + "_row";
@@ -557,41 +566,25 @@ InputTable.prototype.addRows = function (data) {
                 row.tableCells[j].className = this.getTableCellClass();
                 row.tableCells[j].addStyle("max-width", "calc( 100% / " + row.tableCells.length + " )");
             }
-
             this.rows.push(row);
         }
 
         for (var i = 0; i < this.rows.length; i++) {
-
             var row = this.rows[i];
             row.setHeader(i === 0);
             row.setFooter(this.hasFooter === true ? i === this.rows.length - 1 : false);
-
         }
-
-
+        
         ///checkableColumns
-
-
         for (var i = this.rows.length - data.length; i < this.rows.length; i++) {
             var row = this.rows[i];
-
-
-
             var len = row.tableCells.length;
             for (var j = 0; j < this.checkablecolumns.length; j++) {
-
-
                 if (i === 0) {
                     var cell = new TableCell(this.checkablecolumns[j], row.header, row.footer);
                     cell.setId(row.getCellIdAt(len + j));
                     cell.setStyle(new Style("#" + cell.getId(), []));
-
-
-
                     cell.className = this.getTableCellClass();
-
-
                     row.tableCells.push(cell);
                 } else {
                     var checkHtml = new StringBuffer("<input type='checkbox' class='").append(this.getTableCellCheckBoxTypeClass()).append(" ")
@@ -603,14 +596,10 @@ InputTable.prototype.addRows = function (data) {
                     row.tableCells.push(cell);
                 }
             }
-
         }
         //actionColumns
         for (var i = this.rows.length - data.length; i < this.rows.length; i++) {
             var row = this.rows[i];
-
-
-
             var len = row.tableCells.length;
             for (var j = 0; j < this.actioncolumns.length; j++) {
 
@@ -618,13 +607,7 @@ InputTable.prototype.addRows = function (data) {
                     var cell = new TableCell(this.actioncolumns[j], row.header, row.footer);
                     cell.setId(row.getCellIdAt(len + j));
                     cell.setStyle(new Style("#" + cell.getId(), []));
-
-
-
                     cell.className = this.getTableCellClass();
-                    //cell.addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
-
-
                     row.tableCells.push(cell);
                 } else {
                     var btnHtml = new StringBuffer("<input type='button' class='").append(this.getTableCellButtonTypeClass()).append(" ")
@@ -636,14 +619,11 @@ InputTable.prototype.addRows = function (data) {
                     row.tableCells.push(cell);
                 }
             }
-
         }
-
 
 ///textcolumns
         for (var i = this.rows.length - data.length; i < this.rows.length; i++) {
             var row = this.rows[i];
-
             var len = row.tableCells.length;
             for (var j = 0; j < this.textcolumns.length; j++) {
 
@@ -651,12 +631,7 @@ InputTable.prototype.addRows = function (data) {
                     var cell = new TableCell(this.textcolumns[j], row.header, row.footer);
                     cell.setId(row.getCellIdAt(len + j));
                     cell.setStyle(new Style("#" + cell.getId(), []));
-
-
-
                     cell.className = this.getTableCellClass();
-                    //cell.addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
-
                     row.tableCells.push(cell);
                 } else {
                     var textFieldHtml = new StringBuffer("<input type='text' class='").append(this.getTableCellTextFieldTypeClass()).append(" ")
@@ -668,10 +643,7 @@ InputTable.prototype.addRows = function (data) {
                     row.tableCells.push(cell);
                 }
             }
-
         }
-
-
 
 ///selectColumns
         for (var i = this.rows.length - data.length; i < this.rows.length; i++) {
@@ -685,56 +657,36 @@ InputTable.prototype.addRows = function (data) {
                     var cell = new TableCell(Object.keys(obj)[0], row.header, row.footer);
                     cell.setId(row.getCellIdAt(len + j));
                     cell.setStyle(new Style("#" + cell.getId(), []));
-
-
-
                     cell.className = this.getTableCellClass();
-                    //cell.addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
-
                     row.tableCells.push(cell);
                 } else {
-
-
                     var selectHtml = new StringBuffer('<select class="').append(this.getTableCellSelectTypeClass()).append(" ")
                             .append(this.getTableCellSelectColumnClass(len + j)).append('" >');
-                    
                        for (var k = 0; k < values[0].length; k++) {
                             selectHtml.append("<option value='").append(k + "'>").append(values[0][k]).append("</option>");
                         }
-               
                     selectHtml.append("</select>");
-
-
-
                     var cell = new TableCell(new Array(selectHtml.toString()), row.header, row.footer);
                     cell.setId(row.getCellIdAt(len + j));
                     cell.setStyle(new Style("#" + cell.getId(), []));
                     cell.className = this.getTableCellClass();
                     row.tableCells.push(cell);
-
-
                 }
             }
-
         }
-
-
-
-
         this.notifyDataSetChanged();
-
     }
-
 };
 
 /**
  * Only use this when the table has been attached to the DOM.
- * @param {type} column A column of checkboxes
+ * @param {int} column A column of checkboxes
  * @param {function} listenerFunction The function.
  * @returns {undefined}
  */
 InputTable.prototype.setCheckListener = function (column, listenerFunction) {
 
+    this.listenersMap.set(inputTypes.CHECK+column, listenerFunction);
     var className = this.getTableCellCheckBoxColumnClass(column);
     var matchingElems = document.getElementsByClassName(className);
 
@@ -760,13 +712,12 @@ InputTable.prototype.setCheckListener = function (column, listenerFunction) {
 
 /**
  * 
- * @param {type} row The row of the textfield
- * @param {type} column The column of the textfield
- * @param {type} text The place holder
+ * @param {int} row The row of the textfield
+ * @param {int} column The column of the textfield
+ * @param {string} text The place holder
  * @returns {undefined}
  */
 InputTable.prototype.setTextFieldPlaceholder = function (row, column, text) {
-
 
     if ((typeof row !== 'undefined' && typeof row === 'number') &&
             (typeof column !== 'undefined' && typeof column === 'number') && typeof text === 'string') {
@@ -777,22 +728,18 @@ InputTable.prototype.setTextFieldPlaceholder = function (row, column, text) {
             var textfield = td.childNodes[0];
             textfield.placeholder = text;
         }
-
     }
-
-
-
 };
 
 /**
  * 
  * Only use this when the table has been attached to the DOM.
- * @param {type} column A column of textfields.
+ * @param {int} column A column of textfields.
  * @param {function} listenerFunction The function. 
  * @returns {undefined}
  */
 InputTable.prototype.setTextFieldEnterPressedListener = function (column, listenerFunction) {
-
+this.listenersMap.set(inputTypes.TEXTFIELD+column, listenerFunction);
     var className = this.getTableCellTextFieldColumnClass(column);
     var matchingElems = document.getElementsByClassName(className);
 
@@ -824,12 +771,12 @@ InputTable.prototype.setTextFieldEnterPressedListener = function (column, listen
 /**
  * 
  * Only use this when the table has been attached to the DOM.
- * @param {type} column A column of buttons.
+ * @param {int} column A column of buttons.
  * @param {function} listenerFunction The function. 
  * @returns {undefined}
  */
 InputTable.prototype.setClickListener = function (column, listenerFunction) {
-
+this.listenersMap.set(inputTypes.BUTTON+column, listenerFunction);
     var className = this.getTableCellButtonColumnClass(column);
     var matchingElems = document.getElementsByClassName(className);
 
@@ -857,14 +804,12 @@ InputTable.prototype.setClickListener = function (column, listenerFunction) {
 /**
  * 
  * Only use this when the table has been attached to the DOM.
- * @param {type} column A column of html select(dropdowns) items.
+ * @param {int} column A column of html select(dropdowns) items.
  * @param {function} listenerFunction The function. 
  * @returns {undefined}
  */
 InputTable.prototype.setSelectListener = function (column, listenerFunction) {
-
-
-
+this.listenersMap.set(inputTypes.SELECT+column, listenerFunction);
     var className = this.getTableCellSelectColumnClass(column);
     var matchingElems = document.getElementsByClassName(className);
 

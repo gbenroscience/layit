@@ -15,6 +15,7 @@
  * 
  * {
  * ...,
+ * showLeftBtn : true,
  * buttonText : "Add New",
  * onAddBtnClicked    : function(){}
  * 
@@ -30,7 +31,7 @@ function GrowableTable(options) {
     }
 
     if (isEmptyText(options.buttonText)) {
-        logIfConsole("The button text is not specified for the table.  Specify with `buttontext: Add New` option.");
+        logIfConsole("The button text is not specified for the table.  Specify with `buttonText: Add New` option.");
         this.buttonText = 'Button';
     } else {
         this.buttonText = options.buttonText;
@@ -39,7 +40,13 @@ function GrowableTable(options) {
     if (options.onAddBtnClicked && {}.toString.call(options.onAddBtnClicked) === '[object Function]') {
         this.onAddBtnClicked = options.onAddBtnClicked;
     }
-
+    
+   if (typeof options.showLeftBtn === 'undefined') {
+        logIfConsole("`showLeftBtn: true|false` not specified. Defaulting to true");
+        this.showLeftBtn = false;
+    } else {
+        this.showLeftBtn = options.showLeftBtn;
+    }
 
 
 
@@ -57,6 +64,7 @@ function GrowableTable(options) {
     };
 
     cssOptions['font-size'] = "calc( 0.85 * " + this.fontSize + ")";
+    cssOptions.visibility = this.showLeftBtn === true ? 'visible' : 'hidden';
 
 
     var cssOptionsHover = {
@@ -86,8 +94,8 @@ function GrowableTable(options) {
 
 
 
-GrowableTable.prototype = Object.create(InputTable.prototype);
 GrowableTable.prototype.constructor = GrowableTable;
+GrowableTable.prototype = Object.create(InputTable.prototype);
 
 
 
@@ -161,11 +169,9 @@ GrowableTable.prototype.getBtnClass = function () {
  */
 GrowableTable.prototype.buildContentHeader = function () {
     var div = document.createElement("div");
-
     div.setAttribute("id", this.getContentHeaderId());
     addClass(div, this.getContentHeaderClass());
-    div.appendChild(this.buildButton());
-
+     div.appendChild(this.buildButton());  
     return div;
 };
 
@@ -199,6 +205,3 @@ GrowableTable.prototype.setButtonLabel = function (text) {
         btn.value = text;
     }
 };
-
-
-

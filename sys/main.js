@@ -1458,9 +1458,9 @@ CustomTableView.prototype.createElement = function (node) {
         footerText: footertext,
         scrollable: scrollable,
         theme: theme,
-        data: data
+        data: [data.shift()]
     };
-
+    this.options.bodyData = data;//save the data after removing the headers
     if (cssClass && cssClass !== "") {
         this.options.classname = cssClass;
     }
@@ -1476,6 +1476,9 @@ CustomTableView.prototype.calculateWrapContentSizes = function (node) {
     this.wrapHeight = 300;
 };
 
+CustomTableView.prototype.runView = function () {
+    this.customTable.loadTable(this.options.bodyData);
+};
 /**
  * 
  * @param {Workspace} wkspc
@@ -1659,13 +1662,13 @@ InputTableView.prototype.createElement = function (node) {
         footerText: footertext,
         scrollable: scrollable,
         theme: theme,
-        data: data,
+        data: [data.shift()],
         checkablecolumns: checkableColumns,
         actioncolumns: actionColumns,
         textcolumns: textColumns,
         selectcolumns: selectColumns
     };
-
+    this.options.bodyData = data;//save the data after removing the headers
     if (cssClass && cssClass !== "") {
         this.options.classname = cssClass;
     }
@@ -1862,14 +1865,14 @@ GrowableTableView.prototype.createElement = function (node) {
         scrollable: scrollable,
         theme: theme,
         buttonText: buttonText,
-        data: data,
+        data: [data.shift()],
         checkablecolumns: checkableColumns,
         actioncolumns: actionColumns,
         textcolumns: textColumns,
         selectcolumns: selectColumns
     };
 
-
+    this.options.bodyData = data;//save the data after removing the headers
     if (cssClass && cssClass !== "") {
         this.options.classname = cssClass;
     }
@@ -2075,24 +2078,20 @@ SearchableTableView.prototype.createElement = function (node) {
         scrollable: scrollable,
         theme: theme,
         buttonText: buttonText,
-        data: data,
+        data: [data.shift()],//take the first row for rendering on the table.. the headers
         checkablecolumns: checkableColumns,
         actioncolumns: actionColumns,
         textcolumns: textColumns,
         selectcolumns: selectColumns
     };
+    
+    this.options.bodyData = data;//save the data after removing the headers
 
     if (cssClass && cssClass !== "") {
         this.options.classname = cssClass;
     }
     this.customTable = new SearchableTable(this.options);
     this.customTable.build(this.htmlElement);
-
-
-
-
-
-
 };
 
 SearchableTableView.prototype.calculateWrapContentSizes = function (node) {
@@ -2103,7 +2102,7 @@ SearchableTableView.prototype.calculateWrapContentSizes = function (node) {
 /**
  * @param {Workspace} wkspc
  * @param {type} node key-value object
- * @returns {undefined}
+ * @returns {TextField}
  */
 function TextField(wkspc, node) {
     View.call(this, wkspc, node);
@@ -2346,6 +2345,7 @@ NativeList.prototype.createElement = function (node) {
 
     this.htmlElement = document.createElement(listType);
     this.style.addStyleElementCss('list-style-position: inside;');
+    this.style.addStyleElementCss('overflow: auto;');
 
 
 
@@ -2817,13 +2817,11 @@ function IncludedView(wkspc, node) {
     let mp = new Parser(wkspc, xmlLayout, this.id);
 
     this.constraints = mp.constraints;
-
 }
 
 
 IncludedView.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('div');
-
     let id = node.getAttribute(attrKeys.id);
     this.htmlElement.id = id;
     this.calculateWrapContentSizes(node);

@@ -390,6 +390,8 @@
         hasHeader="true"
         hasFooter="false"
         showBorders="true"
+        buttonText="ADD MORE"
+        showLeftBtn="true"
         headerPadding="1.3em"
         fontSize="1.0em"
         theme="#444444"

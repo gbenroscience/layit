@@ -2,7 +2,6 @@
 
 
 <ConstraintLayout
-    id="root"
     width="match_parent"
     height="match_parent">
 
@@ -112,7 +111,7 @@
         height="80"
         inputType="phone"
         maxLines="1"
-        maxLength="13"
+        maxLength="130"
         paddingStart="form_padding"
         paddingEnd="form_padding"
         textSize="20px"

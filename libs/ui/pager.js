@@ -108,6 +108,7 @@ function Pager(options) {
     this.canvasHeight = this.canvasWidth / 10;
 
     this.eventsRegistered = false;
+    this.canvas = null;
 
 
 }
@@ -116,10 +117,8 @@ function Pager(options) {
 
 Pager.prototype.draw = function () {
 
-
     var pager = this;
-    var canvas = document.getElementById(this.id);
-
+    var canvas = this.canvas;
 
     this.drawBorders(canvas);
     this.drawArrows(canvas);

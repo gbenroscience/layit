@@ -78,7 +78,7 @@ TableCell.prototype.build = function () {
 };
 /**
  * TableCell function<br>
- * Sets the listener on the TableCell
+ * Sets the listener TableCell rowSpan
  * @param {string} listenerName The name of the listener, e.g. onclick etc.
  * @param {string} listenerCode The code of the listener, the RHS that is assigned to the listenerName.
  * @returns {undefined}
@@ -716,7 +716,6 @@ function logIfConsole(text) {
  * classname: "nicetable",
  * caption:  "Data table", 
  * cellPadding: "1em",
- * headerPadding: "1.3em",
  * scrollHeight: "150px",
  * icon : "icon.png",
  * hasFooter : true,
@@ -879,15 +878,14 @@ function Table(options) {
     } else {
         this.cellPadding = options.cellPadding;
     }
-    
-    
+
     if (isEmptyText(options.headerPadding)) {
         logIfConsole("header padding not specified for the table.  Specify with the format: `headerPadding: 4px` option.");
         this.headerPadding = "1.3em";
     } else {
         this.headerPadding = options.headerPadding;
     }
-    
+
     if (isEmptyText(options.scrollHeight)) {
         logIfConsole("Cell-scroll-height not specified for the table.  Specify with `scrollHeight: 120px` option. Defaulting to 120px.");
         /**
@@ -1049,6 +1047,7 @@ function Table(options) {
         this.headerStyle.addFromOptions({
             "float": "left",
             "width": "100%",
+            //"padding": "calc(" + cellpdd + " * 0.75)",
             "padding": options.headerPadding,
             "text-align": "left",
             "background-color": colorTh,
@@ -1180,7 +1179,7 @@ function Table(options) {
             });
 
             this.tableTrTdFirstChildBeforeStyle.addFromOptions({
-                "content": "counter(rowNumber) '.'" ,
+                "content": "counter(rowNumber) '.'",
                 "min-width": "1em",
                 "margin-right": "2.5em"
             });
@@ -1507,33 +1506,28 @@ Table.prototype.build = function (parent) {
     addClass(checkMainDiv, this.getTableContainerClass());
     checkMainDiv.appendChild(this.buildHeader());
     var table = this.buildTable();
-    checkMainDiv.appendChild(table);
+
     var style = document.createElement('style');
     style.type = 'text/css';
     var css = new StringBuffer();
+    for (var key in this.registry) {
+        css.append(this.registry[key].styleSheetEntry("." + key));
+    }
+
+    style.innerHTML = css.toString();
     if (this.hasContainer === true) {
+        checkMainDiv.appendChild(table);
         parent.appendChild(checkMainDiv);
-        for (var key in this.registry) {
-            css.append(this.registry[key].styleSheetEntry("." + key));
-        }
-
-        style.innerHTML = css.toString();
     } else {
-        parent.appendChild(this.buildTable());
-        for (var key in this.registry) {
-            css.append(this.registry[key].styleSheetEntry("." + key));
-        }
-
-        style.innerHTML = css.toString();
+        parent.appendChild(table);
     }
 
     document.getElementsByTagName('head')[0].appendChild(style);
-    if (this.pagingEnabled === true) {
-        var pager = this.pager;
-        setTimeout(function () {
-            pager.draw();
-        }, 50);
-    }
+    var pager = this.pager;
+    pager.draw();
+    
+  
+
 
 
 };
@@ -1576,14 +1570,11 @@ Table.prototype.buildContentFooter = function () {
         }
         mainDiv.appendChild(span);
     }
-    if (this.pagingEnabled === true) {
-        mainDiv.appendChild(this.buildPager());
-    }
-
-
-
-
-
+    let canvas = this.buildPager();
+    this.enablePager(this.pagingEnabled);
+    document.body.removeChild(canvas);
+    mainDiv.appendChild(canvas);
+    this.pager.canvas = canvas;
     return mainDiv;
 };
 /**
@@ -1600,6 +1591,7 @@ Table.prototype.buildTable = function () {
     mainDiv.appendChild(this.buildContentHeader());
     mainDiv.appendChild(this.buildRawTable());
     mainDiv.appendChild(this.buildContentFooter());
+    
     return mainDiv;
 };
 /**
@@ -1628,7 +1620,6 @@ Table.prototype.buildRawTable = function () {
     var thead = table.createTHead();
     var tbody = table.createTBody();
     var tfoot = table.createTFoot();
-    //document.getElementsByTagName("tbody")[0] = tbody;
     for (var i = 0; i < rowLen; i++) {
         var row = this.rows[i];
         row.setId(this.id + '_' + i);
@@ -1664,13 +1655,26 @@ Table.prototype.buildContentHeader = function () {
 Table.prototype.buildPager = function () {
 
     var canvas = document.createElement("canvas");
-    canvas.setAttribute("id", this.getPagerClass());
+    canvas.setAttribute("id", this.pager.id);
     addClass(canvas, this.getPagerClass());
     canvas.setAttribute("width", this.pager.canvasWidth);
     canvas.setAttribute("height", this.pager.canvasHeight);
     canvas.appendChild(document.createTextNode("Your browser does not support canvas drawing!"));
+    document.body.appendChild(canvas);
     return canvas;
 };
+
+Table.prototype.enablePager = function (enable) {
+    let elem = document.getElementById(this.pager.id);
+    if (elem) {
+        if (typeof enable === 'boolean') {
+            elem.style.visibility = enable ? 'visible' : 'hidden';
+        } else {
+            elem.style.visibility = 'hidden';
+        }
+    }
+};
+
 Table.prototype.setFooterText = function (text) {
     document.getElementById(this.getContentFooterTextClass()).textContent = text;
 };
@@ -1680,7 +1684,6 @@ Table.prototype.setFooterText = function (text) {
  * @returns {undefined}
  */
 Table.prototype.loadTable = function (data) {
-
     this.clear(false, false);
     if (this.is2DArray(data)) {
         this.addRows(data);
@@ -1706,7 +1709,6 @@ Table.prototype.addRows = function (data) {
 //new TableRow(rw, i === 0, this.hasFooter === true ? (i === options.data.length - 1) : false)
 
         for (var i = 0; i < data.length; i++) {
-
             var rw = data[i];
             var row = new TableRow(rw, this.rows.length === 0, false);
             row.className = this.id + "_row";
@@ -1714,13 +1716,10 @@ Table.prototype.addRows = function (data) {
                 row.tableCells[j].className = this.getTableCellClass();
                 row.tableCells[j].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
             }
-
-          
             this.rows.push(row);
         }
 
         for (var i = 0; i < this.rows.length; i++) {
-
             var row = this.rows[i];
             row.setHeader(i === 0);
             row.setFooter(this.hasFooter === true ? i === this.rows.length - 1 : false);
@@ -1894,7 +1893,7 @@ Table.prototype.getStyle = function () {
 };
 /**
  * A Table function
- * @param {Boolean} scrollable If true, the Table will try to scroll above a certain height(default is 120px).
+ * @param {Boolean} scrollable If true, the Table will try to scroll above a certain height(default is 150px).
  * This height is determined by the scrollHeight property of this Table
  * @returns {undefined}
  */
@@ -2180,6 +2179,15 @@ function applyStyle(cssSelector, styleElem) {
 }
 
 
+function addClass(element, className) {
+
+    var arr = element.className.split(" ");
+    if (arr.indexOf(className) === -1) {
+        element.className += " " + className;
+    }
+}
+
+
 /**
  * This method does same as replaceChild, but it gets the 
  * parentElement automatically
@@ -2262,15 +2270,15 @@ function getOuterHtml(node) {
     if (node) {
         var outerHtmlHackElem = null;
         const nodeName = node.nodeName.toLowerCase();
-        if(nodeName === 'li'){
+        if (nodeName === 'li') {
             outerHtmlHackElem = document.createElement('ul');
-        }else if(nodeName === 'tr'){
+        } else if (nodeName === 'tr') {
             outerHtmlHackElem = document.createElement('table');
-        }else if(nodeName === 'td'){
+        } else if (nodeName === 'td') {
             outerHtmlHackElem = document.createElement('tr');
-        }else if(nodeName === 'option'){
+        } else if (nodeName === 'option') {
             outerHtmlHackElem = document.createElement('select');
-        }else{//A div should be able to wrap most of the remaining element types
+        } else {//A div should be able to wrap most of the remaining element types
             outerHtmlHackElem = document.createElement('div');
         }
         outerHtmlHackElem.appendChild(node);

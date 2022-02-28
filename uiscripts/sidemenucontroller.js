@@ -58,8 +58,13 @@ let controller = this;
             key: pwdField.value
         };
         
-       alert('POST json: '+JSON.stringify(json)); 
-       statesDropDown.options[statesDropDown.selectedIndex].innerText = 'CHANGE-IT-NOW';
+
+       statesDropDown.options[statesDropDown.selectedIndex].innerText = 'REMOVED';
+       
+       let list = controller.findHtmlViewById('side_ul_list');
+       let li = document.createElement('li');
+       li.textContent = state;
+       list.appendChild(li);
        
        
     };

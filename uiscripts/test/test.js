@@ -49,9 +49,10 @@ TestController.prototype.onViewsAttached = function (wid) {
     let sideMenuX = new SideMenuX({
         id: 'menu_x_id',
         layout: 'sidemenu.xml',
-        width: '250px',
-        background: 'red'
+        width: '550px',
+        background: 'pink'
     });
+    
     let sideMenu = new SideMenu({id: 'menu_mi', width: '20%', menuType: 'overlay', hPadding: '24px', vPadding: '10px', fontSize: '17px', fontName: 'Arial', iconSpacing: '32px',
         sections: '[{"title": "Media Queries","items": [{"text": "Phone screens 320 x 280 ","src":  "logo_small.png"},{"text": "TV Screens 4320 x 2160","src":  "splash.png"}]},{"title": "CSS Support","items": [{"text": "CSS 2.0 stuff","src":  "logo_small.png"},{"text": "CSS 3.1 stuff", "src":  "splash.png"}]}]'});
     checkBtn.onclick = function () {
