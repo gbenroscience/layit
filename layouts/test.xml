@@ -427,6 +427,7 @@
         width="100px"
         height="65px"
         src="phone.png"
+        padding="4px"
         start_start="video_1"
         end_end="video_1"
         top_bottom="video_1"

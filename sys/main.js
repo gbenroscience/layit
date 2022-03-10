@@ -1217,10 +1217,12 @@ ImageButton.prototype.createElement = function (node) {
     this.htmlElement.type = 'button';
     
     
+    
     this.style.addStyleElementCss('border: 0;');
     this.style.addStyleElementCss('background-repeat: no-repeat;');
     this.style.addStyleElementCss('background-position: center;');
     this.style.addStyleElementCss('background-size: contain;');
+    this.style.addStyleElementCss('background-origin: content-box;');
     this.style.addStyleElementCss('background-image: url(\''+PATH_TO_IMAGES + node.getAttribute(attrKeys.src)+'\');');
 
 
