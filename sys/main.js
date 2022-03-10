@@ -1,4 +1,3 @@
-
 let TEMPLATE_INDEX = 0;
 
 
@@ -562,7 +561,7 @@ function parseNumberAndUnits(val) {
             number = val.substring(0, i + 1);
             break;
         }
-    }
+    } 
     return {number: number, units: units};
 }
 
@@ -1040,6 +1039,11 @@ CheckBox.prototype.constructor = CheckBox;
 Button.prototype = Object.create(View.prototype);
 Button.prototype.constructor = Button;
 
+ImageButton.prototype = Object.create(View.prototype);
+ImageButton.prototype.constructor = ImageButton;
+
+
+
 
 NativeTable.prototype = Object.create(View.prototype);
 NativeTable.prototype.constructor = NativeTable;
@@ -1196,6 +1200,55 @@ Button.prototype.calculateWrapContentSizes = function (node) {
     //bold 12pt arial;
     this.getWrapSize(this.htmlElement.value);
 };
+
+
+/**
+ * @param {Workspace} wkspc 
+ * @param {type} node key-value object
+ * @returns {undefined}
+ */
+function ImageButton(wkspc, node) {
+    View.call(this, wkspc, node);
+}
+
+ImageButton.prototype.createElement = function (node) {
+    
+    this.htmlElement = document.createElement('input');
+    this.htmlElement.type = 'button';
+    
+    
+    this.style.addStyleElementCss('border: 0;');
+    this.style.addStyleElementCss('background-repeat: no-repeat;');
+    this.style.addStyleElementCss('background-position: center;');
+    this.style.addStyleElementCss('background-size: contain;');
+    this.style.addStyleElementCss('background-image: url(\''+PATH_TO_IMAGES + node.getAttribute(attrKeys.src)+'\');');
+
+
+    let id = node.getAttribute(attrKeys.id);
+    this.htmlElement.id = id;
+
+    let value = node.getAttribute(attrKeys.value);
+    let text = node.getAttribute(attrKeys.text);
+    if (attributeNotEmpty(value)) {
+        this.htmlElement.value = value;// button label
+    }
+    if (attributeNotEmpty(text)) {
+        this.htmlElement.value = text;// button label
+    }
+
+    let name = node.getAttribute(attrKeys.name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.name = name;
+    }
+
+    this.calculateWrapContentSizes(node);
+};
+
+ImageButton.prototype.calculateWrapContentSizes = function (node) {
+    //bold 12pt arial;
+    this.getWrapSize(this.htmlElement.value);
+};
+
 
 /**
  * @param {Workspace} wkspc 
@@ -2673,7 +2726,7 @@ function ImageView(wkspc, node) {
 
 ImageView.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('img');
-    this.htmlElement.src = PATH_TO_COMPILER_SCRIPTS + "images/" + node.getAttribute(attrKeys.src);
+    this.htmlElement.src = PATH_TO_IMAGES + node.getAttribute(attrKeys.src);
     this.htmlElement.alt = node.getAttribute(attrKeys.alt);
     this.assignId();
 };

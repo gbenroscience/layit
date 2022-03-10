@@ -1,4 +1,3 @@
-
 SearchableTable.prototype.constructor = SearchableTable;
 SearchableTable.prototype = Object.create(GrowableTable.prototype);
 

@@ -421,4 +421,23 @@
         preload='true'                                                                                                                                                                 
                     
     />
+    
+    <ImageButton
+        id="img_btn"
+        width="100px"
+        height="65px"
+        src="phone.png"
+        start_start="video_1"
+        end_end="video_1"
+        top_bottom="video_1"
+        />
+        <ImageView
+        id="img_view"
+        width="100px"
+        height="65px"
+        src="phone.png"
+        start_end="notes_area"
+        top_top="notes_area"
+        />
+ 
 </ConstraintLayout>

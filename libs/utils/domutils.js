@@ -20,3 +20,7 @@ function addClass(element, className) {
 function removeClass(element, className) {
     element.classList.remove(className);
 }
+
+function isDomEntity(entity){
+return typeof entity === 'object' && entity.nodeType !== undefined;
+}

@@ -10,29 +10,29 @@
  * @param {string} value Its value
  * @returns {StyleElement}
  */
-function StyleElement(attr,value){
-    if(typeof attr === 'string' && typeof value === 'string'){
-    this.attr = attr.trim();
-    this.value = value.trim();
-}else{
-    throw new Error("attr or value must be string...`attr` = "+attr+", `value` = "+value);
-}
+function StyleElement(attr, value) {
+    if (typeof attr === 'string' && typeof value === 'string') {
+        this.attr = attr.trim();
+        this.value = value.trim();
+    } else {
+        throw new Error("attr or value must be string...`attr` = " + attr + ", `value` = " + value);
+    }
 }
 
-StyleElement.prototype.setAttr = function(attr){
-     this.attr = attr;
-     };
-StyleElement.prototype.getAttr = function(){
+StyleElement.prototype.setAttr = function (attr) {
+    this.attr = attr;
+};
+StyleElement.prototype.getAttr = function () {
     return this.attr;
 };
-StyleElement.prototype.setValue = function(value){
-     this.value = value;
-     };
-StyleElement.prototype.getValue = function(){
+StyleElement.prototype.setValue = function (value) {
+    this.value = value;
+};
+StyleElement.prototype.getValue = function () {
     return this.value;
 };
-StyleElement.prototype.getCss = function(){
-    return this.attr+":"+this.value+";";
+StyleElement.prototype.getCss = function () {
+    return this.attr + ":" + this.value + ";";
 };
 
 
@@ -42,29 +42,29 @@ StyleElement.prototype.getCss = function(){
  * @param {StyleElement[]} values An array of StyleElement values
  * @returns {Style}
  */
-function Style(name,values){
+function Style(name, values) {
     this.name = name.trim();
-    this.styleElements = values!==null?values:[];
+    this.styleElements = values !== null ? values : [];
 }
 
-Style.prototype.setName = function(name){
-     this.name = name;
-     };
-Style.prototype.getName = function(){
+Style.prototype.setName = function (name) {
+    this.name = name;
+};
+Style.prototype.getName = function () {
     return this.name;
 };
- 
-Style.prototype.setStyleElements = function(styleElements){
-     this.styleElements = styleElements;
-     };
-Style.prototype.getStyleElements = function(){
+
+Style.prototype.setStyleElements = function (styleElements) {
+    this.styleElements = styleElements;
+};
+Style.prototype.getStyleElements = function () {
     return this.styleElements;
 };
 /**
  * Checks if the Style object contains any css styles.
  * @return {boolean}
  */
-Style.prototype.isEmpty = function (){
+Style.prototype.isEmpty = function () {
     return this.styleElements.length === 0;
 };
 
@@ -75,11 +75,13 @@ Style.prototype.isEmpty = function (){
  * @returns {String} The pure css that can be injected directly
  * into a stylesheet
  */
-Style.prototype.styleSheetEntry = function(entryName){
+Style.prototype.styleSheetEntry = function (entryName) {
     let styleBuffer = new StringBuffer();
-    if(this.styleElements.length === 0){return '';}
+    if (this.styleElements.length === 0) {
+        return '';
+    }
     styleBuffer.append(entryName).append(" { \n");
-    for(let i=0;i<this.styleElements.length;i++){
+    for (let i = 0; i < this.styleElements.length; i++) {
         let styleObj = this.styleElements[i];
         styleBuffer.append(styleObj.getCss()).append("\n");
     }
@@ -88,11 +90,11 @@ Style.prototype.styleSheetEntry = function(entryName){
 };
 
 
-Style.prototype.injectStyleSheet = function(){
-    if(typeof this.name === 'undefined' || this.name === null || this.name === ''){
+Style.prototype.injectStyleSheet = function () {
+    if (typeof this.name === 'undefined' || this.name === null || this.name === '') {
         throw 'Please define the name of this style!... e.g #name or .name';
     }
-      let style = document.createElement('style');
+    let style = document.createElement('style');
     if (this.styleElements.length > 0) {
         style.type = 'text/css';
         style.innerHTML = this.styleSheetEntry(this.name);
@@ -104,16 +106,16 @@ Style.prototype.injectStyleSheet = function(){
  * @param htmlStyleElement An html style element <<<htmlStyleElement = document.createElement('style');>>>
  * @param stylesArray An array of Style objects
  */
-function injectStyleSheets(htmlStyleElement , stylesArray){
-    if(Object.prototype.toString.call(stylesArray) === '[object Array]'){
+function injectStyleSheets(htmlStyleElement, stylesArray) {
+    if (Object.prototype.toString.call(stylesArray) === '[object Array]') {
         let cssSheet = new StringBuffer('');
         cssSheet.append(htmlStyleElement.innerHTML);
-        for(let i=0; i<stylesArray.length; i++){
+        for (let i = 0; i < stylesArray.length; i++) {
             let style = stylesArray[i];
-            if(style.constructor.name !== 'Style'){
+            if (style.constructor.name !== 'Style') {
                 throw new Error('Please put only styles in the supplied array');
             }
-            if(typeof style.name === 'undefined' || style.name === null || style.name === ''){
+            if (typeof style.name === 'undefined' || style.name === null || style.name === '') {
                 throw 'Please define the name of this style!... e.g #name or .name';
             }
             cssSheet.append(style.styleSheetEntry(style.name));
@@ -121,10 +123,11 @@ function injectStyleSheets(htmlStyleElement , stylesArray){
         }//end for loop
         htmlStyleElement.innerHTML = cssSheet.toString();
         document.getElementsByTagName('head')[0].appendChild(htmlStyleElement);
-    }else{
+    } else {
         throw new Error("Please supply an array of styles");
     }
-};
+}
+;
 
 /**
  * 
@@ -137,41 +140,45 @@ function injectStyleSheets(htmlStyleElement , stylesArray){
  * }
  * @returns {undefined}
  */
-Style.prototype.addFromOptions = function(options){
-     for(let key in options){
-         this.addStyleElement(key , options[key]);
-     }
+Style.prototype.addFromOptions = function (options) {
+    for (let key in options) {
+        this.addStyleElement(key, options[key]);
+    }
 };
 /**
  * 
  * @returns {String} A css that can be injected as inline css on an html element.
  */
-Style.prototype.getCss = function(){
+Style.prototype.getCss = function () {
     let styleBuffer = new StringBuffer();
-  if(this.styleElements.length === 0){return '';}
-      styleBuffer.append(" style = \'");
-  for(let i=0;i<this.styleElements.length;i++){
-      let styleObj = this.styleElements[i];
-      styleBuffer.append(styleObj.getCss());
-  }
-      styleBuffer.append("\' ");
-      return styleBuffer.toString();
+    if (this.styleElements.length === 0) {
+        return '';
+    }
+    styleBuffer.append(" style = \'");
+    for (let i = 0; i < this.styleElements.length; i++) {
+        let styleObj = this.styleElements[i];
+        styleBuffer.append(styleObj.getCss());
+    }
+    styleBuffer.append("\' ");
+    return styleBuffer.toString();
 };
 /**
  * 
  * @returns {String} The pure css that can be injected directly 
  * into a stylesheet, but without the id or class or the curly braces
  */
-Style.prototype.rawCss = function(){
+Style.prototype.rawCss = function () {
     let styleBuffer = new StringBuffer();
-  if(this.styleElements.length === 0){return '';}
-      styleBuffer.append(" ");
-  for(let i=0;i<this.styleElements.length;i++){
-      let styleObj = this.styleElements[i];
-      styleBuffer.append(styleObj.getCss());
-  }
-      styleBuffer.append(" ");
-      return styleBuffer.toString();
+    if (this.styleElements.length === 0) {
+        return '';
+    }
+    styleBuffer.append(" ");
+    for (let i = 0; i < this.styleElements.length; i++) {
+        let styleObj = this.styleElements[i];
+        styleBuffer.append(styleObj.getCss());
+    }
+    styleBuffer.append(" ");
+    return styleBuffer.toString();
 };
 
 
@@ -183,16 +190,16 @@ Style.prototype.rawCss = function(){
  * @returns {undefined}
  */
 Style.prototype.removeStyleElementObj = function (style) {
-    if( StyleElement.prototype.isPrototypeOf(style) ){
+    if (StyleElement.prototype.isPrototypeOf(style)) {
         let attr = style.getAttr();
-    for(let index=0;index<this.styleElements.length;index++){
-        let styl = this.styleElements[index];
-        if(styl.getAttr() === attr){
-          this.styleElements.splice(index,1); 
-          return;
+        for (let index = 0; index < this.styleElements.length; index++) {
+            let styl = this.styleElements[index];
+            if (styl.getAttr() === attr) {
+                this.styleElements.splice(index, 1);
+                return;
+            }
         }
-    }
-    
+
     }
 };
 /**
@@ -201,11 +208,11 @@ Style.prototype.removeStyleElementObj = function (style) {
  * @returns {undefined}
  */
 Style.prototype.removeStyleElementByAttr = function (styleAttr) {
-     for(let index=0;index<this.styleElements.length;index++){
-         let styl = this.styleElements[index];
-        if(styl.getAttr() === styleAttr){
-          this.styleElements.splice(index,1); 
-          return;
+    for (let index = 0; index < this.styleElements.length; index++) {
+        let styl = this.styleElements[index];
+        if (styl.getAttr() === styleAttr) {
+            this.styleElements.splice(index, 1);
+            return;
         }
     }
 };
@@ -218,18 +225,18 @@ Style.prototype.removeStyleElementByAttr = function (styleAttr) {
  * @param {string} val The value of the style
  * @returns {void}
  */
-Style.prototype.addStyleElement = function (attr,val) { 
-     
-    for(let index=0;index<this.styleElements.length;index++){
+Style.prototype.addStyleElement = function (attr, val) {
+
+    for (let index = 0; index < this.styleElements.length; index++) {
         let styl = this.styleElements[index];
-        if(styl.getAttr() === attr){//attribute exists already..update and exit
-          this.styleElements[index] = new StyleElement(attr,val); 
-          return;
+        if (styl.getAttr() === attr) {//attribute exists already..update and exit
+            this.styleElements[index] = new StyleElement(attr, val);
+            return;
         }
     }
-    this.styleElements[this.styleElements.length] = new StyleElement(attr,val);
-    
-    
+    this.styleElements[this.styleElements.length] = new StyleElement(attr, val);
+
+
 };
 
 /**
@@ -239,13 +246,13 @@ Style.prototype.addStyleElement = function (attr,val) {
  * @returns {undefined}
  * 
  */
-Style.prototype.addStyleElementsArray = function ( styleElemsArray ) { 
-     
-    for(let index=0;index < styleElemsArray.length;index++){
+Style.prototype.addStyleElementsArray = function (styleElemsArray) {
+
+    for (let index = 0; index < styleElemsArray.length; index++) {
         let styl = styleElemsArray[index];
-       this.addStyleElementObj(styl);
+        this.addStyleElementObj(styl);
     }
-    
+
 };
 /**
  * 
@@ -253,21 +260,21 @@ Style.prototype.addStyleElementsArray = function ( styleElemsArray ) {
  * @returns {undefined}
  */
 Style.prototype.addStyleElementObj = function (style) {
-    
-  if( StyleElement.prototype.isPrototypeOf(style) ){   
-      var attr = style.getAttr();
-    for(var index=0;index<this.styleElements.length;index++){
-        var styl = this.styleElements[index];
-        if(styl.getAttr() === attr){//attribute exists already..update and exit
-          this.styleElements[index] = style; 
-          return;
-        }
-    }
-    this.styleElements[this.styleElements.length] = style;
-    
-  }
 
-    
+    if (StyleElement.prototype.isPrototypeOf(style)) {
+        var attr = style.getAttr();
+        for (var index = 0; index < this.styleElements.length; index++) {
+            var styl = this.styleElements[index];
+            if (styl.getAttr() === attr) {//attribute exists already..update and exit
+                this.styleElements[index] = style;
+                return;
+            }
+        }
+        this.styleElements[this.styleElements.length] = style;
+
+    }
+
+
 };
 /**
  * The library handles all the details for you. The string MUST describe only 1 style element..e.g. width:10px;
@@ -275,32 +282,42 @@ Style.prototype.addStyleElementObj = function (style) {
  * @returns {void}
  */
 Style.prototype.addStyleElementCss = function (style) {
-    
-    if(style){
+
+    if (style) {
         let indexOfColon = style.indexOf(":");
         let indexOfSemiColon = style.indexOf(";");
-        
-    if( indexOfSemiColon !== -1 && indexOfSemiColon === style.length - 1 && indexOfColon !== -1  ){
 
-        let attr = style.substring(0,indexOfColon);
-        let val = style.substring(indexOfColon+1,indexOfSemiColon);
-    
-    if(attr.indexOf(":") === -1 && attr.indexOf(";") === -1 && val.indexOf(":") === -1 && val.indexOf(";") === -1  ){
+        if (indexOfSemiColon !== -1 && indexOfSemiColon === style.length - 1 && indexOfColon !== -1) {
 
-                let styleObj = new StyleElement(attr,val);
+            let attr = style.substring(0, indexOfColon);
+            let val = style.substring(indexOfColon + 1, indexOfSemiColon);
 
-   for(let index=0;index<this.styleElements.length;index++){
-        let styl = this.styleElements[index];
-        if(styl.getAttr() === attr){//attribute exists already..update and exit
-          this.styleElements[index] = styleObj; 
-          return;
-        }
-    }
-    this.styleElements[this.styleElements.length] = styleObj;
-    
+            if (attr.indexOf(":") === -1 && attr.indexOf(";") === -1 && 
+                    ( (val.indexOf('url') === -1 && val.indexOf(":") === -1 && val.indexOf(";") === -1) ||
+                       val.indexOf('url') !== '-1' && val.indexOf(";") === -1) )
+                      {
+
+                let styleObj = new StyleElement(attr, val);
+
+                for (let index = 0; index < this.styleElements.length; index++) {
+                    let styl = this.styleElements[index];
+                    if (styl.getAttr() === attr) {//attribute exists already..update and exit
+                        this.styleElements[index] = styleObj;
+                        return;
+                    }
+                }
+           
+                this.styleElements[this.styleElements.length] = styleObj;
+
+            }else{
+                   throw new Error('Weird css line expression!');
             }
-    }
-    
+        } else {
+            throw new Error('Invalid css line expression!');
+        }
+
+    }else{
+                  throw new Error('No css line supplied!');
     }
 };
 /**
@@ -308,15 +325,15 @@ Style.prototype.addStyleElementCss = function (style) {
  * @param {string} attr The attribute name
  * @returns {string}  the value of the attribute in this style object.
  */
-Style.prototype.getValue = function (attr){
-    
-    for(var i=0;i<this.styleElements.length; i++){
+Style.prototype.getValue = function (attr) {
+
+    for (var i = 0; i < this.styleElements.length; i++) {
         var elem = this.styleElements[i];
-        if(elem.attr === attr){
+        if (elem.attr === attr) {
             return elem.value;
         }
     }
-    
+
     return null;
-    
+
 };

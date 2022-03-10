@@ -714,6 +714,9 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
         case xmlKeys.button:
             view = new Button(wkspc, node);
             break;
+        case xmlKeys.imageButton:
+            view = new ImageButton(wkspc, node);
+            break;            
         case xmlKeys.imageView:
             view = new ImageView(wkspc, node);
             break;

@@ -32,6 +32,7 @@ const xmlKeys = {
     root: "ConstraintLayout",
     view: "View",
     button: "Button",
+    imageButton: "ImageButton",
     field: "TextField",
     area: "TextArea",
     video: 'VideoView',
