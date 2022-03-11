@@ -434,8 +434,8 @@
         />
         <ImageView
         id="img_view"
-        width="100px"
-        height="65px"
+        width="height/1.25"
+        height="100px"
         src="phone.png"
         start_end="notes_area"
         top_top="notes_area"

@@ -216,6 +216,65 @@ function View(wkspc, node) {
 
         }
 
+        /**
+         * In your xml, you may have:
+         * width="height"  
+         * height="100px" 
+         * This code section will make
+         * width="100px" here
+         * 
+         * Or if you have:
+         * 
+         * width="90px"
+         * height="width/1.25"
+         * 
+         * This code section will make:
+         * height="72" (in px) Note: only division operation is supported
+         * 
+         */
+        changeDimensionalReferences:{
+            let w = parseInt(this.width);
+            let h = parseInt(this.height);
+            let i = -1;
+
+
+
+            if (typeof this.width === 'string') {
+                if (this.width === 'height') {
+                    this.width = this.height;
+                } else if (this.width.indexOf("height") !== -1 && (i = this.width.indexOf("/")) !== -1) {
+                    let lhs = this.width.substring(0, i);
+                    lhs = lhs.trim();
+                    let rhs = this.width.substring(i + 1);
+                    rhs = rhs.trim();
+                    if (lhs === 'height' && isNumber(rhs)) {
+                        if (isNumber(this.height)) {
+                            this.width = Math.round(parseFloat(this.height) / parseFloat(rhs));
+                        } else {
+                            this.width = this.height + "/" + rhs;
+                        }
+                    }
+                }
+            }
+            if (typeof this.height === 'string') {
+                if (this.height === 'width') {
+                    this.height = this.width;
+                } else if (this.height.indexOf("width") !== -1 && (i = this.height.indexOf("/")) !== -1) {
+                    let lhs = this.height.substring(0, i);
+                    lhs = lhs.trim();
+                    let rhs = this.height.substring(i + 1);
+                    rhs = rhs.trim();
+                    if (lhs === 'width' && isNumber(rhs)) {
+                        if (isNumber(this.width)) {
+                            this.height = Math.round(parseFloat(this.width) / parseFloat(rhs));
+                        } else {
+                            this.height = this.width + "/" + rhs;
+                        }
+                    }
+                }
+            }
+        }
+
 
 
         this.dimRatio = -1;//Not specified... dimRatio is width/height
@@ -561,7 +620,7 @@ function parseNumberAndUnits(val) {
             number = val.substring(0, i + 1);
             break;
         }
-    } 
+    }
     return {number: number, units: units};
 }
 
@@ -636,6 +695,8 @@ View.prototype.makeVFL = function (wkspc) {
 
     let pw = parseInt(this.width);
     let ph = parseInt(this.height);
+
+
 
 
 
@@ -1212,18 +1273,18 @@ function ImageButton(wkspc, node) {
 }
 
 ImageButton.prototype.createElement = function (node) {
-    
+
     this.htmlElement = document.createElement('input');
     this.htmlElement.type = 'button';
-    
-    
-    
+
+
+
     this.style.addStyleElementCss('border: 0;');
     this.style.addStyleElementCss('background-repeat: no-repeat;');
     this.style.addStyleElementCss('background-position: center;');
     this.style.addStyleElementCss('background-size: contain;');
     this.style.addStyleElementCss('background-origin: content-box;');
-    this.style.addStyleElementCss('background-image: url(\''+PATH_TO_IMAGES + node.getAttribute(attrKeys.src)+'\');');
+    this.style.addStyleElementCss('background-image: url(\'' + PATH_TO_IMAGES + node.getAttribute(attrKeys.src) + '\');');
 
 
     let id = node.getAttribute(attrKeys.id);
@@ -2133,13 +2194,13 @@ SearchableTableView.prototype.createElement = function (node) {
         scrollable: scrollable,
         theme: theme,
         buttonText: buttonText,
-        data: [data.shift()],//take the first row for rendering on the table.. the headers
+        data: [data.shift()], //take the first row for rendering on the table.. the headers
         checkablecolumns: checkableColumns,
         actioncolumns: actionColumns,
         textcolumns: textColumns,
         selectcolumns: selectColumns
     };
-    
+
     this.options.bodyData = data;//save the data after removing the headers
 
     if (cssClass && cssClass !== "") {
