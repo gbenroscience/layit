@@ -122,9 +122,6 @@ OR
 
 These will help with maintaining a certain aspect ratio for the views.
 
-## CAVEAT
-Be aware though that this does not work with percentage values.
-
 `width='match_parent'` and `height='match_parent'` are supported.
 `width='wrap_content'` and `height='wrap_content'` are only partially supported. The implementation is not yet complete as regards these, for various reasons.
 
