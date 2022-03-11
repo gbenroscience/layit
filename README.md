@@ -111,18 +111,16 @@ The constraint properties with long names have been renamed to shorter forms to 
 
 These properties are used to specify the size of the view. You may specify the values without a dimension, e.g. `width='200'`, or with a dimension, e.g. `width='200px'` or `width='45%'` , or relative to another view in the same layout file, e.g `width='another_views_id/2'` or `width='another_views_id/0.85'` or `width='another_views_id'`. Multiplication operation is not supported here, only division.
 
-On a given view, you may also do: 
-`
-width="height"
-height="90px"
-`
+On a given view, you may also do: <br>
+`width="height"`<br>
+`height="90px"`<br>
 
 OR
 
-`
-width="height/2.3"
-height="120px"
-`
+`width="height/2.3"`<br>
+`height="120px"`<br>
+
+These will help with maintaining a certain aspect ratio for the views
 
 `width='match_parent'` and `height='match_parent'` are supported.
 `width='wrap_content'` and `height='wrap_content'` are only partially supported. The implementation is not yet complete as regards these, for various reasons.
