@@ -425,7 +425,7 @@
     <ImageButton
         id="img_btn"
         width="100px"
-        height="65px"
+        height="width"
         src="phone.png"
         padding="4px"
         start_start="video_1"
@@ -434,7 +434,7 @@
         />
         <ImageView
         id="img_view"
-        width="height/1.25"
+        width="height"
         height="100px"
         src="phone.png"
         start_end="notes_area"

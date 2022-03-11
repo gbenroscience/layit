@@ -238,38 +238,32 @@ function View(wkspc, node) {
             let i = -1;
 
 
-
+//change width and height values to id.width and id.height for same view references in xml
             if (typeof this.width === 'string') {
                 if (this.width === 'height') {
-                    this.width = this.height;
+                    this.width = this.id+".height";
                 } else if (this.width.indexOf("height") !== -1 && (i = this.width.indexOf("/")) !== -1) {
                     let lhs = this.width.substring(0, i);
                     lhs = lhs.trim();
                     let rhs = this.width.substring(i + 1);
                     rhs = rhs.trim();
                     if (lhs === 'height' && isNumber(rhs)) {
-                        if (isNumber(this.height)) {
-                            this.width = Math.round(parseFloat(this.height) / parseFloat(rhs));
-                        } else {
-                            this.width = this.height + "/" + rhs;
-                        }
+                        lhs = this.id+".height";
+                        this.width = lhs + "/" + rhs;
                     }
                 }
             }
             if (typeof this.height === 'string') {
                 if (this.height === 'width') {
-                    this.height = this.width;
+                    this.height = this.id+".width";
                 } else if (this.height.indexOf("width") !== -1 && (i = this.height.indexOf("/")) !== -1) {
                     let lhs = this.height.substring(0, i);
                     lhs = lhs.trim();
                     let rhs = this.height.substring(i + 1);
                     rhs = rhs.trim();
                     if (lhs === 'width' && isNumber(rhs)) {
-                        if (isNumber(this.width)) {
-                            this.height = Math.round(parseFloat(this.width) / parseFloat(rhs));
-                        } else {
-                            this.height = this.width + "/" + rhs;
-                        }
+                        lhs = this.id+".width";
+                        this.height = lhs + "/" + rhs;
                     }
                 }
             }
