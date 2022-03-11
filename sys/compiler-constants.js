@@ -1,6 +1,8 @@
 
 
 
+/* global SCRIPTS_BASE */
+
 const PATH_TO_LAYOUTS_FOLDER = SCRIPTS_BASE + 'layouts/';
 const PATH_TO_IMAGES = SCRIPTS_BASE + 'images/';
 const PATH_TO_COMPILER_SCRIPTS = SCRIPTS_BASE + "sys/";
