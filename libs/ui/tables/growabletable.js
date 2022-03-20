@@ -6,6 +6,8 @@
 
 
 /* global InputTable */
+GrowableTable.prototype.constructor = GrowableTable;
+GrowableTable.prototype = Object.create(InputTable.prototype);
 
 /**
  * 
@@ -85,17 +87,12 @@ function GrowableTable(options) {
     this.registry[this.getBtnClass()] = this.btnStyle;
     this.registry[this.getBtnClass() + ":hover"] = this.btnStyleHover;
     this.registry[this.getBtnClass() + ":active"] = this.btnStyleActive;
-
-
-
 }
 
 
 
 
 
-GrowableTable.prototype.constructor = GrowableTable;
-GrowableTable.prototype = Object.create(InputTable.prototype);
 
 
 
@@ -122,16 +119,15 @@ GrowableTable.prototype.build = function (parent) {
     this.registry[this.getTableCellButtonTypeClass()] = btnStyle;
 
     var table = this;
-    setTimeout(function () {
-        var btn = document.getElementById(table.getBtnClass());
+
+//call to the overriden function from Table
+    InputTable.prototype.build.call(this, parent);
+   // Object.getPrototypeOf(GrowableTable.prototype).build.call(this, parent);
+
+ var btn = document.getElementById(table.getBtnClass());
         if (btn !== null) {
             btn.onclick = table.onAddBtnClicked;
         }
-    }, 50);
-
-//call to the overriden function from Table
-    Object.getPrototypeOf(GrowableTable.prototype).build.call(this, parent);
-
 
 };
 
@@ -197,7 +193,7 @@ GrowableTable.prototype.buildButton = function () {
 
 
 GrowableTable.prototype.setButtonLabel = function (text) {
-    if (!text || typeof text === 'undefined') {
+    if (!text || text.length === '') {
         text = 'Add +';
     }
     var btn = document.getElementById(this.getBtnClass());

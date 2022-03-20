@@ -402,6 +402,7 @@
         checkableColumns='["RED" , "BLUE"]'
         textColumns='["Value 1","Value 2","Value 3"]'
         selectColumns='[{"Countries": ["Nigeria","Portugal","Chile","Colombia","South Africa"]},{"Capitals": ["Abuja","Lisbon","Santiago","Bogota","Pretoria"]},{"Continents": ["Africa","Europe","South America","South America","Africa"]}]'
+        tableHeaders='["Column 1","Column 2","Column 3"]'
         tableItems='[[1,2,3],[1001,873,202],[34,98,188],[394,598,1086],["COOL","NUMBERS","HERE"]]'
     
     

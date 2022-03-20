@@ -108,6 +108,7 @@ const attrKeys = {
     showBullets: 'showBullets', //for lists, if true, will show the bullets or numbers
 
     items: "items", // an array of items to display in a list or a dropdown
+    tableHeaders: 'tableHeaders', //a 1d array of items to display as a custom table view's headers
     tableItems: 'tableItems', //a 2d array of items to display on a table
     title: 'title', // table title
     showBorders: 'showBorders', // show the custom table's inner borders(does not apply to the native table)

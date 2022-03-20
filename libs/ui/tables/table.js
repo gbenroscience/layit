@@ -705,6 +705,7 @@ function logIfConsole(text) {
  * <code>
  * {
  * id : "table_id", 
+ * parent: zzzz,//id or actual html element of parent that will hold this table
  * showBorders : true,
  * hasCaption: true,
  * hasContainer: true,
@@ -718,6 +719,8 @@ function logIfConsole(text) {
  * cellPadding: "1em",
  * scrollHeight: "150px",
  * icon : "icon.png",
+ * headers: [],
+ * data:[[],[],[],...],
  * hasFooter : true,
  * pagingEnabled :  true,
  * withNumbering: true,
@@ -901,6 +904,8 @@ function Table(options) {
 
 
     this.id = options.id;
+
+    this.headers = [];
     this.rows = [];
     this.pageSize = 10000;
     this.pageNumber = 1;
@@ -960,38 +965,60 @@ function Table(options) {
     this.title = options.title;
 //The general style applied to the tbody.
     this.tableCellStyle = new Style("." + this.id, []);
-    if (!options.data || options.data === null) {
+
+    if (options.headers) {
+        if (this.isOneDimensionalArray(options.headers)) {
+            this.headers = options.headers;
+            loadHeaders:{
+                var row = new TableRow(this.headers, true, false);
+                row.className = this.id + "_row";
+
+                for (var i = 0; i < this.headers.length; i++) {
+                    row.tableCells[i].className = this.getTableCellClass();
+                    row.tableCells[i].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
+                }
+                this.rows.push(row);
+            }
+        } else {
+            throw new Error("Invalid table headers structure found!");
+        }
+    } else {
+        throw new Error("No table headers supplied!");
+    }
+
+
+    this.tableCellStyle.addFromOptions({
+        "padding": this.cellPadding,
+        // "word-wrap": "break-word",
+        "word-break": "break-all",
+        "max-width": "calc( 100% / " + this.headers.length + "  )",
+        "overflow": "hidden",
+        "text-overflow": "ellipsis"
+    });
+    if (options.showBorders === true) {
+        this.tableCellStyle.addStyleElement("border", "1px solid #e7ecf1");
+    }
+
+
+    if (!options.data) {
         logIfConsole("You have not supplied the table data. Specify with `data: array` option.");
-        this.rows = [];
     } else if (this.is2DArray(options.data)) {
 
         initRows:{
-            this.tableCellStyle.addFromOptions({
-                "padding": this.cellPadding,
-                // "word-wrap": "break-word",
-                "word-break": "break-all",
-                "max-width": "calc( 100% / " + options.data[0].length + "  )",
-                "overflow": "hidden",
-                "text-overflow": "ellipsis"
-            });
-            if (options.showBorders === true) {
-                this.tableCellStyle.addStyleElement("border", "1px solid #e7ecf1");
-            }
+            loadData:{
+                for (var i = 0; i < options.data.length; i++) {
 
+                    var rw = options.data[i];
+                    var row = new TableRow(rw, false, this.hasFooter === true ? (i === options.data.length - 1) : false);
+                    row.className = this.id + "_row";
+                    for (var j = 0; j < row.tableCells.length; j++) {
+                        row.tableCells[j].className = this.getTableCellClass();
+                        row.tableCells[j].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
+                    }
 
-            for (var i = 0; i < options.data.length; i++) {
-
-                var rw = options.data[i];
-                var row = new TableRow(rw, i === 0, this.hasFooter === true ? (i === options.data.length - 1) : false);
-                row.className = this.id + "_row";
-                for (var j = 0; j < row.tableCells.length; j++) {
-                    row.tableCells[j].className = this.getTableCellClass();
-                    row.tableCells[j].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
+                    this.rows.push(row);
                 }
-
-                this.rows.push(row);
             }
-
         }
 
     } else {
@@ -1201,7 +1228,6 @@ function Table(options) {
     initContentHeaderDivCss:{
 
         this.contentHeaderStyle.addFromOptions({
-
             "float": "left",
             "margin": "0",
             width: "100%"
@@ -1327,7 +1353,36 @@ function Table(options) {
     this.registry[a13] = this.tableTrNotFirstChildStyle;
 
     this.validObject = true;
+
+
+    this.buildCalled = false;
+
+
+    this.assignParent(options.parent);
+
+    if (this.constructor.name === 'Table') {
+        this.build(options.parent);
+    }
 }
+
+Table.prototype.assignParent = function (parent) {
+    const entity = parent;
+    if (entity) {
+        if (typeof entity === 'string') {
+            entity = document.getElementById(entity);
+        }
+        const isDomEntity = typeof entity === 'object' && entity.nodeType !== undefined;
+        if (!entity.id || entity.id === '') {
+            entity.id = "parent_" + this.id;
+        }
+        if (isDomEntity === false) {
+            throw new Error("Invalid parent specified for table");
+        }
+    } else {
+        throw new Error("No parent specified for table");
+    }
+    this.parentId = entity.id;
+};
 
 /**
  * 
@@ -1487,19 +1542,17 @@ Table.prototype.getContentFooterTextClass = function () {
 /**
  * 
  * @param {type} parent The html element that will be the parent of this table.
- * For replacement purposes, it is advised that the parent should have only this table to be
- *  its child so that extra effort will not be made to specify where a dupliate-id replacing table will be in this
- *  parent. 
+ * For replacement purposes, it is advised that the parent should have this table to be its only child
  * @returns {StringBuffer.prototype@pro;dataArray@call;join}
  */
 Table.prototype.build = function (parent) {
 
+    this.assignParent(parent);
 
     var checkMainDiv = document.getElementById(this.getTableContainerId());
     if (checkMainDiv) {
         parent.removeChild(checkMainDiv);
     }
-
 
     checkMainDiv = document.createElement("div");
     checkMainDiv.setAttribute("id", this.getTableContainerId());
@@ -1525,9 +1578,9 @@ Table.prototype.build = function (parent) {
     document.getElementsByTagName('head')[0].appendChild(style);
     var pager = this.pager;
     pager.draw();
-    
-  
 
+
+    this.buildCalled = true;
 
 
 };
@@ -1591,7 +1644,7 @@ Table.prototype.buildTable = function () {
     mainDiv.appendChild(this.buildContentHeader());
     mainDiv.appendChild(this.buildRawTable());
     mainDiv.appendChild(this.buildContentFooter());
-    
+
     return mainDiv;
 };
 /**
@@ -1684,18 +1737,61 @@ Table.prototype.setFooterText = function (text) {
  * @returns {undefined}
  */
 Table.prototype.loadTable = function (data) {
+    if (this.buildCalled === false) {
+        let par = document.getElementById(this.parentId);
+        if (!par) {
+            throw new Error("No valid parent specified for this table!");
+        }
+        this.build(par);
+    }
+
     this.clear(false, false);
     if (this.is2DArray(data)) {
         this.addRows(data);
     }
 };
 Table.prototype.loadTableAndHeaders = function (data) {
+    if (this.buildCalled === false) {
+        let par = document.getElementById(this.parentId);
+        if (!par) {
+            throw new Error("No valid parent specified for this table!");
+        }
+        this.build(par);
+    }
 
     this.clear(true, false);
     if (this.is2DArray(data)) {
         this.addRows(data);
     }
 };
+
+Table.prototype.reloadHeaders = function () {
+    let row = new TableRow(this.headers, true, false);
+    row.className = this.id + "_row";
+
+    for (var i = 0; i < this.headers.length; i++) {
+        row.tableCells[i].className = this.getTableCellClass();
+        row.tableCells[i].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
+    }
+    this.rows.shift();//remove the old header
+    this.rows.unshift(row);//add the new header
+};
+
+Table.prototype.setHeaders = function (headers) {
+
+    if (headers) {
+        if (this.isOneDimensionalArray(headers)) {
+            this.headers = headers;
+        } else {
+            throw new Error("Invalid table headers structure found!");
+        }
+    } else {
+        throw new Error("No table headers supplied!");
+    }
+
+    this.reloadHeaders();
+};
+
 /**
  * 
  * @param {type} data A 2d array of textual rows to add to the table.
@@ -1703,14 +1799,18 @@ Table.prototype.loadTableAndHeaders = function (data) {
  */
 Table.prototype.addRows = function (data) {
 
-
     if (this.is2DArray(data)) {
 
 //new TableRow(rw, i === 0, this.hasFooter === true ? (i === options.data.length - 1) : false)
 
+        if (this.rows.length === 0) {
+            this.reloadHeaders();
+        }
+
+
         for (var i = 0; i < data.length; i++) {
             var rw = data[i];
-            var row = new TableRow(rw, this.rows.length === 0, false);
+            var row = new TableRow(rw, false, false);
             row.className = this.id + "_row";
             for (var j = 0; j < row.tableCells.length; j++) {
                 row.tableCells[j].className = this.getTableCellClass();
@@ -1744,6 +1844,7 @@ Table.prototype.clear = function (headersIncluded, autoRefresh) {
 
         if (headersIncluded === true) {
             this.rows.length = 0;
+            this.headers.length = 0;
         } else {
             this.rows.length = 1;
         }

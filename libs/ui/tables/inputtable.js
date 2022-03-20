@@ -7,6 +7,8 @@
 
 /* global Table */
 
+InputTable.prototype = Object.create(Table.prototype);
+InputTable.prototype.constructor = InputTable;
 
 const inputTypes = {
     SELECT: 'select',
@@ -48,11 +50,11 @@ function InputTable(options) {
     this.clickedRow = -1;
     this.clickedColumn = -1;
 
-/**
- * Cache all listeners attached to html components on the table here.
- * These listeners are lost during a Search. Restore them from here.
- * Make the column as the key and the listener as the value
- */
+    /**
+     * Cache all listeners attached to html components on the table here.
+     * These listeners are lost during a Search. Restore them from here.
+     * Make the column as the key and the listener as the value
+     */
     this.listenersMap = new Map();
 
     if (typeof options.checkablecolumns !== 'undefined' && this.isOneDimensionalArray(options.checkablecolumns)) {
@@ -99,7 +101,7 @@ function InputTable(options) {
             }
 
             /*
-             * Addition of the colums for the check boxes does not contain
+             * Addition of the columns for the check boxes does not contain
              *  the equal width specification for the cells so recalculate the cell widths now
              *  and apply the borders of the cells if 
              
@@ -123,14 +125,9 @@ function InputTable(options) {
                         row.tableCells[j].addStyle("overflow", "hidden");
                         row.tableCells[j].addStyle("text-overflow", "ellipsis");
                         row.tableCells[j].addStyle("white-space", "nowrap");
-
                     }
-
-
                 }
-
             }
-
         }
     } else {
         this.checkablecolumns = [];
@@ -291,19 +288,19 @@ function InputTable(options) {
     }
 
 //If user entered the selectcolumns as a json string, parse it into the object form
-if(typeof options.selectcolumns === 'string' && options.selectcolumns.trim().length > 0){
-    options.selectcolumns = JSON.parse(options.selectcolumns);
-}
-    if (typeof options.selectcolumns === 'object' && this.isOneDimensionalArray(options.selectcolumns) && options.selectcolumns.length > 0 
+    if (typeof options.selectcolumns === 'string' && options.selectcolumns.trim().length > 0) {
+        options.selectcolumns = JSON.parse(options.selectcolumns);
+    }
+    if (typeof options.selectcolumns === 'object' && this.isOneDimensionalArray(options.selectcolumns) && options.selectcolumns.length > 0
             && typeof options.selectcolumns[0] === 'object') {
         this.selectcolumns = options.selectcolumns;
         /**
          * The selectcolumns should give a structure like:
          
          [
-          {'key1': ['Entry 1','Entry 2','Entry 3','Entry 4']},
-          {'key2': ['Entry 21','Entry 22','Entry 23','Entry 24']},
-          {'key3': ['Entry 31','Entry 32','Entry 33','Entry 34']},...
+         {'key1': ['Entry 1','Entry 2','Entry 3','Entry 4']},
+         {'key2': ['Entry 21','Entry 22','Entry 23','Entry 24']},
+         {'key3': ['Entry 31','Entry 32','Entry 33','Entry 34']},...
          ]
          
          */
@@ -419,12 +416,10 @@ if(typeof options.selectcolumns === 'string' && options.selectcolumns.trim().len
     } else {
         this.selectcolumns = [];
     }
-
+    
 }
 
 
-InputTable.prototype = Object.create(Table.prototype);
-InputTable.prototype.constructor = InputTable;
 
 /**
  * 
@@ -514,7 +509,7 @@ InputTable.prototype.build = function (parent) {
         'display': "block",
         'font-size': '0.9em',
         'min-width': '80%',
-        'max-width':'95%',
+        'max-width': '95%',
         'margin': "auto"
     });
 
@@ -523,7 +518,7 @@ InputTable.prototype.build = function (parent) {
         'display': "block",
         'padding': '2px',
         'min-width': '80%',
-        'max-width':'95%',
+        'max-width': '95%',
         'margin': "auto",
         'border': '0.5px solid gray'
     });
@@ -534,7 +529,7 @@ InputTable.prototype.build = function (parent) {
         'margin': "auto",
         'padding': '2px',
         'min-width': '80%',
-        'max-width':'95%',
+        'max-width': '95%',
         'border': '0.5px solid gray'
     });
 
@@ -545,7 +540,8 @@ InputTable.prototype.build = function (parent) {
     this.registry[this.getTableCellSelectTypeClass()] = selectStyle;
 
 //call to the overriden function from Table
-    Object.getPrototypeOf(InputTable.prototype).build.call(this, parent);
+    Table.prototype.build.call(this, parent);
+    //Object.getPrototypeOf(InputTable.prototype).build.call(this, parent);
 
 
 };
@@ -558,9 +554,13 @@ InputTable.prototype.build = function (parent) {
  */
 InputTable.prototype.addRows = function (data) {
     if (this.is2DArray(data)) {
+
+        if (this.rows.length === 0) {
+            this.reloadHeaders();
+        }
         for (var i = 0; i < data.length; i++) {
             var rw = data[i];
-            var row = new TableRow(rw, this.rows.length === 0, false);
+            var row = new TableRow(rw, false, false);
             row.className = this.id + "_row";
             for (var j = 0; j < row.tableCells.length; j++) {
                 row.tableCells[j].className = this.getTableCellClass();
@@ -574,7 +574,7 @@ InputTable.prototype.addRows = function (data) {
             row.setHeader(i === 0);
             row.setFooter(this.hasFooter === true ? i === this.rows.length - 1 : false);
         }
-        
+
         ///checkableColumns
         for (var i = this.rows.length - data.length; i < this.rows.length; i++) {
             var row = this.rows[i];
@@ -651,8 +651,8 @@ InputTable.prototype.addRows = function (data) {
 
             var len = row.tableCells.length;
             for (var j = 0; j < this.selectcolumns.length; j++) {
-                    let obj = this.selectcolumns[j];
-                    let values = Object.values(obj);
+                let obj = this.selectcolumns[j];
+                let values = Object.values(obj);
                 if (i === 0) {
                     var cell = new TableCell(Object.keys(obj)[0], row.header, row.footer);
                     cell.setId(row.getCellIdAt(len + j));
@@ -662,9 +662,9 @@ InputTable.prototype.addRows = function (data) {
                 } else {
                     var selectHtml = new StringBuffer('<select class="').append(this.getTableCellSelectTypeClass()).append(" ")
                             .append(this.getTableCellSelectColumnClass(len + j)).append('" >');
-                       for (var k = 0; k < values[0].length; k++) {
-                            selectHtml.append("<option value='").append(k + "'>").append(values[0][k]).append("</option>");
-                        }
+                    for (var k = 0; k < values[0].length; k++) {
+                        selectHtml.append("<option value='").append(k + "'>").append(values[0][k]).append("</option>");
+                    }
                     selectHtml.append("</select>");
                     var cell = new TableCell(new Array(selectHtml.toString()), row.header, row.footer);
                     cell.setId(row.getCellIdAt(len + j));
@@ -686,12 +686,12 @@ InputTable.prototype.addRows = function (data) {
  */
 InputTable.prototype.setCheckListener = function (column, listenerFunction) {
 
-    this.listenersMap.set(inputTypes.CHECK+column, listenerFunction);
+    this.listenersMap.set(inputTypes.CHECK + column, listenerFunction);
     var className = this.getTableCellCheckBoxColumnClass(column);
     var matchingElems = document.getElementsByClassName(className);
 
     if (matchingElems.length === 0) {
-        console.log("No check-items found!... for class: "+className+" on column: "+column);
+        console.log("No check-items found!... for class: " + className + " on column: " + column);
         return;
     }
 
@@ -712,8 +712,8 @@ InputTable.prototype.setCheckListener = function (column, listenerFunction) {
 
 /**
  * 
- * @param {int} row The row of the textfield
- * @param {int} column The column of the textfield
+ * @param {number} row The row of the textfield
+ * @param {number} column The column of the textfield
  * @param {string} text The place holder
  * @returns {undefined}
  */
@@ -734,12 +734,12 @@ InputTable.prototype.setTextFieldPlaceholder = function (row, column, text) {
 /**
  * 
  * Only use this when the table has been attached to the DOM.
- * @param {int} column A column of textfields.
+ * @param {number} column A column of textfields.
  * @param {function} listenerFunction The function. 
  * @returns {undefined}
  */
 InputTable.prototype.setTextFieldEnterPressedListener = function (column, listenerFunction) {
-this.listenersMap.set(inputTypes.TEXTFIELD+column, listenerFunction);
+    this.listenersMap.set(inputTypes.TEXTFIELD + column, listenerFunction);
     var className = this.getTableCellTextFieldColumnClass(column);
     var matchingElems = document.getElementsByClassName(className);
 
@@ -771,17 +771,17 @@ this.listenersMap.set(inputTypes.TEXTFIELD+column, listenerFunction);
 /**
  * 
  * Only use this when the table has been attached to the DOM.
- * @param {int} column A column of buttons.
+ * @param {number} column A column of buttons.
  * @param {function} listenerFunction The function. 
  * @returns {undefined}
  */
 InputTable.prototype.setClickListener = function (column, listenerFunction) {
-this.listenersMap.set(inputTypes.BUTTON+column, listenerFunction);
+    this.listenersMap.set(inputTypes.BUTTON + column, listenerFunction);
     var className = this.getTableCellButtonColumnClass(column);
     var matchingElems = document.getElementsByClassName(className);
 
     if (matchingElems.length === 0) {
-        console.log('No buttons found');
+        console.log('No buttons found for class:...'+className);
         return;
     }
 
@@ -804,12 +804,12 @@ this.listenersMap.set(inputTypes.BUTTON+column, listenerFunction);
 /**
  * 
  * Only use this when the table has been attached to the DOM.
- * @param {int} column A column of html select(dropdowns) items.
+ * @param {number} column A column of html select(dropdowns) items.
  * @param {function} listenerFunction The function. 
  * @returns {undefined}
  */
 InputTable.prototype.setSelectListener = function (column, listenerFunction) {
-this.listenersMap.set(inputTypes.SELECT+column, listenerFunction);
+    this.listenersMap.set(inputTypes.SELECT + column, listenerFunction);
     var className = this.getTableCellSelectColumnClass(column);
     var matchingElems = document.getElementsByClassName(className);
 
@@ -839,7 +839,6 @@ InputTable.prototype.computeRowAndColumnFromCellId = function (id) {
 
 
     if (id && typeof id === 'string') {
-
 
         var countUnderScore = 0;
         var i = 0;

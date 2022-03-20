@@ -1437,6 +1437,8 @@ CustomTableView.prototype.createElement = function (node) {
 
     let hasFooter = node.getAttribute(attrKeys.hasFooter);
 
+
+    let headers = node.getAttribute(attrKeys.tableHeaders);
     let entries = node.getAttribute(attrKeys.tableItems);
     let data = [];
     let title = node.getAttribute(attrKeys.title);
@@ -1503,6 +1505,17 @@ CustomTableView.prototype.createElement = function (node) {
         scrollable = true;
     }
 
+    if(attributeNotEmpty(headers)){
+        headers = JSON.parse(headers);
+        if(!headers){
+            throw new Error('Invalid table header array!');
+        }
+        if(!isOneDimArray(headers)){
+            throw new Error('Table header must be a one dimensional array!');
+        }
+    }else{
+        throw new Error('Table headers not specified for CustomTableView: '+this.id);
+    }
     if (attributeNotEmpty(entries)) {
         try {
             data = JSON.parse(entries);
@@ -1568,14 +1581,16 @@ CustomTableView.prototype.createElement = function (node) {
         footerText: footertext,
         scrollable: scrollable,
         theme: theme,
-        data: [data.shift()]
+        parent: this.htmlElement,
+        headers: headers,
+        data: data,
     };
-    this.options.bodyData = data;//save the data after removing the headers
+    this.options.bodyData = data;
     if (cssClass && cssClass !== "") {
         this.options.classname = cssClass;
     }
     this.customTable = new Table(this.options);
-    this.customTable.build(this.htmlElement);
+    //this.customTable.build(this.htmlElement);
 
 
 
@@ -1611,6 +1626,8 @@ InputTableView.prototype.createElement = function (node) {
 
     let hasFooter = node.getAttribute(attrKeys.hasFooter);
 
+
+    let headers = node.getAttribute(attrKeys.tableHeaders);
     let entries = node.getAttribute(attrKeys.tableItems);
     let data = [];
     let title = node.getAttribute(attrKeys.title);
@@ -1681,6 +1698,17 @@ InputTableView.prototype.createElement = function (node) {
         scrollable = true;
     }
 
+    if(attributeNotEmpty(headers)){
+        headers = JSON.parse(headers);
+        if(!headers){
+            throw new Error('Invalid table header array!');
+        }
+        if(!isOneDimArray(headers)){
+            throw new Error('Table header must be a one dimensional array!');
+        }
+    }else{
+        throw new Error('Table headers not specified for CustomTableView: '+this.id);
+    }
     if (attributeNotEmpty(entries)) {
         try {
             data = JSON.parse(entries);
@@ -1772,18 +1800,20 @@ InputTableView.prototype.createElement = function (node) {
         footerText: footertext,
         scrollable: scrollable,
         theme: theme,
-        data: [data.shift()],
+        headers: headers,
+        data: data,
+        parent: this.htmlElement,
         checkablecolumns: checkableColumns,
         actioncolumns: actionColumns,
         textcolumns: textColumns,
         selectcolumns: selectColumns
     };
-    this.options.bodyData = data;//save the data after removing the headers
+    this.options.bodyData = data;
     if (cssClass && cssClass !== "") {
         this.options.classname = cssClass;
     }
     this.customTable = new InputTable(this.options);
-    this.customTable.build(this.htmlElement);
+    //this.customTable.build(this.htmlElement);
 
 };
 
@@ -1810,6 +1840,8 @@ GrowableTableView.prototype.createElement = function (node) {
 
     let hasFooter = node.getAttribute(attrKeys.hasFooter);
 
+
+    let headers = node.getAttribute(attrKeys.tableHeaders);
     let entries = node.getAttribute(attrKeys.tableItems);
     let data = [];
     let title = node.getAttribute(attrKeys.title);
@@ -1880,6 +1912,17 @@ GrowableTableView.prototype.createElement = function (node) {
         scrollable = true;
     }
 
+    if(attributeNotEmpty(headers)){
+        headers = JSON.parse(headers);
+        if(!headers){
+            throw new Error('Invalid table header array!');
+        }
+        if(!isOneDimArray(headers)){
+            throw new Error('Table header must be a one dimensional array!');
+        }
+    }else{
+        throw new Error('Table headers not specified for CustomTableView: '+this.id);
+    }
     if (attributeNotEmpty(entries)) {
         try {
             data = JSON.parse(entries);
@@ -1975,19 +2018,21 @@ GrowableTableView.prototype.createElement = function (node) {
         scrollable: scrollable,
         theme: theme,
         buttonText: buttonText,
-        data: [data.shift()],
+        headers: headers,
+        data: data,
+        parent: this.htmlElement,
         checkablecolumns: checkableColumns,
         actioncolumns: actionColumns,
         textcolumns: textColumns,
         selectcolumns: selectColumns
     };
 
-    this.options.bodyData = data;//save the data after removing the headers
+    this.options.bodyData = data;
     if (cssClass && cssClass !== "") {
         this.options.classname = cssClass;
     }
     this.customTable = new GrowableTable(this.options);
-    this.customTable.build(this.htmlElement);
+   // this.customTable.build(this.htmlElement);
 
 
 };
@@ -2013,6 +2058,8 @@ SearchableTableView.prototype.createElement = function (node) {
     let withNumbering = node.getAttribute(attrKeys.withNumbering);
     let hasContainer = node.getAttribute(attrKeys.hasContainer);
 
+
+    let headers = node.getAttribute(attrKeys.tableHeaders);
     let entries = node.getAttribute(attrKeys.tableItems);
     let hasFooter = node.getAttribute(attrKeys.hasFooter);
 
@@ -2043,6 +2090,8 @@ SearchableTableView.prototype.createElement = function (node) {
     } else {
         hasFooter = false;
     }
+    
+
 
 
     if (attributeNotEmpty(showBorders)) {
@@ -2089,6 +2138,17 @@ SearchableTableView.prototype.createElement = function (node) {
         scrollable = true;
     }
 
+    if(attributeNotEmpty(headers)){
+        headers = JSON.parse(headers);
+        if(!headers){
+            throw new Error('Invalid table header array!');
+        }
+        if(!isOneDimArray(headers)){
+            throw new Error('Table header must be a one dimensional array!');
+        }
+    }else{
+        throw new Error('Table headers not specified for CustomTableView: '+this.id);
+    }
     if (attributeNotEmpty(entries)) {
         try {
             data = JSON.parse(entries);
@@ -2099,6 +2159,8 @@ SearchableTableView.prototype.createElement = function (node) {
     } else {
         data = [];
     }
+    
+
 
 
     if (attributeEmpty(title)) {
@@ -2188,7 +2250,9 @@ SearchableTableView.prototype.createElement = function (node) {
         scrollable: scrollable,
         theme: theme,
         buttonText: buttonText,
-        data: [data.shift()], //take the first row for rendering on the table.. the headers
+        headers: headers,
+        data: data,
+        parent: this.htmlElement,
         checkablecolumns: checkableColumns,
         actioncolumns: actionColumns,
         textcolumns: textColumns,
@@ -2201,7 +2265,7 @@ SearchableTableView.prototype.createElement = function (node) {
         this.options.classname = cssClass;
     }
     this.customTable = new SearchableTable(this.options);
-    this.customTable.build(this.htmlElement);
+   // this.customTable.build(this.htmlElement);
 };
 
 SearchableTableView.prototype.calculateWrapContentSizes = function (node) {

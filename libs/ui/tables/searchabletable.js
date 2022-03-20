@@ -1,3 +1,4 @@
+
 SearchableTable.prototype.constructor = SearchableTable;
 SearchableTable.prototype = Object.create(GrowableTable.prototype);
 
@@ -22,12 +23,15 @@ SearchableTable.prototype = Object.create(GrowableTable.prototype);
  * "search-label-style" : {
  * //normal-css options.
  * },
- * remoteSearch: function(){}
+ * remoteSearch: function(){},
+ * onSearchModeToggled: function(){}// toggle the checkbox between online anad offline search
  * }
  * @returns {SearchableTable}
  */
 function SearchableTable(options) {
+    
     GrowableTable.call(this, options);
+    
     if (this.validObject === false) {
         return;
     }
@@ -44,13 +48,31 @@ function SearchableTable(options) {
         this.searchLabelColor = "#000000";
     }
     if (typeof options.remoteSearch === 'function') {
+       if(options.remoteSearch.length === 1){
         this.remoteSearchFunction = options.remoteSearch;
+       }else{
+           throw new Error('The remote search function must take one parameter,  the search string');
+       }
     } else {
         this.remoteSearchFunction = function () {
-            alert('Please enable remote search function!');
+            console.log('Please enable remote search function!');
         };
     }
-
+    
+    if (typeof options.onSearchModeToggled === 'function') {
+       if(options.onSearchModeToggled.length === 1){
+        this.onSearchModeToggled = options.onSearchModeToggled;
+       }else{
+           throw new Error('The onSearchModeToggled function must take one parameter,  the toggle state... true is online, false is offline');
+       }
+    } else {
+        this.onSearchModeToggled = function () {
+            console.log('Please enable onSearchModeToggled function!');
+        };
+    }
+    
+    
+    
     let self = this;
     this.search = new Search(function (searchText, row) {
         for (var j = 0; j < row.length; j++) {
@@ -131,13 +153,24 @@ function SearchableTable(options) {
         });
     }
 
-
-
-
     this.registry[this.getSearchLabelClass()] = this.searchLabelStyle;
     this.registry[this.getSearchFieldClass()] = this.searchFieldStyle;
     this.registry[this.getSearchCheckBoxClass()] = this.searchCheckBoxStyle;
+
 }
+
+
+SearchableTable.prototype.getSearchText = function(){
+  let field = document.getElementById(this.getSearchFieldClass());
+  let txt = field.value;
+  return txt;
+};
+
+SearchableTable.prototype.inSearchMode = function(){
+  let field = document.getElementById(this.getSearchFieldClass());
+  let txt = field.value;
+  return typeof txt === 'string' && txt.length > 0;
+};
 
 SearchableTable.prototype.updateTable = function (data) {
     if (this.search.dataHasHeaders) {
@@ -240,21 +273,23 @@ SearchableTable.prototype.buildSearchArea = function () {
     let self = this;
 
     input.addEventListener('input', function (e) {
-        if (!check.checked) {
             let val = input.value;
+        if (!check.checked) {
             self.search.find(val);
         } else {
-            self.remoteSearchFunction();
+            self.remoteSearchFunction(val);
         }
 
     });
 
     check.addEventListener('change', function (e) {
-        if (event.currentTarget.checked) {
+        if (e.currentTarget.checked) {
             input.placeholder = 'Search Online';
         } else {
             input.placeholder = 'Search Table';
+            self.pager['pageNum'] = self.pageNumber = 0;
         }
+        self.onSearchModeToggled(e.currentTarget.checked);
     });
 
 
@@ -417,6 +452,7 @@ Search.prototype.find = function (searchText) {
             foundData.push(t);
         }
     }
+
     this.setData(foundData);
 };
     
