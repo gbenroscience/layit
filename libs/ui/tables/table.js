@@ -2280,15 +2280,6 @@ function applyStyle(cssSelector, styleElem) {
 }
 
 
-function addClass(element, className) {
-
-    var arr = element.className.split(" ");
-    if (arr.indexOf(className) === -1) {
-        element.className += " " + className;
-    }
-}
-
-
 /**
  * This method does same as replaceChild, but it gets the 
  * parentElement automatically

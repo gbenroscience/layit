@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-/* global PATH_TO_UI_SCRIPTS, xmlKeys, attrKeys, DISABLE_INPUT_SHADOW, PATH_TO_COMPILER_SCRIPTS, ViewController */
+/* global PATH_TO_UI_SCRIPTS, xmlKeys, attrKeys, DISABLE_INPUT_SHADOW, PATH_TO_COMPILER_SCRIPTS, ViewController, HTMLCanvasElement */
 /**
  * All workspaces loaded for this page.
  * Each workspace has the ability to parse a root xml layout which may have several included layouts.
