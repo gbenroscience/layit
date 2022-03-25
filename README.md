@@ -329,7 +329,7 @@ If you wish to load an xml layout and attach it to the body of the page, e.g. yo
 let options =  {
  layoutName: 'layout.xml',
  bindingElemId: BODY_ID,
- onComplete: function(){
+ onComplete: function(rootView){
      //'Code to run when the layout has been parsed and loaded'
    }
  }

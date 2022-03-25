@@ -65,12 +65,14 @@ let controller = this;
        let li = document.createElement('li');
        li.textContent = state;
        list.appendChild(li);
+
        
        
     };
-    
 
-   
+
+
+
 
 
 

@@ -285,7 +285,7 @@ Popup.prototype.build = function () {
         let workspace = getWorkspace({
             layoutName: this.layout,
             bindingElemId: dialog.id,
-            onComplete: function () {}});
+            onComplete: function (rootView) {}});
     }
     
     addClass(document.body , this.noScrollStyle.name.substring(1));

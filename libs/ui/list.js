@@ -25,7 +25,7 @@ const LIST_HORIZONTAL = 2;
  * @returns {undefined}
  */
 function List(options) {
-        var self = this;
+    let self = this;
   
     if (typeof options === 'undefined') {
          throw new Error("Please define list parameters");
@@ -66,8 +66,8 @@ function List(options) {
     if (!options.viewmodel || {}.toString.call(options.viewmodel) !== '[object Function]') {
 
         options.viewmodel = function (index) {
-            var modelItem = self.data[index];
-            var li = document.createElement('li');
+            let modelItem = self.data[index];
+            let li = document.createElement('li');
             li.appendChild(document.createTextNode(modelItem));
             return li;
         };
@@ -90,8 +90,8 @@ function List(options) {
     if (!options.onItemClick || {}.toString.call(options.onItemClick) !== '[object Function]') {
 
         options.viewmodel = function (index) {
-            var modelItem = self.data[index];
-            var li = document.createElement('li');
+            let modelItem = self.data[index];
+            let li = document.createElement('li');
             li.appendChild(document.createTextNode(modelItem));
             return li;
         };
@@ -119,8 +119,8 @@ function List(options) {
             "font-family": "\"Open Sans\",sans-serif"
         });
         if (typeof options["main-style"] === "object") {
-            var mainStyleCss = options["main-style"];
-            for (var key in mainStyleCss) {
+            let mainStyleCss = options["main-style"];
+            for (let key in mainStyleCss) {
                 this.mainStyle.addStyleElement(key, mainStyleCss[key]);
             }
         }
@@ -133,8 +133,8 @@ function List(options) {
             margin: "0 auto"
         });
         if (typeof options["nav-style"] === "object") {
-            var navStyleCss = options["nav-style"];
-            for (var key in navStyleCss) {
+            let navStyleCss = options["nav-style"];
+            for (let key in navStyleCss) {
                 this.navStyle.addStyleElement(key, navStyleCss[key]);
             }
         }
@@ -149,8 +149,8 @@ function List(options) {
             "text-align": "center"
         });
         if ( typeof options["list-style"] === 'object' ) {
-            var listStyleCss = options["list-style"];
-            for (var key in listStyleCss) {
+            let listStyleCss = options["list-style"];
+            for (let key in listStyleCss) {
                 this.listStyle.addStyleElement(key, listStyleCss[key]);
             }
         }
@@ -192,8 +192,8 @@ function List(options) {
 
 
         if (typeof options["item-style"] === "object") {
-            var itemStyleCss = options["item-style"];
-            for (var key in itemStyleCss) {
+            let itemStyleCss = options["item-style"];
+            for (let key in itemStyleCss) {
                 this.itemStyle.addStyleElement(key, itemStyleCss[key]);
             }
         }
@@ -202,10 +202,10 @@ function List(options) {
 
 
 
-   
-    var a1 = this.getListItemClass();
-    var a2 = this.getContainerDivClass();
-    var a3 = this.getNavClass();
+
+    let a1 = this.getListItemClass();
+    let a2 = this.getContainerDivClass();
+    let a3 = this.getNavClass();
     this.registry = {};
     this.registry[this.id] = this.listStyle;
     this.registry[a1] = this.itemStyle;
@@ -216,21 +216,21 @@ function List(options) {
 
 List.prototype.build = function (parent) {
 
-    var self = this;
+    let self = this;
 
-    var list = document.getElementById(this.id);
-    var checkMainDiv = document.getElementById(this.getContainerDivClass());
+    let list = document.getElementById(this.id);
+    let checkMainDiv = document.getElementById(this.getContainerDivClass());
     
     if (checkMainDiv) {
        parent.removeChild(checkMainDiv);
     }
 
-    var mainDiv = document.createElement('div');
+    let mainDiv = document.createElement('div');
     parent.appendChild(mainDiv);
     mainDiv.setAttribute("id", this.getContainerDivClass());
     this.addClass(mainDiv, this.getContainerDivClass());
 
-    var nav = document.createElement('div');
+    let nav = document.createElement('div');
     mainDiv.appendChild(nav);
     nav.setAttribute("id", this.getNavClass());
     this.addClass(nav, this.getNavClass());
@@ -242,7 +242,7 @@ List.prototype.build = function (parent) {
     this.addClass(list, this.id);
 
 
-    var liActive = {
+    let liActive = {
         "background-color": list.style.backgroundColor,
         opacity: "0.8",
         cursor: "pointer",
@@ -250,8 +250,8 @@ List.prototype.build = function (parent) {
     };
     
     liActive["border-bottom"] = "5px solid "+this.itemStyle.getValue("color");
-    
-        var liHover = {
+
+    let liHover = {
         "background-color": list.style.backgroundColor,
         opacity: "0.3",
         cursor: "pointer"
@@ -259,11 +259,11 @@ List.prototype.build = function (parent) {
       
     
     
-    var liHoverClass = this.getListItemClass() + ":hover";
-    var liActiveClass = this.getActiveClass();
-    
-    var activeStyle = new Style("#" + this.id + "_item_active_style", []);
-    var hoverStyle = new Style("#" + this.id + "_item_hover_style", []);
+    let liHoverClass = this.getListItemClass() + ":hover";
+    let liActiveClass = this.getActiveClass();
+
+    let activeStyle = new Style("#" + this.id + "_item_active_style", []);
+    let hoverStyle = new Style("#" + this.id + "_item_hover_style", []);
     
     activeStyle.addFromOptions(liActive);
     hoverStyle.addFromOptions(liHover);
@@ -271,24 +271,24 @@ List.prototype.build = function (parent) {
     this.registry[liHoverClass] = hoverStyle;
     this.registry[liActiveClass] = activeStyle;
 
-    for (var i = 0; i < this.data.length; i++) {
-        var li = this.viewmodel(i);
+    for (let i = 0; i < this.data.length; i++) {
+        let li = this.viewmodel(i);
      
         list.appendChild(li);
         
           this.addClass(li, this.getListItemClass()); 
     
     }
-    
-    var ul = document.getElementById(this.id);
-    var items = ul.getElementsByTagName("li");
-     for (var i = 0; i < items.length; i++) {
-        
-        var li = items[i];
+
+    let ul = document.getElementById(this.id);
+    let items = ul.getElementsByTagName("li");
+     for (let i = 0; i < items.length; i++) {
+
+         let li = items[i];
         li.onclick = function (e){
-            var listitem = e.target;
-           var nodes = Array.prototype.slice.call( list.children );
-            var index = nodes.indexOf(listitem);
+            let listitem = e.target;
+            let nodes = Array.prototype.slice.call( list.children );
+            let index = nodes.indexOf(listitem);
             
              self.selectItem(listitem);
             self.onItemClick( index , listitem);   
@@ -301,10 +301,10 @@ List.prototype.build = function (parent) {
 
 
 
-    var style = document.createElement('style');
+    let style = document.createElement('style');
     style.type = 'text/css';
-    var css = new StringBuffer();
-    for (var key in this.registry) {
+    let css = new StringBuffer();
+    for (let key in this.registry) {
         css.append(this.registry[key].styleSheetEntry("." + key));
     }
 
@@ -316,10 +316,10 @@ List.prototype.build = function (parent) {
 
 List.prototype.selectItem = function (li) {
 
-var ul = document.getElementById(this.id);
-var items = ul.getElementsByTagName("li");
+    let ul = document.getElementById(this.id);
+    let items = ul.getElementsByTagName("li");
  
-  for(var i=0; i < items.length; i++){
+  for(let i=0; i < items.length; i++){
       items[i].classList.remove( this.getActiveClass() );
   } 
        li.classList.add(this.getActiveClass());
@@ -355,7 +355,7 @@ List.prototype.getNavClass = function () {
 };
 List.prototype.addClass = function (element, className) {
 
-    var arr = element.className.split(" ");
+    let arr = element.className.split(" ");
     if (arr.indexOf(className) === -1) {
         element.className += " " + className;
     }

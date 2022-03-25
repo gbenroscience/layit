@@ -4,7 +4,7 @@
     height="match_parent">
 
     <imports
-        files="test/test.js;test/aaa.js;" controller="TestController"
+        files="test/test.js;test/aaa.js;adapters/persons-adapter.js;" controller="TestController"
     />
     <View
         id="section_top"
@@ -346,6 +346,8 @@
         backgroundColor='pink'
         
         />
+
+
     <NativeTable
         id="table_one"
         width="120"
@@ -441,5 +443,39 @@
         start_end="notes_area"
         top_top="notes_area"
         />
- 
+    <CustomList
+            id='custom_list'
+            width='400px'
+            height='600px'
+            marginTop="32px"
+            top_bottom='yes'
+            cx_align='parent'
+            marginEnd='16'
+            listType='ul'
+            showBullets='false'
+            items='[{"name": "Mayowa Oloruntobi","phone": "08165779034","src":"one.png"},{"name": "George Phinehas","phone": "07039347746","src":"faces/two.png"},{"name": "Floyd Lloyd","phone": "08038009643","src":"faces/three.png"},{"name": "Marcus Davis","phone": "08032162798","src":"faces/four.jpg"}]'
+            itemViews='["listcell1.xml"]'
+            border='1px solid midnightblue'
+            backgroundColor='white'
+
+    />
+
+    <Form
+        id="form"
+        width="600px"
+        height="200px"
+        layout="form_view"
+        name="form_sample"
+        marginTop="32px"
+        action="https://www.google.co.uk"
+        autocomplete="on"
+        method="post"
+        enctype="application/x-www-form-urlencoded"
+        target="_blank"
+        cx_align="custom_list"
+        top_bottom="custom_list"
+
+
+        />
+
 </ConstraintLayout>

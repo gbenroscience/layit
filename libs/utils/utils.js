@@ -23,6 +23,7 @@ function isTwoDimArray(arr) {
     return false;
 }
 
+
 /**
  * Credits to http://marcj.github.io/css-element-queries/
  * @param {HTMLElement} element
@@ -110,3 +111,4 @@ function ResizeSensor(element, callback)
     expand.addEventListener('scroll', onScroll);
     shrink.addEventListener('scroll', onScroll);
 };
+

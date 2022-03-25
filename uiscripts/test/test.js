@@ -39,6 +39,46 @@ TestController.prototype.onViewsAttached = function (wid) {
 //Your code goes below here
 
 
+
+    let customList = this.findViewById('custom_list');
+    customList.data.push({
+        name: "Emmanuel Phanuel",
+        phone: "08168990132",
+        src: "faces/five.jpg"
+    });
+    customList.data.push({
+        name: "Abike Omodunni",
+        phone: "08098226543",
+        src: "faces/six.jpg"
+    });
+
+    customList.data.push({
+        name: "Phil Simmons",
+        phone: "07063645578",
+        src: "faces/seven.jpg"
+    });
+
+
+    let adapter = new ListAdapter(customList , function () {
+
+    });
+    adapter.bindData = function (pos, li) {
+        li.style.backgroundColor = 'midnightblue';
+        li.style.border = '1px solid white';
+        ListAdapter.prototype.bindData.call(this, pos, li);
+        let item = this.getItem(pos);
+        let personImageView = this.getChildView(pos,"person_img");
+        let personNameView = this.getChildView(pos,"person_name");
+        let personPhoneView = this.getChildView(pos,"person_phone");
+
+        personImageView.src = getImagePath(item.src);
+        personNameView.textContent = item.name;
+        personPhoneView.textContent = item.phone;
+
+    };
+
+
+
     let view = this.findHtmlViewById('site_title');
     view.style.color = 'yellow';
     let loginBtn = this.findHtmlViewById('login_btn');

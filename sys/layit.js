@@ -34,6 +34,7 @@ const nativeScripts = [
     SCRIPTS_BASE + 'sys/autolayout.js',
     SCRIPTS_BASE + 'sys/main.js',
     SCRIPTS_BASE + 'sys/compiler-constants.js',
+    SCRIPTS_BASE + 'sys/sdk/listadapter.js',
     SCRIPTS_BASE + 'sys/sdk/viewcontroller.js',
     SCRIPTS_BASE + 'libs/ext/canvas2blob.js',
     SCRIPTS_BASE + 'libs/utils/utils.js',
@@ -140,11 +141,13 @@ function getWorkspace(options) {
         return new Workspace(options);
     }
 
-    let onComplete = function () {};
+    let onComplete = function (rootView) {};
     if (options.onComplete) {
         if (typeof options.onComplete === 'function') {
             onComplete = options.onComplete;
-        } else {
+        }else if(options.onComplete.length !== 1){
+            throw new Error('The onComplete callback must take one parameter... the rootView of the expanded document');
+        }  else {
             throw new Error('If you are supplying this callback, then it must be a function!');
         }
     }
@@ -256,10 +259,12 @@ function Workspace(options) {
     }
 
 
-    this.onComplete = function () {};
+    this.onComplete = function (rootView) {};
     if (options.onComplete) {
         if (typeof options.onComplete === 'function') {
             this.onComplete = options.onComplete;
+        }else if(options.onComplete.length !== 1){
+            throw new Error('The onComplete callback must take one parameter... the rootView of the expanded document');
         } else {
             throw new Error('If you are supplying this callback, then it must be a function!');
         }
@@ -405,6 +410,19 @@ function getScriptBaseUrl() {
 
     return null;
 }
+
+/**
+ *
+ * @param layitSrc The relative path in the xml...relative to the images folder
+ * ...e.g an image file directlt in the folder will vbe specified directly by name.
+ * If the image is in a folder in the images folder, then it is specified as  foldername/imagename.png|jpg etc.
+ * @returns {*}
+ */
+function getImagePath(layitSrc){
+    return PATH_TO_IMAGES + layitSrc;
+}
+
+
 /**
  * The root view is the root of the expanded xml layout, not the view that the layout was attached to!
  * @returns {undefined}
@@ -775,6 +793,10 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
 
             break;
 
+        case xmlKeys.customList:
+            view = new CustomList(wkspc, node);
+            break;
+
         case xmlKeys.label:
             view = new Label(wkspc, node);
             break;
@@ -800,7 +822,9 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
         case xmlKeys.audio:
             view = new AudioView(wkspc, node);
             break;
-
+        case xmlKeys.form:
+            view = new FormView(wkspc, node);
+            break;
 
         default:
             break;
@@ -886,7 +910,8 @@ Parser.prototype.buildUI = function (wkspc) {
     let includes = [];
     wkspc.viewMap.forEach(function (view, id) {
 
-        if (view.constructor.name === 'IncludedView') {
+
+        if (view instanceof IncludedView) {
             includes.push(view);
         }
 
@@ -952,6 +977,10 @@ Parser.prototype.buildUI = function (wkspc) {
             //layout the xml of an included layout with respect to its root
             autoLayout(rootChild.htmlElement, include.constraints);
             //console.log('Generated Child Constraints for ', view.id, view.constraints);
+            if(include instanceof FormView){
+                console.log('include.constraints: ', include.constraints);
+                console.log('include.directChildConstraints: ', include.directChildConstraints);
+            }
         });
 
         compounds.forEach((child) => {
@@ -965,7 +994,7 @@ Parser.prototype.buildUI = function (wkspc) {
     }
 
     if (wkspc.onComplete) {
-        wkspc.onComplete();
+        wkspc.onComplete(this.rootView);
     }
 
     //  console.log('UI construction logic done...', wkspc.viewMap.size);

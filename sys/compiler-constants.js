@@ -50,6 +50,7 @@ const xmlKeys = {
     customList: "CustomList",
     list: "NativeList",
     table: "NativeTable",
+    form: "Form",
     inputTable: "InputTableView",
     growableTable: "GrowableTableView",
     searchableTable: "SearchableTableView",
@@ -107,6 +108,9 @@ const attrKeys = {
     listType: 'listType', //ol or ul
     showBullets: 'showBullets', //for lists, if true, will show the bullets or numbers
 
+    // an array of view template(reference them by their filenames) to be used to construct the custom views for the list's cell. The type of the view is its index in this array
+    itemViews: 'itemViews',
+
     items: "items", // an array of items to display in a list or a dropdown
     tableHeaders: 'tableHeaders', //a 1d array of items to display as a custom table view's headers
     tableItems: 'tableItems', //a 2d array of items to display on a table
@@ -153,6 +157,14 @@ const attrKeys = {
     backgroundImage: "backgroundImage",
     backgroundColor: "backgroundColor",
     backgroundAttachment: "backgroundAttachment",
+    backgroundPosition: "backgroundPosition",
+    backgroundPositionX: "backgroundPositionX",
+    backgroundPositionY: "backgroundPositionY",
+    backgroundOrigin: "backgroundOrigin",
+    backgroundRepeat: "backgroundRepeat",
+    backgroundSize: "backgroundSize",
+    backgroundClip: "backgroundClip",
+    backgroundBlendMode: "background-blend-mode",
     boxShadow: "boxShadow",
     inputType: "inputType", //text or password
     text: "text",
@@ -169,6 +181,7 @@ const attrKeys = {
     checked: "checked",
     name: "name",
     value: "value",
+
     placeholder: "placeholder",
     maxLength: 'maxLength',
     rows: 'rows',
@@ -183,6 +196,15 @@ const attrKeys = {
     clockCenterSpotWidth: 'clockHoursColor',
     clockOuterCircleAsFractionOfFrameSize: 'clockOuterCircleAsFractionOfFrameSize',
     clockShowBaseText: 'clockShowBaseText',
-    description: 'description'
+    description: 'description',
+    //FORM properties
+    action: "action",
+    method: "method",
+    target: "target",
+    autocomplete: "autocomplete",
+    novalidate: "novalidate",
+    enctype: "enctype", //application/x-www-form-urlencoded OR multipart/form-data OR text/plain
+    rel: "rel",
+    acceptCharset: "acceptCharset",
 
 };

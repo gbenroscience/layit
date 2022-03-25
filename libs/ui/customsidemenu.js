@@ -254,7 +254,7 @@ SideMenuX.prototype.build = function () {
         let workspace = getWorkspace({
             layoutName: this.layout,
             bindingElemId: frame.id,
-            onComplete: function () {
+            onComplete: function (rootView) {
                 popup.openMenu();
                 popup.rootView = workspace.rootView().htmlElement;
                 popup.parsedWidth = parseInt(window.getComputedStyle(frame).width);

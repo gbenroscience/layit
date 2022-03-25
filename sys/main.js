@@ -78,14 +78,15 @@ function setAbsoluteSizeAndPosition(elm, left, top, width, height) {
 
 
 /* global AutoLayout, attrKeys, xmlKeys, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits, PATH_TO_IMAGES, FontStyle, Gravity */
+
 /**
- * 
+ *
  * @param {type} node The node that represents this View in the android style xml document
  * @returns {View}
  */
 
 /**
- * 
+ *
  * @param {Workspace} wkspc
  * @param {XMLNode} node
  * @returns {View}
@@ -218,19 +219,19 @@ function View(wkspc, node) {
 
         /**
          * In your xml, you may have:
-         * width="height"  
-         * height="100px" 
+         * width="height"
+         * height="100px"
          * This code section will make
          * width="100px" here
-         * 
+         *
          * Or if you have:
-         * 
+         *
          * width="90px"
          * height="width/1.25"
-         * 
+         *
          * This code section will make:
          * height="72" (in px) Note: only division operation is supported
-         * 
+         *
          */
         changeDimensionalReferences:{
             let w = parseInt(this.width);
@@ -241,34 +242,33 @@ function View(wkspc, node) {
 //change width and height values to id.width and id.height for same view references in xml
             if (typeof this.width === 'string') {
                 if (this.width === 'height') {
-                    this.width = this.id+".height";
+                    this.width = this.id + ".height";
                 } else if (this.width.indexOf("height") !== -1 && (i = this.width.indexOf("/")) !== -1) {
                     let lhs = this.width.substring(0, i);
                     lhs = lhs.trim();
                     let rhs = this.width.substring(i + 1);
                     rhs = rhs.trim();
                     if (lhs === 'height' && isNumber(rhs)) {
-                        lhs = this.id+".height";
+                        lhs = this.id + ".height";
                         this.width = lhs + "/" + rhs;
                     }
                 }
             }
             if (typeof this.height === 'string') {
                 if (this.height === 'width') {
-                    this.height = this.id+".width";
+                    this.height = this.id + ".width";
                 } else if (this.height.indexOf("width") !== -1 && (i = this.height.indexOf("/")) !== -1) {
                     let lhs = this.height.substring(0, i);
                     lhs = lhs.trim();
                     let rhs = this.height.substring(i + 1);
                     rhs = rhs.trim();
                     if (lhs === 'width' && isNumber(rhs)) {
-                        lhs = this.id+".width";
+                        lhs = this.id + ".width";
                         this.height = lhs + "/" + rhs;
                     }
                 }
             }
         }
-
 
 
         this.dimRatio = -1;//Not specified... dimRatio is width/height
@@ -406,7 +406,7 @@ function View(wkspc, node) {
                     }
                     break;
 
-                    //as a bonus save the paddings in this pass
+                //as a bonus save the paddings in this pass
                 case attrKeys.layout_padding:
                     this.style.addStyleElement("padding", attrValue);
                     break;
@@ -443,6 +443,34 @@ function View(wkspc, node) {
                 case attrKeys.backgroundColor:
                     this.style.addStyleElement("background-color", attrValue);
                     break;
+                case attrKeys.backgroundAttachment:
+                    this.style.addStyleElement("background-attachment", attrValue);
+                    break;
+                case attrKeys.backgroundPosition:
+                    this.style.addStyleElement("background-position", attrValue);
+                    break;
+                case attrKeys.backgroundPositionX:
+                    this.style.addStyleElement("background-position-x", attrValue);
+                    break;
+                case attrKeys.backgroundPositionY:
+                    this.style.addStyleElement("background-position-y", attrValue);
+                    break;
+                case attrKeys.backgroundOrigin:
+                    this.style.addStyleElement("background-origin", attrValue);
+                    break;
+                case attrKeys.backgroundRepeat:
+                    this.style.addStyleElement("background-repeat", attrValue);
+                    break;
+                case attrKeys.backgroundSize:
+                    this.style.addStyleElement("background-size", attrValue);
+                    break;
+                case attrKeys.backgroundClip:
+                    this.style.addStyleElement("background-clip", attrValue);
+                    break;
+                case attrKeys.backgroundBlendMode:
+                    this.style.addStyleElement("background-blend-mode", attrValue);
+                    break;
+
                 case attrKeys.font:
                     fnt = attrValue;
                     break;
@@ -479,6 +507,7 @@ function View(wkspc, node) {
                     this.style.addStyleElement(attrKeys.resize, attrValue);
 
                     break;
+
 //paddings saved
                 default:
                     break;
@@ -533,7 +562,7 @@ View.prototype.getTextSize = function (txt) {
     let formattedWidth = size.width + "px";
 
     document.querySelector('#za_span').textContent
-            = formattedWidth;
+        = formattedWidth;
     document.body.removeChild(span);
 
     return size;
@@ -608,7 +637,7 @@ function parseNumberAndUnits(val) {
     for (let i = val.length - 1; i > 0; i--) {
         let token = val.substring(i, i + 1);
         if (token !== '0' && token !== '1' && token !== '2' && token !== '3' && token !== '4' && token !== '5' &&
-                token !== '6' && token !== '7' && token !== '8' && token !== '9') {
+            token !== '6' && token !== '7' && token !== '8' && token !== '9') {
             units = token + units;
         } else {
             number = val.substring(0, i + 1);
@@ -620,7 +649,7 @@ function parseNumberAndUnits(val) {
 
 /**
  * Layout the content of an xml file relative to its root
- * @param {Workspace} wkspc 
+ * @param {Workspace} wkspc
  * @return {string} the vfl definition for this View
  */
 View.prototype.makeVFL = function (wkspc) {
@@ -642,12 +671,10 @@ View.prototype.makeVFL = function (wkspc) {
     }
 
 
-
     let maxWid = this.refIds.get(attrKeys.layout_maxWidth);
     let maxHei = this.refIds.get(attrKeys.layout_maxHeight);
     let minWid = this.refIds.get(attrKeys.layout_minWidth);
     let minHei = this.refIds.get(attrKeys.layout_minHeight);
-
 
 
     let maxWidth, maxHeight, minWidth, minHeight;
@@ -683,16 +710,11 @@ View.prototype.makeVFL = function (wkspc) {
     }
 
 
-
     let isWidPct = endsWith(this.width, '%');
     let isHeiPct = endsWith(this.height, '%');
 
     let pw = parseInt(this.width);
     let ph = parseInt(this.height);
-
-
-
-
 
 
     if (this.dimRatio > 0) {
@@ -714,11 +736,11 @@ View.prototype.makeVFL = function (wkspc) {
     }
 
 
-
     let parent, hasIncludedParent;
     if (attributeNotEmpty(this.parentId)) {
         parent = wkspc.viewMap.get(this.parentId);
-        hasIncludedParent = parent && (parent.constructor.name === 'IncludedView');
+        hasIncludedParent = parent && (parent.constructor.name === 'IncludedView' || parent.constructor.name === 'FormView' );
+       // hasIncludedParent = parent && (parent instanceof FormView || parent instanceof IncludedView );
     }
     /**
      * Must be the root node in an included file
@@ -743,8 +765,6 @@ View.prototype.makeVFL = function (wkspc) {
         }
 
 
-
-
         if (maxWid && minWid) {
             parent.directChildConstraints.push('H:|~[' + this.id + '(==' + this.width + ',<=' + maxWidth + ',>=' + minWidth + ')]~|\n');
         } else if (!maxWid && !minWid) {
@@ -764,7 +784,6 @@ View.prototype.makeVFL = function (wkspc) {
         } else if (minHei) {
             parent.directChildConstraints.push('V:|~[' + this.id + '(==' + this.height + ',>=' + minHeight + ')]~|\n');
         }
-
 
 
         return '';
@@ -1011,7 +1030,7 @@ function getSignedValue(val) {
         return '+0.0';
     }
     if (typeof val === 'string') {
-        var p = parseInt(val);
+        let p = parseInt(val);
         return isNaN(p) ? "+0.0" : (p >= 0 ? "+" + p : "" + p);
     }
     if (typeof val === 'number') {
@@ -1035,9 +1054,9 @@ View.prototype.assignId = function () {
  * @returns {string}
  */
 View.prototype.toHTML = function () {
-    var node = this.htmlElement;
+    let node = this.htmlElement;
     if (node) {
-        var outerHtmlHackElem = null;
+        let outerHtmlHackElem = null;
         const nodeName = node.nodeName.toLowerCase();
         if (isHTMLTagName(nodeName)) {
 
@@ -1055,7 +1074,7 @@ View.prototype.toHTML = function () {
                 outerHtmlHackElem = document.createElement('div');
             }
             outerHtmlHackElem.appendChild(node);
-            var outerHtmlHack = outerHtmlHackElem.innerHTML;
+            let outerHtmlHack = outerHtmlHackElem.innerHTML;
             return outerHtmlHack;
 
         } else {
@@ -1073,8 +1092,13 @@ View.prototype.toHTML = function () {
 View.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('div');
 
-    var id = node.getAttribute(attrKeys.id);
+    let id = node.getAttribute(attrKeys.id);
     this.htmlElement.id = id;
+
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
 
     this.calculateWrapContentSizes(node);
 
@@ -1096,8 +1120,6 @@ Button.prototype.constructor = Button;
 
 ImageButton.prototype = Object.create(View.prototype);
 ImageButton.prototype.constructor = ImageButton;
-
-
 
 
 NativeTable.prototype = Object.create(View.prototype);
@@ -1134,6 +1156,9 @@ DropDown.prototype.constructor = DropDown;
 
 NativeList.prototype = Object.create(View.prototype);
 NativeList.prototype.constructor = NativeList;
+
+CustomList.prototype = Object.create(View.prototype);
+CustomList.prototype.constructor = CustomList;
 
 
 Label.prototype = Object.create(View.prototype);
@@ -1177,6 +1202,11 @@ ClockView.prototype.constructor = ClockView;
 IncludedView.prototype = Object.create(View.prototype);
 IncludedView.prototype.constructor = IncludedView;
 
+
+FormView.prototype = Object.create(IncludedView.prototype);
+FormView.prototype.constructor = FormView;
+
+
 VideoView.prototype = Object.create(View.prototype);
 VideoView.prototype.constructor = VideoView;
 
@@ -1184,9 +1214,8 @@ AudioView.prototype = Object.create(View.prototype);
 AudioView.prototype.constructor = AudioView;
 
 
-
 /**
- * @param {Workspace} wkspc 
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {CheckBox}
  */
@@ -1198,16 +1227,16 @@ CheckBox.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('input');
     this.htmlElement.type = 'checkbox';
 
-    var id = node.getAttribute(attrKeys.id);
+    let id = node.getAttribute(attrKeys.id);
     this.htmlElement.id = id;
 
-    var value = node.getAttribute(attrKeys.value);
+    let value = node.getAttribute(attrKeys.value);
     if (attributeNotEmpty(value)) {
         this.htmlElement.value = value;
     }
-    var name = node.getAttribute(attrKeys.name);
-    if (attributeNotEmpty(name)) {
-        this.htmlElement.name = name;
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
     }
 
 
@@ -1218,7 +1247,7 @@ CheckBox.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- * @param {Workspace} wkspc 
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
@@ -1228,11 +1257,20 @@ function Button(wkspc, node) {
 
 Button.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('input');
-    this.htmlElement.type = 'button';
+
     this.style.addStyleElementCss('text-align: center;');
 
     let id = node.getAttribute(attrKeys.id);
+
     this.htmlElement.id = id;
+
+    let type = node.getAttribute(attrKeys.inputType);
+
+    if(type !== 'button' && type !== 'submit'){
+        this.htmlElement.setAttribute('type' , 'button');
+    }else{
+        this.htmlElement.setAttribute('type' , type);
+    }
 
     let value = node.getAttribute(attrKeys.value);
     let text = node.getAttribute(attrKeys.text);
@@ -1244,8 +1282,8 @@ Button.prototype.createElement = function (node) {
     }
 
     let name = node.getAttribute(attrKeys.name);
-    if (attributeNotEmpty(name)) {
-        this.htmlElement.name = name;
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
     }
 
     this.calculateWrapContentSizes(node);
@@ -1258,7 +1296,7 @@ Button.prototype.calculateWrapContentSizes = function (node) {
 
 
 /**
- * @param {Workspace} wkspc 
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
@@ -1270,7 +1308,6 @@ ImageButton.prototype.createElement = function (node) {
 
     this.htmlElement = document.createElement('input');
     this.htmlElement.type = 'button';
-
 
 
     this.style.addStyleElementCss('border: 0;');
@@ -1294,8 +1331,8 @@ ImageButton.prototype.createElement = function (node) {
     }
 
     let name = node.getAttribute(attrKeys.name);
-    if (attributeNotEmpty(name)) {
-        this.htmlElement.name = name;
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
     }
 
     this.calculateWrapContentSizes(node);
@@ -1308,7 +1345,7 @@ ImageButton.prototype.calculateWrapContentSizes = function (node) {
 
 
 /**
- * @param {Workspace} wkspc 
+ * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
  */
@@ -1320,6 +1357,10 @@ NativeTable.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('table');
     this.assignId();
 
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
 
     let thead = document.createElement('thead');
     let tbody = document.createElement('tbody');
@@ -1348,9 +1389,9 @@ NativeTable.prototype.createElement = function (node) {
         }
 
         let tableSize = array.length;
-        for (var i = 0; i < tableSize; i++) {
+        for (let i = 0; i < tableSize; i++) {
             let tr = document.createElement('tr');
-            for (var j = 0; j < array[i].length; j++) {
+            for (let j = 0; j < array[i].length; j++) {
                 let td = document.createElement('td');
                 td.innerHTML = array[i][j];
                 tr.appendChild(td);
@@ -1391,7 +1432,6 @@ NativeTable.prototype.createElement = function (node) {
             }
 
 
-
         }
 
         this.htmlElement.appendChild(tbody);
@@ -1423,11 +1463,14 @@ function CustomTableView(wkspc, node) {
 }
 
 
-
-
 CustomTableView.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
+
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
 
     let hasCaption = node.getAttribute(attrKeys.hasCaption);
     let caption = node.getAttribute(attrKeys.caption);
@@ -1452,7 +1495,6 @@ CustomTableView.prototype.createElement = function (node) {
     let theme = node.getAttribute(attrKeys.tableTheme);
     let scrollable = node.getAttribute(attrKeys.scrollable);
     let footertext = node.getAttribute(attrKeys.footerText);
-
 
 
     if (attributeNotEmpty(hasCaption)) {
@@ -1505,16 +1547,16 @@ CustomTableView.prototype.createElement = function (node) {
         scrollable = true;
     }
 
-    if(attributeNotEmpty(headers)){
+    if (attributeNotEmpty(headers)) {
         headers = JSON.parse(headers);
-        if(!headers){
+        if (!headers) {
             throw new Error('Invalid table header array!');
         }
-        if(!isOneDimArray(headers)){
+        if (!isOneDimArray(headers)) {
             throw new Error('Table header must be a one dimensional array!');
         }
-    }else{
-        throw new Error('Table headers not specified for CustomTableView: '+this.id);
+    } else {
+        throw new Error('Table headers not specified for CustomTableView: ' + this.id);
     }
     if (attributeNotEmpty(entries)) {
         try {
@@ -1593,7 +1635,6 @@ CustomTableView.prototype.createElement = function (node) {
     //this.customTable.build(this.htmlElement);
 
 
-
 };
 
 CustomTableView.prototype.calculateWrapContentSizes = function (node) {
@@ -1604,8 +1645,9 @@ CustomTableView.prototype.calculateWrapContentSizes = function (node) {
 CustomTableView.prototype.runView = function () {
     this.customTable.loadTable(this.options.bodyData);
 };
+
 /**
- * 
+ *
  * @param {Workspace} wkspc
  * @param {type} node
  * @returns {InputTableView}
@@ -1617,6 +1659,11 @@ function InputTableView(wkspc, node) {
 InputTableView.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
+
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
 
     let hasCaption = node.getAttribute(attrKeys.hasCaption);
     let caption = node.getAttribute(attrKeys.caption);
@@ -1698,16 +1745,16 @@ InputTableView.prototype.createElement = function (node) {
         scrollable = true;
     }
 
-    if(attributeNotEmpty(headers)){
+    if (attributeNotEmpty(headers)) {
         headers = JSON.parse(headers);
-        if(!headers){
+        if (!headers) {
             throw new Error('Invalid table header array!');
         }
-        if(!isOneDimArray(headers)){
+        if (!isOneDimArray(headers)) {
             throw new Error('Table header must be a one dimensional array!');
         }
-    }else{
-        throw new Error('Table headers not specified for CustomTableView: '+this.id);
+    } else {
+        throw new Error('Table headers not specified for CustomTableView: ' + this.id);
     }
     if (attributeNotEmpty(entries)) {
         try {
@@ -1775,7 +1822,6 @@ InputTableView.prototype.createElement = function (node) {
     }
 
 
-
     this.options = {
         id: this.htmlElement.id + '_core',
         hasCaption: hasCaption,
@@ -1788,7 +1834,8 @@ InputTableView.prototype.createElement = function (node) {
         hasFooter: hasFooter,
         showBorders: showBorders,
         pagingEnabled: pagingEnabled,
-        onAddBtnClicked: function () {},
+        onAddBtnClicked: function () {
+        },
         'main-style': {
             'margin-top': '1.2em'
         },
@@ -1818,7 +1865,7 @@ InputTableView.prototype.createElement = function (node) {
 };
 
 /**
- * 
+ *
  @param {Workspace} wkspc
  * @param {type} node
  * @returns {GrowableTableView}
@@ -1831,7 +1878,10 @@ function GrowableTableView(wkspc, node) {
 GrowableTableView.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
-
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
     let hasCaption = node.getAttribute(attrKeys.hasCaption);
     let caption = node.getAttribute(attrKeys.caption);
     let scrollHeight = node.getAttribute(attrKeys.scrollHeight);
@@ -1912,16 +1962,16 @@ GrowableTableView.prototype.createElement = function (node) {
         scrollable = true;
     }
 
-    if(attributeNotEmpty(headers)){
+    if (attributeNotEmpty(headers)) {
         headers = JSON.parse(headers);
-        if(!headers){
+        if (!headers) {
             throw new Error('Invalid table header array!');
         }
-        if(!isOneDimArray(headers)){
+        if (!isOneDimArray(headers)) {
             throw new Error('Table header must be a one dimensional array!');
         }
-    }else{
-        throw new Error('Table headers not specified for CustomTableView: '+this.id);
+    } else {
+        throw new Error('Table headers not specified for CustomTableView: ' + this.id);
     }
     if (attributeNotEmpty(entries)) {
         try {
@@ -2005,7 +2055,8 @@ GrowableTableView.prototype.createElement = function (node) {
         hasFooter: hasFooter,
         showBorders: showBorders,
         pagingEnabled: pagingEnabled,
-        onAddBtnClicked: function () {},
+        onAddBtnClicked: function () {
+        },
         'main-style': {
             'margin-top': '1.2em'
         },
@@ -2032,13 +2083,13 @@ GrowableTableView.prototype.createElement = function (node) {
         this.options.classname = cssClass;
     }
     this.customTable = new GrowableTable(this.options);
-   // this.customTable.build(this.htmlElement);
+    // this.customTable.build(this.htmlElement);
 
 
 };
 
 /**
- * 
+ *
  * @param {Workspace} wkspc
  * @param {type} node
  * @returns {SearchableTableView}
@@ -2051,7 +2102,10 @@ SearchableTableView.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
 
-
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
     let hasCaption = node.getAttribute(attrKeys.hasCaption);
     let caption = node.getAttribute(attrKeys.caption);
     let scrollHeight = node.getAttribute(attrKeys.scrollHeight);
@@ -2083,15 +2137,11 @@ SearchableTableView.prototype.createElement = function (node) {
     let selectColumns = node.getAttribute(attrKeys.selectColumns);
 
 
-
-
     if (attributeNotEmpty(hasFooter)) {
         hasFooter = hasFooter === 'true';
     } else {
         hasFooter = false;
     }
-    
-
 
 
     if (attributeNotEmpty(showBorders)) {
@@ -2138,16 +2188,16 @@ SearchableTableView.prototype.createElement = function (node) {
         scrollable = true;
     }
 
-    if(attributeNotEmpty(headers)){
+    if (attributeNotEmpty(headers)) {
         headers = JSON.parse(headers);
-        if(!headers){
+        if (!headers) {
             throw new Error('Invalid table header array!');
         }
-        if(!isOneDimArray(headers)){
+        if (!isOneDimArray(headers)) {
             throw new Error('Table header must be a one dimensional array!');
         }
-    }else{
-        throw new Error('Table headers not specified for CustomTableView: '+this.id);
+    } else {
+        throw new Error('Table headers not specified for CustomTableView: ' + this.id);
     }
     if (attributeNotEmpty(entries)) {
         try {
@@ -2159,8 +2209,6 @@ SearchableTableView.prototype.createElement = function (node) {
     } else {
         data = [];
     }
-    
-
 
 
     if (attributeEmpty(title)) {
@@ -2236,7 +2284,8 @@ SearchableTableView.prototype.createElement = function (node) {
         hasFooter: hasFooter,
         showBorders: showBorders,
         pagingEnabled: pagingEnabled,
-        onAddBtnClicked: function () {},
+        onAddBtnClicked: function () {
+        },
         'main-style': {
             'margin-top': '1.2em'
         },
@@ -2265,7 +2314,7 @@ SearchableTableView.prototype.createElement = function (node) {
         this.options.classname = cssClass;
     }
     this.customTable = new SearchableTable(this.options);
-   // this.customTable.build(this.htmlElement);
+    // this.customTable.build(this.htmlElement);
 };
 
 SearchableTableView.prototype.calculateWrapContentSizes = function (node) {
@@ -2286,19 +2335,23 @@ TextField.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('input');
 
 
-    var id = node.getAttribute(attrKeys.id);
+    let id = node.getAttribute(attrKeys.id);
     this.htmlElement.id = id;
 
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
 
-    var value = node.getAttribute(attrKeys.value);
-    var text = node.getAttribute(attrKeys.text);
-    var type = node.getAttribute(attrKeys.inputType);
+    let value = node.getAttribute(attrKeys.value);
+    let text = node.getAttribute(attrKeys.text);
+    let type = node.getAttribute(attrKeys.inputType);
 
     if (!type) {
         type = 'text';//default
     }
     if (type && type !== 'text' && type !== 'password' && type !== 'file' && type !== 'date' && type !== 'search' && type !== 'datetime'
-            && type !== 'tel' && type !== 'phone' && type !== 'time' && type !== 'color' && type !== 'url' && type !== 'email') {
+        && type !== 'tel' && type !== 'phone' && type !== 'time' && type !== 'color' && type !== 'url' && type !== 'email') {
         throw 'Unsupported input type---(' + type + ')';
     }
 
@@ -2308,17 +2361,13 @@ TextField.prototype.createElement = function (node) {
     if (attributeNotEmpty(text)) {
         this.htmlElement.value = text;// button label
     }
-    var name = node.getAttribute(attrKeys.name);
-    if (attributeNotEmpty(name)) {
-        this.htmlElement.name = name;
-    }
 
     if (attributeNotEmpty(type)) {
         this.htmlElement.type = type;
     }
 
 
-    var placeholder = node.getAttribute(attrKeys.placeholder);
+    let placeholder = node.getAttribute(attrKeys.placeholder);
     if (attributeNotEmpty(placeholder)) {
         this.htmlElement.placeholder = placeholder;
     }
@@ -2354,6 +2403,11 @@ ProgressBar.prototype.createElement = function (node) {
     let fontSize = node.getAttribute(attrKeys.fontSize);
     let fontName = node.getAttribute(attrKeys.fontName);
     let fontStyle = node.getAttribute(attrKeys.fontStyle);
+
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
 
     this.htmlElement = document.createElement('canvas');
     this.htmlElement.id = id;
@@ -2402,14 +2456,13 @@ TextArea.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('textarea');
 
 
-    var id = node.getAttribute(attrKeys.id);
-    var name = node.getAttribute(attrKeys.name);
-    var maxLength = node.getAttribute(attrKeys.maxLength);
-    var rows = node.getAttribute(attrKeys.rows);
-    var cols = node.getAttribute(attrKeys.cols);
+    let id = node.getAttribute(attrKeys.id);
+    let maxLength = node.getAttribute(attrKeys.maxLength);
+    let rows = node.getAttribute(attrKeys.rows);
+    let cols = node.getAttribute(attrKeys.cols);
 
-    var value = node.getAttribute(attrKeys.value);
-    var text = node.getAttribute(attrKeys.text);
+    let value = node.getAttribute(attrKeys.value);
+    let text = node.getAttribute(attrKeys.text);
     if (attributeNotEmpty(value)) {
         this.htmlElement.value = value;
     }
@@ -2418,8 +2471,9 @@ TextArea.prototype.createElement = function (node) {
     }
 
     this.htmlElement.id = id;
-    if (attributeNotEmpty(name)) {
-        this.htmlElement.name = name;
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
     }
 
     if (attributeNotEmpty(rows)) {
@@ -2473,11 +2527,14 @@ DropDown.prototype.createElement = function (node) {
     items = items.replace(regex1, "','");
     items = items.replace(regex2, '","');
 
-
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
 
     if (attributeNotEmpty(items)) {
         let data = JSON.parse(items);
-        for (var i = 0; i < data.length; i++) {
+        for (let i = 0; i < data.length; i++) {
             this.htmlElement.options[this.htmlElement.options.length] = new Option(data[i], i + "");
         }
     }
@@ -2506,6 +2563,8 @@ DropDown.prototype.editElement = function (index, value) {
  */
 function NativeList(wkspc, node) {
     View.call(this, wkspc, node);
+
+
 }
 
 NativeList.prototype.createElement = function (node) {
@@ -2521,8 +2580,10 @@ NativeList.prototype.createElement = function (node) {
     this.style.addStyleElementCss('list-style-position: inside;');
     this.style.addStyleElementCss('overflow: auto;');
 
-
-
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
 
 
     let showBullets = node.getAttribute(attrKeys.showBullets);
@@ -2538,12 +2599,13 @@ NativeList.prototype.createElement = function (node) {
     if (attributeNotEmpty(items)) {
 
         let data = JSON.parse(items);
-        for (var i = 0; i < data.length; i++) {
+        for (let i = 0; i < data.length; i++) {
             let li = document.createElement('li');
             li.appendChild(document.createTextNode(data[i]));
             this.htmlElement.appendChild(li);
         }
     }
+
 
     if (attributeNotEmpty(showBullets)) {
         showBullets = showBullets === 'true';
@@ -2581,6 +2643,91 @@ NativeList.prototype.calculateWrapContentSizes = function (node) {
     this.wrapHeight = netHeight;
 };
 
+
+/**
+ * @param {Workspace} wkspc
+ * @param {type} node key-value object
+ * @returns {undefined}
+ */
+function CustomList(wkspc, node) {
+    this.data = []; // the data to render.
+    this.itemViews = [];// the key is the viewtype , the value is the layout file for that view type
+    this.listAdapter = null;
+    View.call(this, wkspc, node);
+
+}
+
+
+
+CustomList.prototype.setData = function (items) {
+    if(items){
+        if(isOneDimArray(items)){
+            this.data = items;
+        }else{
+            throw new Error('One dimensional array of items required here')
+        }
+    }else{
+        throw new Error('Please set an array of items to display in the list');
+    }
+}
+
+CustomList.prototype.createElement = function (node) {
+
+    let listType = node.getAttribute(attrKeys.listType);
+
+    if (attributeEmpty(listType)) {
+        listType = 'ul';
+    }
+
+    this.htmlElement = document.createElement(listType);
+    this.style.addStyleElementCss('list-style-position: inside;');
+    this.style.addStyleElementCss('overflow: auto;');
+    this.style.addStyleElementCss('list-style-type: none;');
+
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
+
+    let items = node.getAttribute(attrKeys.items);
+    if(attributeNotEmpty(items)){
+        items = items.replace(/\n|\r/g, '');//remove new lines
+        let regex1 = /(')(\s*)(,)(\s*)(')/g;
+        let regex2 = /(")(\s*)(,)(\s*)(")/g;
+
+        items = items.replace(regex1, "','");
+        items = items.replace(regex2, '","');
+
+        try {
+            this.data = JSON.parse(items);
+        } catch (e) {
+            console.log('JSON error: '+items);
+            throw new Error( 'error: '+e+', Error in `items` array while expanding view: '+this.id);
+        }
+
+
+        if (!isOneDimArray(this.data)) {
+            throw new Error('Invalid items array specified for the list\'s cells');
+        }
+
+    }
+
+
+    let itemViews = node.getAttribute(attrKeys.itemViews);
+
+    if (attributeEmpty(itemViews)) {
+        throw new Error('No custom view specified for the list cell');
+    } else {
+        this.itemViews = JSON.parse(itemViews);
+        if (!isOneDimArray(this.itemViews)) {
+            throw new Error('Invalid views array specified for the list\'s cells');
+        }
+    }
+
+    this.assignId();
+    this.calculateWrapContentSizes(node);
+};
+
 /**
  * @param {Workspace} wkspc
  * @param {type} node key-value object
@@ -2593,10 +2740,14 @@ function Label(wkspc, node) {
 
 Label.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('span');
-    var text = node.getAttribute(attrKeys.text);
-    var value = node.getAttribute(attrKeys.value);
-    var fontSz = node.getAttribute(attrKeys.fontSize);
+    let text = node.getAttribute(attrKeys.text);
+    let value = node.getAttribute(attrKeys.value);
+    let fontSz = node.getAttribute(attrKeys.fontSize);
 
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
 
 
     this.style.addStyleElementCss('display: -webkit-inline-box;');
@@ -2638,14 +2789,19 @@ MultiLineLabel.prototype.createElement = function (node) {
     this.style.addStyleElementCss('overflow: hidden;');
     this.style.addStyleElementCss('text-overflow: ellipsis;');
 
-    var text = node.getAttribute(attrKeys.text);
-    var value = node.getAttribute(attrKeys.value);
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
+
+    let text = node.getAttribute(attrKeys.text);
+    let value = node.getAttribute(attrKeys.value);
     if (attributeNotEmpty(text)) {
-        var textNode = document.createTextNode(text);
+        let textNode = document.createTextNode(text);
         this.htmlElement.appendChild(textNode);
     }
     if (attributeNotEmpty(value)) {
-        var textNode = document.createTextNode(value);
+        let textNode = document.createTextNode(value);
         this.htmlElement.appendChild(textNode);
     }
 
@@ -2656,8 +2812,9 @@ MultiLineLabel.prototype.createElement = function (node) {
 MultiLineLabel.prototype.calculateWrapContentSizes = function (node) {
     this.getWrapSize(node);
 };
+
 /**
- * 
+ *
  * @param {Workspace} wkspc
  * @param {type} node
  * @returns {CanvasView}
@@ -2681,6 +2838,12 @@ CanvasView.prototype.createElement = function (node) {
     let id = this.id;
     this.htmlElement = document.createElement('canvas');
     this.htmlElement.id = id;
+
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
+
     this.htmlElement.setAttribute('width', parseInt(width));
     this.htmlElement.setAttribute('height', parseInt(height));
 
@@ -2691,8 +2854,9 @@ CanvasView.prototype.calculateWrapContentSizes = function (node) {
     this.wrapWidth = this.htmlElement.getAttribute('width');
     this.wrapHeight = this.htmlElement.getAttribute('height');
 };
+
 /**
- * 
+ *
  * @param {Workspace} wkspc
  * @param {type} node
  * @returns {ClockView}
@@ -2707,16 +2871,16 @@ function ClockView(wkspc, node) {
 
 ClockView.prototype.createElement = function (node) {
 
-    var outerColor = node.getAttribute(attrKeys.clockOuterColor);
-    var middleColor = node.getAttribute(attrKeys.clockMiddleColor);
-    var innerColor = node.getAttribute(attrKeys.clockInnerColor);
-    var tickColor = node.getAttribute(attrKeys.clockTickColor);
-    var secondsColor = node.getAttribute(attrKeys.clockSecondsColor);
-    var minutesColor = node.getAttribute(attrKeys.clockMinutesColor);
-    var hoursColor = node.getAttribute(attrKeys.clockHoursColor);
-    var centerSpotWidth = node.getAttribute(attrKeys.clockCenterSpotWidth);
-    var outerCircleAsFractionOfFrameSize = node.getAttribute(attrKeys.clockOuterCircleAsFractionOfFrameSize);
-    var showBaseText = node.getAttribute(attrKeys.clockShowBaseText) === true;
+    let outerColor = node.getAttribute(attrKeys.clockOuterColor);
+    let middleColor = node.getAttribute(attrKeys.clockMiddleColor);
+    let innerColor = node.getAttribute(attrKeys.clockInnerColor);
+    let tickColor = node.getAttribute(attrKeys.clockTickColor);
+    let secondsColor = node.getAttribute(attrKeys.clockSecondsColor);
+    let minutesColor = node.getAttribute(attrKeys.clockMinutesColor);
+    let hoursColor = node.getAttribute(attrKeys.clockHoursColor);
+    let centerSpotWidth = node.getAttribute(attrKeys.clockCenterSpotWidth);
+    let outerCircleAsFractionOfFrameSize = node.getAttribute(attrKeys.clockOuterCircleAsFractionOfFrameSize);
+    let showBaseText = node.getAttribute(attrKeys.clockShowBaseText) === true;
 
 
     if (!attributeNotEmpty(outerColor)) {
@@ -2752,9 +2916,13 @@ ClockView.prototype.createElement = function (node) {
     }
 
 
-    var id = this.id;
+    let id = this.id;
     this.htmlElement = document.createElement('canvas');
     this.htmlElement.id = id;
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
 
     this.clockOptions = {
         canvasId: id,
@@ -2799,6 +2967,10 @@ function RadioGroup(wkspc, node) {
 RadioGroup.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
 };
 RadioGroup.prototype.calculateWrapContentSizes = function (node) {
 
@@ -2818,8 +2990,8 @@ Radio.prototype.createElement = function (node) {
     this.htmlElement.setAttribute("type", "radio");
 
 
-    var name = node.getAttribute(attrKeys.name);
-    var checked = node.getAttribute(attrKeys.checked);
+    let name = node.getAttribute(attrKeys.name);
+    let checked = node.getAttribute(attrKeys.checked);
 
     if (attributeNotEmpty(name)) {
         this.htmlElement.setAttribute('name', name);
@@ -2836,7 +3008,7 @@ Radio.prototype.calculateWrapContentSizes = function (node) {
 };
 
 /**
- * 
+ *
  * @param {Workspace} wkspc
  * @param {type} node
  * @returns {ImageView}
@@ -2849,6 +3021,10 @@ ImageView.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('img');
     this.htmlElement.src = PATH_TO_IMAGES + node.getAttribute(attrKeys.src);
     this.htmlElement.alt = node.getAttribute(attrKeys.alt);
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
     this.assignId();
 };
 
@@ -2950,7 +3126,7 @@ Guideline.prototype.makeVFL = function () {
     }
 
 
-    var vfl = new StringBuffer();
+    let vfl = new StringBuffer();
     if (orientation === orientations.VERTICAL) {
         vfl.append('V:|-0-[' + this.id + ']-0-|\nH:|-(' + val + ')-[' + this.id + '(<=1)]-|');
     } else if (orientation === orientations.HORIZONTAL) {
@@ -2962,7 +3138,7 @@ Guideline.prototype.makeVFL = function () {
 };
 
 /**
- * 
+ *
  * @param {Workspace} wkspc
  * @param {type} node
  * @returns {IncludedView}
@@ -2998,6 +3174,10 @@ IncludedView.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('div');
     let id = node.getAttribute(attrKeys.id);
     this.htmlElement.id = id;
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
     this.calculateWrapContentSizes(node);
 };
 
@@ -3007,8 +3187,87 @@ IncludedView.prototype.calculateWrapContentSizes = function (node) {
     this.wrapHeight = 320;
 };
 
+
+
 /**
- * 
+ *
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {FormView}
+ */
+function FormView(wkspc, node) {
+    IncludedView.call(this, wkspc, node);
+}
+
+/*
+    action: "action",
+    method: "method",
+    target: "target",
+    autocomplete: "autocomplete",
+    novalidate: "novalidate",
+    enctype: "enctype",
+    rel: "rel",
+    acceptCharset: "accept-charset",
+ */
+FormView.prototype.createElement = function (node) {
+    let form = document.createElement('form');
+
+    form.setAttribute("method", "post");
+    form.setAttribute("action", "submit.php");
+    let id = node.getAttribute(attrKeys.id);
+
+    let action = node.getAttribute(attrKeys.action);
+    let method = node.getAttribute(attrKeys.method);
+    let target = node.getAttribute(attrKeys.target);
+    let autocomplete = node.getAttribute(attrKeys.autocomplete);
+    let novalidate = node.getAttribute(attrKeys.novalidate);
+    let enctype = node.getAttribute(attrKeys.enctype);
+    let rel = node.getAttribute(attrKeys.rel);
+    let acceptCharset = node.getAttribute(attrKeys.acceptCharset);
+    let name = node.getAttribute(attrKeys.name);
+
+    if(attributeNotEmpty(action)){
+        form.setAttribute(attrKeys.action, action);
+    }
+    if(attributeNotEmpty(method)){
+        form.setAttribute(attrKeys.method, method);
+    }
+    if(attributeNotEmpty(target)){
+        form.setAttribute(attrKeys.target, target);
+    }
+    if(attributeNotEmpty(autocomplete)){
+        form.setAttribute(attrKeys.autocomplete, autocomplete);
+    }
+    if(attributeNotEmpty(novalidate)){
+        form.setAttribute(attrKeys.novalidate, novalidate);
+    }
+    if(attributeNotEmpty(enctype)){
+        form.setAttribute(attrKeys.enctype, enctype);
+    }
+    if(attributeNotEmpty(rel)){
+        form.setAttribute(attrKeys.rel, rel);
+    }
+    if(attributeNotEmpty(acceptCharset)){
+        form.setAttribute(attrKeys.acceptCharset, "accept-charset");
+    }
+    if(attributeNotEmpty(name)){
+        form.setAttribute(attrKeys.name, name);
+    }
+
+
+    this.htmlElement = form;
+
+    this.htmlElement.id = id;
+    this.calculateWrapContentSizes(node);
+};
+
+
+FormView.prototype.calculateWrapContentSizes = function (node) {
+    this.wrapWidth = 300;
+    this.wrapHeight = 320;
+};
+/**
+ *
  * @param {type} wkspc
  * @param {type} node
  * @returns {VideoView}
@@ -3030,6 +3289,10 @@ VideoView.prototype.createElement = function (node) {
     let muted = node.getAttribute(attrKeys.muted);
     let controls = node.getAttribute(attrKeys.controls);
     let preload = node.getAttribute(attrKeys.preload);
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
 
     if (attributeEmpty(sources)) {
         throw new Error('`sources` must be specified for view!');
@@ -3128,7 +3391,7 @@ VideoView.prototype.validateSources = function (jsonObj) {
 
 
 /**
- * 
+ *
  * @param {type} wkspc
  * @param {type} node
  * @returns {VideoView}
@@ -3144,7 +3407,10 @@ AudioView.prototype.createElement = function (node) {
     if (attributeEmpty(id)) {
         throw new Error('`id` must be specified for view!');
     }
-
+    let name = node.getAttribute(attrKeys.name);
+    if(attributeNotEmpty(name)){
+        this.htmlElement.setAttribute(attrKeys.name , name);
+    }
     let sources = node.getAttribute(attrKeys.sources);
     let autoplay = node.getAttribute(attrKeys.autoplay);
     let muted = node.getAttribute(attrKeys.muted);
@@ -3243,7 +3509,7 @@ function is2DArray(arr) {
 
     if (Object.prototype.toString.call(arr) === '[object Array]') {
 
-        for (var i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             if (Object.prototype.toString.call(arr[i]) !== '[object Array]') {
                 return false;
             }
@@ -3280,40 +3546,13 @@ function validateTableJson(jsonObj) {
 
 }
 
-/**
- * 
- * Processes an html node that represents a generated view and produces reusable duplicates with changed ids.
- * A template view is one which can be reused in a list or other recurring structure
- * @param {Workspace} wkspc
- * @param {HtmlNode} node
- * @returns {undefined}
- */
-
-let indexAllNodes = function (htmlNode) {
-    let templateIndex = (TEMPLATE_INDEX += 1);
-
-    if (htmlNode.hasChildNodes()) {
-        childNodes = htmlNode.childNodes;
-        for (let j = 0; j < childNodes.length; j++) {
-            let childNode = childNodes[j];
-            if (childNode.nodeName !== '#text' && childNode.nodeName !== '#comment') {
-                let childId = childNode.getAttribute(attrKeys.id);
-                childNode.setAttribute(attrKeys.id, childId + '_index_' + templateIndex);
-                this.createIndexedNodes(childNode);
-            }
-        }//end for loop
-    }
-
-
-
-};
 
 
 function isFontWeight(val) {
     if (val && typeof val === 'string') {
         if (val === 'bold' || val === 'bolder' || val === 'lighter' || val === 'normal' ||
-                val === '100' || val === '200' || val === '300' || val === '400' ||
-                val === '500' || val === '600' || val === '700' || val === '800' || val === '900') {
+            val === '100' || val === '200' || val === '300' || val === '400' ||
+            val === '500' || val === '600' || val === '700' || val === '800' || val === '900') {
             return true;
         }
     }
