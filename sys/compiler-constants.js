@@ -165,6 +165,25 @@ const attrKeys = {
     backgroundSize: "backgroundSize",
     backgroundClip: "backgroundClip",
     backgroundBlendMode: "background-blend-mode",
+
+    borderTop: 'borderTop',
+    borderBottom: 'borderBottom',
+    borderLeft: 'borderLeft',
+    borderRight: 'borderRight',
+    borderTopColor: 'borderTopColor',
+    borderBottomColor: 'borderBottomColor',
+    borderLeftColor: 'borderLeftColor',
+    borderRightColor: 'borderRightColor',
+    borderTopWidth: 'borderTopWidth',
+    borderBottomWidth: 'borderBottomWidth',
+    borderLeftWidth: 'borderLeftWidth',
+    borderRightWidth: 'borderRightWidth',
+    borderTopLeftRadius: "borderTopLeftRadius",
+    borderTopRightRadius: "borderTopRightRadius",
+    borderBottomLeftRadius: "borderBottomLeftRadius",
+    borderBottomRightRadius: "borderBottomRightRadius",
+
+
     boxShadow: "boxShadow",
     inputType: "inputType", //text or password
     text: "text",

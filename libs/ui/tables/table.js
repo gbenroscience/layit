@@ -4,6 +4,8 @@
  * and open the template in the editor.
  */
 
+let tableSheets = document.createElement('style');
+tableSheets.setAttribute('type', 'text/css');
 
 
 /* global StyleElement */
@@ -13,16 +15,16 @@
  * @param {string} colData A string which is the data to be placed in the TableCell
  * @param {Boolean} header if true, this TableCell must belong to a header row.
  * @param {Boolean} footer if true, this TableCell must belong to a footer row.
- * 
- * 
+ *
+ *
  * The table cell id is computed from the table id.
- * 
+ *
  * If the table id is smsc_table.
- * 
+ *
  * Then for the row on index 2, its id will be smsc_table_3
  * For a cell on index 1 on this row, the cell id will be smsc_table_3_2
- * 
- * 
+ *
+ *
  * @returns {TableCell}
  */
 function TableCell(colData, header, footer) {
@@ -49,7 +51,7 @@ function TableCell(colData, header, footer) {
  */
 TableCell.prototype.build = function () {
 
-    var td = (this.header === true || this.footer === true) ? document.createElement('th') : document.createElement('td');
+    let td = (this.header === true || this.footer === true) ? document.createElement('th') : document.createElement('td');
     addClass(td, this.className);
     td.setAttribute("id", this.id);
     if (this.rowSpan > 0) {
@@ -60,13 +62,13 @@ TableCell.prototype.build = function () {
     }
 
     if (this.listenerNames.length === this.listenerCodes.length) {
-        for (var i = 0; i < this.listenerCodes.length; i++) {
+        for (let i = 0; i < this.listenerCodes.length; i++) {
             td.addEventListener(this.listenerNames[i], this.listenerCodes[i]);
         }
     }
 
     td.innerHTML = this.colData;
-    var style = document.createElement('style');
+    let style = document.createElement('style');
     if (this.style.styleElements.length > 0) {
         style.type = 'text/css';
         style.innerHTML = this.style.getCss();
@@ -87,7 +89,7 @@ TableCell.prototype.listen = function (listenerName, listenerCode) {
     if (!listenerName || !listenerCode) {
         return;
     }
-    for (var i = 0; i < this.listenerNames.length; i++) {
+    for (let i = 0; i < this.listenerNames.length; i++) {
         if (listenerName === this.listenerNames[i]) {
             this.listenerCodes[i] = listenerCode;
             return;
@@ -106,9 +108,9 @@ TableCell.prototype.listen = function (listenerName, listenerCode) {
 TableCell.prototype.setRowSpan = function (rowSpan) {
     this.rowSpan = rowSpan;
     if (this.id !== null && this.id !== '') {
-        var td = document.getElementById(this.id);
-        if (td && td !== null) {
-            var td = document.getElementById(this.id);
+        let td = document.getElementById(this.id);
+        if (td) {
+            let td = document.getElementById(this.id);
             td.rowSpan = rowSpan;
         }
     }
@@ -129,9 +131,9 @@ TableCell.prototype.getRowSpan = function () {
 TableCell.prototype.setColSpan = function (colSpan) {
     this.colSpan = colSpan;
     if (this.id !== null && this.id !== '') {
-        var td = document.getElementById(this.id);
-        if (td && td !== null) {
-            var td = document.getElementById(this.id);
+        let td = document.getElementById(this.id);
+        if (td) {
+            let td = document.getElementById(this.id);
             td.colSpan = colSpan;
         }
     }
@@ -152,7 +154,7 @@ TableCell.prototype.getColSpan = function () {
 TableCell.prototype.setColData = function (colData) {
     this.colData = colData;
     if (this.id !== null && this.id !== '') {
-        var td = document.getElementById(this.id);
+        let td = document.getElementById(this.id);
         if (td && td !== null) {
             td.innerHTML = this.colData;
         }
@@ -160,13 +162,13 @@ TableCell.prototype.setColData = function (colData) {
     }
 };
 /**
- * 
+ *
  * @returns {String} The column data to be displayed in the TableCell..text or html.
  */
 TableCell.prototype.getColData = function () {
     return this.colData;
 };
-/** 
+/**
  * TableCell function<br>
  * @param {Style} style The style to use on this TableCell
  * @returns {undefined}
@@ -174,20 +176,20 @@ TableCell.prototype.getColData = function () {
 TableCell.prototype.setStyle = function (style) {
     this.style = style;
 };
-/** 
+/**
  * TableCell function<br>
  * @returns {Style} The style to use on this TableCell
  */
 TableCell.prototype.getStyle = function () {
     return this.style;
 };
-/** 
+/**
  * TableCell function
  * @returns {Style} Refreshes inline styles of a td object.
  */
 TableCell.prototype.reloadStyles = function () {
     if (this.id !== null && this.id !== '') {
-        var td = document.getElementById(this.id);
+        let td = document.getElementById(this.id);
         if (td !== null) {
             td.style.type = 'text/css';
             td.style.innerHTML = this.style.getCss();
@@ -263,7 +265,7 @@ TableCell.prototype.removeStyleElemCss = function (styleAttr) {
 TableCell.prototype.setId = function (id) {
     this.style.name = "#" + id;
     if (this.id !== null && this.id !== '') {
-        var td = document.getElementById(this.id);
+        let td = document.getElementById(this.id);
         if (td !== null) {
             td.setAttribute("id", id);
         }
@@ -286,10 +288,10 @@ TableCell.prototype.getId = function () {
 TableCell.prototype.setHeader = function (header) {
     this.header = header;
     if (this.id !== null && this.id !== '') {
-        var td = document.getElementById(this.id);
+        let td = document.getElementById(this.id);
         if (td !== null) {
-            var tr = td.parentNode;
-            var th = header === true ? document.createElement("th") : document.createElement("td");
+            let tr = td.parentNode;
+            let th = header === true ? document.createElement("th") : document.createElement("td");
             th.setAttribute("id", td.getAttribute("id"));
             th.style = td.style;
             replaceInParent(td, th);
@@ -315,16 +317,14 @@ TableCell.prototype.getHeader = function () {
 TableCell.prototype.setFooter = function (footer) {
     this.footer = footer;
     if (this.id !== null && this.id !== '') {
-        var td = document.getElementById(this.id);
+        let td = document.getElementById(this.id);
         if (td !== null) {
-            var tr = td.parentNode;
-            var th = footer === true ? document.createElement("th") : document.createElement("td");
+            let tr = td.parentNode;
+            let th = footer === true ? document.createElement("th") : document.createElement("td");
             th.setAttribute("id", td.getAttribute("id"));
             th.style = td.style;
             replaceInParent(td, th);
         }
-
-
     }
 };
 /**
@@ -343,21 +343,22 @@ TableCell.prototype.getFooter = function () {
 TableCell.prototype.addStyle = function (attrName, attrVal) {
     this.style.addStyleElement(attrName, attrVal);
 };
+
 /**
- * 
+ *
  * @param {Array} colData An array of strings containing the data to be placed in the columns
  * @param {Boolean} header If true, then this row is an header row
  * @param {Boolean} footer If true, then this row is a footer row
- * 
+ *
  * @returns {TableRow}
- * Note: Cell ids are auto generated and can be accessed using the 
+ * Note: Cell ids are auto generated and can be accessed using the
  * TableRow.getCellIdAt(column) function.
  * Individual cells can also be styled using the TableRow.addColumnStyleElement
  * function or accessing the TableCell by its index and then styling it by adding
  * StyleElement objects to its Style property.
  */
 function TableRow(colData, header, footer) {
-    var colDat = colData !== null ? colData : [];
+    let colDat = colData !== null ? colData : [];
     this.id = '';
     this.className = "";
     this.style = new Style("#" + this.id, []);
@@ -367,8 +368,8 @@ function TableRow(colData, header, footer) {
      * Accomodates TableCell objects.
      */
     this.tableCells = [];
-    for (var i = 0; i < colDat.length; i++) {
-        var tableCell = new TableCell(colDat[i], header, footer);
+    for (let i = 0; i < colDat.length; i++) {
+        let tableCell = new TableCell(colDat[i], header, footer);
         tableCell.setId(this.getCellIdAt(i));
         tableCell.setStyle(new Style("#" + tableCell.getId(), []));
         this.tableCells[this.tableCells.length] = tableCell;
@@ -377,16 +378,14 @@ function TableRow(colData, header, footer) {
 }
 
 
-
 /**
  * A TableRow function
  * The factory function that generates the HTML code for the table row.
- * @returns {StringBuffer.prototype@pro;dataArray@call;join}
+ * @returns {HTMLTableRowElement} A tr element
  */
 TableRow.prototype.getHtml = function () {
 
-
-    var tr = document.createElement("tr");
+    let tr = document.createElement("tr");
     if (this.id !== null && this.id !== '') {
         tr.setAttribute('id', this.id);
     }
@@ -394,25 +393,18 @@ TableRow.prototype.getHtml = function () {
         addClass(tr, this.className);
     }
 
-
-
-    var style = document.createElement('style');
     if (this.style.styleElements.length > 0) {
-        style.type = 'text/css';
-        style.innerHTML = this.style.getCss();
-        tr.style = style;
+        if (!this.style.isEmpty()) {
+            updateOrCreateSelectorInStyleSheet(tableSheets, this.style);
+        }
     }
 
-
-
-    var columns = this.size();
-    for (var i = 0; i < columns; i++) {
-        var tableCell = this.tableCells[i];
+    let columns = this.size();
+    for (let i = 0; i < columns; i++) {
+        let tableCell = this.tableCells[i];
         tableCell.setId(this.id + '_' + i);
         tr.appendChild(tableCell.build());
     }
-
-
 
     return tr;
 };
@@ -432,7 +424,7 @@ TableRow.prototype.getCellIdAt = function (column) {
 TableRow.prototype.setId = function (id) {
     this.style.name = "#" + id;
     if (this.id !== null && this.id !== '') {
-        var tr = document.getElementById(this.id);
+        let tr = document.getElementById(this.id);
         if (tr !== null) {
             tr.setAttribute("id", id);
         }
@@ -455,13 +447,13 @@ TableRow.prototype.getId = function () {
 TableRow.prototype.getTableCell = function (column) {
     return this.tableCells[column];
 };
-/** 
+/**
  * TableCell function
- * @returns {Style} Refreshes inline styles of a td object.
+ * @returns {Style} Refreshes inline styles of a tr object.
  */
 TableRow.prototype.reloadStyles = function () {
     if (this.id !== null && this.id !== '') {
-        var tr = document.getElementById(this.id);
+        let tr = document.getElementById(this.id);
         if (tr !== null) {
             tr.style.type = 'text/css';
             tr.style.innerHTML = this.style.getCss();
@@ -550,7 +542,7 @@ TableRow.prototype.addStyleElemCss = function (css) {
  * <i>Styles a TableRow</i>
  * @param {Integer} column The column to change.
  * @param {Integer} colspan The colspan to set.
- * 
+ *
  * @returns {undefined}
  */
 TableRow.prototype.setColSpanAt = function (column, colspan) {
@@ -561,7 +553,7 @@ TableRow.prototype.setColSpanAt = function (column, colspan) {
  * <i>Styles a TableRow</i>
  * @param {Integer} column The column of the TableCell to change.
  * @param {rowSpan} rowSpan The rowspan to set.
- * 
+ *
  * @returns {undefined}
  */
 TableRow.prototype.setRowSpanAt = function (column, rowSpan) {
@@ -595,17 +587,17 @@ TableRow.prototype.removeStyleElemCss = function (styleAttr) {
  */
 TableRow.prototype.setHeader = function (header) {
     if (this.header !== header) {
-        if (this.id && this.id !== null) {
-            var tr = document.getElementById(this.id);
-            if (tr && tr !== null) {
+        if (this.id) {
+            let tr = document.getElementById(this.id);
+            if (tr) {
                 if (header === true) {
                     if (tr.parentNode.nodeName.toLowerCase() !== 'thead') {
-                        var thead = document.createTextNode("thead");
+                        let thead = document.createTextNode("thead");
                         thead.appendChild(tr);
                     }
                 } else {
                     if (tr.parentNode.nodeName.toLowerCase() === 'thead') {
-                        var parent = tr.parentNode;
+                        let parent = tr.parentNode;
                         replaceInParent(parent, tr);
                     }
                 }
@@ -629,17 +621,17 @@ TableRow.prototype.setFooter = function (footer) {
 
 
     if (this.footer !== footer) {
-        if (this.id && this.id !== null) {
-            var tr = document.getElementById(this.id);
-            if (tr && tr !== null) {
+        if (this.id) {
+            let tr = document.getElementById(this.id);
+            if (tr) {
                 if (footer === true) {
                     if (tr.parentNode.nodeName.toLowerCase() !== 'tfoot') {
-                        var thead = document.createTextNode("tfoot");
+                        let thead = document.createTextNode("tfoot");
                         thead.appendChild(tr);
                     }
                 } else {
                     if (tr.parentNode.nodeName.toLowerCase() === 'tfoot') {
-                        var parent = tr.parentNode;
+                        let parent = tr.parentNode;
                         replaceInParent(parent, tr);
                     }
                 }
@@ -677,9 +669,9 @@ TableRow.prototype.size = function () {
  */
 TableRow.prototype.setStyle = function (style) {
     this.style = style;
-    if (this.id && this.id !== null) {
-        var tr = document.getElementById(this.id);
-        if (tr && tr !== null) {
+    if (this.id) {
+        let tr = document.getElementById(this.id);
+        if (tr) {
             this.reloadStyles();
         }
     }
@@ -691,6 +683,7 @@ TableRow.prototype.setStyle = function (style) {
 TableRow.prototype.getStyle = function () {
     return this.style;
 };
+
 function logIfConsole(text) {
     if (typeof console !== 'undefined') {
         console.log(text);
@@ -698,8 +691,9 @@ function logIfConsole(text) {
         print(text);
     }
 }
+
 /**
- * 
+ *
  * The format for options is like this:
  * <br>
  * <code>
@@ -784,12 +778,10 @@ function Table(options) {
      */
     this.validObject = false;
     if (!options) {
-        logIfConsole("No options specified for creating the table.");
-        return;
+        throw new Error("No options specified for creating the table.");
     }
     if (!options.id) {
-        logIfConsole("Please specify the table id... e.g. `id: table_id`");
-        return;
+        throw new Error("Please specify the table id... e.g. `id: table_id`");
     }
 
     if (isEmptyText(options.fontSize)) {
@@ -900,16 +892,13 @@ function Table(options) {
     }
 
 
-
-
-
     this.id = options.id;
 
     this.headers = [];
     this.rows = [];
     this.pageSize = 10000;
     this.pageNumber = 1;
-    var onPrev, onNext;
+    let onPrev, onNext;
     if (options.page && typeof options.page === 'object') {
         if (typeof options.page["size"] === 'number') {
             this.pageSize = options.page["size"];
@@ -920,19 +909,20 @@ function Table(options) {
         if (options.page["onPrev"]) {
             onPrev = options.page["onPrev"];
         } else {
-            onPrev = function () {};
+            onPrev = function () {
+            };
         }
         if (options.page["onNext"]) {
             onNext = options.page["onNext"];
         } else {
-            onNext = function () {};
+            onNext = function () {
+            };
         }
 
     }
 
 
-
-    var pagerOptions = {};
+    let pagerOptions = {};
     pagerOptions['id'] = this.getPagerClass();
     pagerOptions['background'] = 'white';
     pagerOptions['theme'] = this.colorTheme;
@@ -970,10 +960,10 @@ function Table(options) {
         if (this.isOneDimensionalArray(options.headers)) {
             this.headers = options.headers;
             loadHeaders:{
-                var row = new TableRow(this.headers, true, false);
+                let row = new TableRow(this.headers, true, false);
                 row.className = this.id + "_row";
 
-                for (var i = 0; i < this.headers.length; i++) {
+                for (let i = 0; i < this.headers.length; i++) {
                     row.tableCells[i].className = this.getTableCellClass();
                     row.tableCells[i].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
                 }
@@ -1006,12 +996,12 @@ function Table(options) {
 
         initRows:{
             loadData:{
-                for (var i = 0; i < options.data.length; i++) {
+                for (let i = 0; i < options.data.length; i++) {
 
-                    var rw = options.data[i];
-                    var row = new TableRow(rw, false, this.hasFooter === true ? (i === options.data.length - 1) : false);
+                    let rw = options.data[i];
+                    let row = new TableRow(rw, false, this.hasFooter === true ? (i === options.data.length - 1) : false);
                     row.className = this.id + "_row";
-                    for (var j = 0; j < row.tableCells.length; j++) {
+                    for (let j = 0; j < row.tableCells.length; j++) {
                         row.tableCells[j].className = this.getTableCellClass();
                         row.tableCells[j].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
                     }
@@ -1027,12 +1017,11 @@ function Table(options) {
     }
 
 
-
     this.mainStyle = new Style("#" + this.id, []);
     this.headerStyle = new Style("#" + this.id, []);
     this.contentAreaStyle = new Style("#" + this.id, []);
     this.tableStyle = new Style("#" + this.id, []);
-    this.tableTrNotFirstChildStyle = new Style("#" + this.id_ + "_11", []);
+    this.tableTrNotFirstChildStyle = new Style("#" + this.id + "_11", []);
     this.tableTrTdFirstChildBeforeStyle = new Style("#" + this.id + "_22", []);
     this.captionStyle = new Style("#" + this.id, []);
     this.imageStyle = new Style("#" + this.id, []);
@@ -1040,14 +1029,14 @@ function Table(options) {
     this.contentFooterStyle = new Style("#" + this.id, []);
     this.contentFooterTextStyle = new Style("#" + this.id, []);
     this.pagerStyle = new Style("#" + this.id, []);
-    var wid = this.width;
+    let wid = this.width;
     initTableContainerCss:{
 
         this.mainStyle.addFromOptions({
             "float": "left",
             "width": wid,
             "padding": "0.0em",
-            "margin": "0.75em calc( ( 100% - " + wid + " ) / 2)",
+            "margin": "0",// "0.75em calc( ( 100% - " + wid + " ) / 2)",
             "font-size": options.fontSize,
             "font-weight": "normal",
             "font-family": "\"Open Sans\",sans-serif"
@@ -1055,20 +1044,17 @@ function Table(options) {
         //  this.mainStyle.addStyleElement("text-align", "center");
 
         if (typeof options["main-style"] === "object") {
-            var mainStyleCss = options["main-style"];
-            for (var key in mainStyleCss) {
+            let mainStyleCss = options["main-style"];
+            for (let key in mainStyleCss) {
                 this.mainStyle.addStyleElement(key, mainStyleCss[key]);
             }
         }
     }
 
 
-
-
-    var cellpdd = this.cellPadding;
-    var colorTh = this.colorTheme;
+    let cellpdd = this.cellPadding;
+    let colorTh = this.colorTheme;
     initHeaderCss:{
-
 
 
         this.headerStyle.addFromOptions({
@@ -1084,14 +1070,13 @@ function Table(options) {
 
         });
         if (typeof options["header-style"] === "object") {
-            var headerStyleCss = options["header-style"];
-            for (var key in headerStyleCss) {
+            let headerStyleCss = options["header-style"];
+            for (let key in headerStyleCss) {
                 this.headerStyle.addStyleElement(key, headerStyleCss[key]);
             }
 
         }
     }
-
 
 
     initImageCss:{
@@ -1106,8 +1091,8 @@ function Table(options) {
 
         });
         if (typeof options["image-style"] === "object") {
-            var imageCss = options["image-style"];
-            for (var key in imageCss) {
+            let imageCss = options["image-style"];
+            for (let key in imageCss) {
                 this.imageStyle.addStyleElement(key, imageCss[key]);
             }
 
@@ -1115,10 +1100,8 @@ function Table(options) {
     }
 
 
-
-
     initContentAreaCss:{
-        var containerExists = this.hasContainer;
+        let containerExists = this.hasContainer;
         if (containerExists === true) {
 
             this.contentAreaStyle.addFromOptions({
@@ -1151,17 +1134,14 @@ function Table(options) {
         // this.contentAreaStyle.addStyleElement("border-top-right-radius", "0.3em");
 
 
-
         if (typeof options["content-area-style"] === "object") {
-            var contentAreaCss = options["content-area-style"];
-            for (var key in contentAreaCss) {
+            let contentAreaCss = options["content-area-style"];
+            for (let key in contentAreaCss) {
                 this.contentAreaStyle.addStyleElement(key, contentAreaCss[key]);
             }
 
         }
     }
-
-
 
 
     initTableStyleCss:{
@@ -1195,7 +1175,6 @@ function Table(options) {
          */
 
 
-
         if (this.withNumbering === true) {
             this.tableStyle.addFromOptions({
                 "counter-reset": "rowNumber 1"
@@ -1208,21 +1187,19 @@ function Table(options) {
             this.tableTrTdFirstChildBeforeStyle.addFromOptions({
                 "content": "counter(rowNumber) '.'",
                 "min-width": "1em",
-                "margin-right": "2.5em"
+                "margin-right": "1em"
             });
         }
         //this.alternateBackgroundColors("lightgray","white");
         //this.alternateForegroundColors("red", "green");
 
         if (typeof options["table-style"] === "object") {
-            var tableStyleCss = options["table-style"];
-            for (var key in tableStyleCss) {
+            let tableStyleCss = options["table-style"];
+            for (let key in tableStyleCss) {
                 this.tableStyle.addStyleElement(key, tableStyleCss[key]);
             }
         }
     }
-
-
 
 
     initContentHeaderDivCss:{
@@ -1233,8 +1210,8 @@ function Table(options) {
             width: "100%"
         });
         if (typeof options["content-header-style"] === "object") {
-            var contentHeaderCss = options["content-header-style"];
-            for (var key in contentHeaderCss) {
+            let contentHeaderCss = options["content-header-style"];
+            for (let key in contentHeaderCss) {
                 this.contentHeaderStyle.addStyleElement(key, contentHeaderCss[key]);
             }
 
@@ -1255,14 +1232,12 @@ function Table(options) {
 
         });
         if (typeof options["caption-style"] === "object") {
-            var captionStyleCss = options["caption-style"];
-            for (var key in captionStyleCss) {
+            let captionStyleCss = options["caption-style"];
+            for (let key in captionStyleCss) {
                 this.captionStyle.addStyleElement(key, captionStyleCss[key]);
             }
         }
     }
-
-
 
 
     initContentFooterCss:{
@@ -1290,8 +1265,8 @@ function Table(options) {
             "font-family": "\"Open Sans\",sans-serif"
         });
         if (typeof options["content-footer-text-style"] === "object") {
-            var contentFooterTextCss = options["content-footer-text-style"];
-            for (var key in contentFooterTextCss) { 
+            let contentFooterTextCss = options["content-footer-text-style"];
+            for (let key in contentFooterTextCss) {
                 this.contentFooterTextStyle.addStyleElement(key, contentFooterTextCss[key]);
             }
 
@@ -1311,30 +1286,27 @@ function Table(options) {
 
         });
         if (typeof options["pager-style"] === "object") {
-            var pagerStyleCss = options["pager-style"];
-            for (var key in pagerStyleCss) {
+            let pagerStyleCss = options["pager-style"];
+            for (let key in pagerStyleCss) {
                 this.pagerStyle.addStyleElement(key, pagerStyleCss[key]);
             }
         }
     }
 
 
-
-
-
-    var a1 = this.getTableContainerClass();
-    var a2 = this.getHeaderClass();
-    var a3 = this.getImageClass();
-    var a4 = this.getTableContentAreaClass();
-    var a5 = this.className;
-    var a6 = this.getTableCaptionClass();
-    var a7 = this.getTableCellClass();
-    var a8 = this.getContentFooterClass();
-    var a9 = this.getContentFooterTextClass();
-    var a10 = this.getContentHeaderClass();
-    var a11 = this.getPagerClass();
-    var a12 = this.getTableTrTdFirstChildBeforeClass();
-    var a13 = this.getTableTrNotFirstChildClass();
+    let a1 = this.getTableContainerClass();
+    let a2 = this.getHeaderClass();
+    let a3 = this.getImageClass();
+    let a4 = this.getTableContentAreaClass();
+    let a5 = this.className;
+    let a6 = this.getTableCaptionClass();
+    let a7 = this.getTableCellClass();
+    let a8 = this.getContentFooterClass();
+    let a9 = this.getContentFooterTextClass();
+    let a10 = this.getContentHeaderClass();
+    let a11 = this.getPagerClass();
+    let a12 = this.getTableTrTdFirstChildBeforeClass();
+    let a13 = this.getTableTrNotFirstChildClass();
 
 
     this.registry = {};
@@ -1366,7 +1338,7 @@ function Table(options) {
 }
 
 Table.prototype.assignParent = function (parent) {
-    const entity = parent;
+    let entity = parent;
     if (entity) {
         if (typeof entity === 'string') {
             entity = document.getElementById(entity);
@@ -1384,8 +1356,18 @@ Table.prototype.assignParent = function (parent) {
     this.parentId = entity.id;
 };
 
+Table.prototype.getCurrentWidth = function () {
+    let container = document.getElementById(this.getTableContainerId());
+    return parseInt(window.getComputedStyle(container).width);
+};
+
+Table.prototype.getCurrentHeight = function () {
+    let container = document.getElementById(this.getTableContainerId());
+    return parseInt(window.getComputedStyle(container).height);
+};
+
 /**
- * 
+ *
  * @param {type} arr Is this object a 2D array.
  * @returns {Boolean} if the ssupplie parameter is a 2D array.
  */
@@ -1393,7 +1375,7 @@ Table.prototype.isOneDimensionalArray = function (arr) {
     return Object.prototype.toString.call(arr) === '[object Array]';
 };
 /**
- * 
+ *
  * @param {type} arr Is this object a 2D array.
  * @returns {Boolean} if the supplied parameter is a 2D array.
  */
@@ -1401,7 +1383,7 @@ Table.prototype.is2DArray = function (arr) {
 
     if (Object.prototype.toString.call(arr) === '[object Array]') {
 
-        for (var i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             if (Object.prototype.toString.call(arr[i]) !== '[object Array]') {
                 return false;
             }
@@ -1412,83 +1394,89 @@ Table.prototype.is2DArray = function (arr) {
     return false;
 };
 /**
- * 
+ *
  * @returns {string} The id of the area of the table's topmost parent container.
  */
 Table.prototype.getTableContainerId = function () {
     return this.id + "_container";
 };
 /**
- * 
+ *
  * @returns {string} The id of the area of the table's topmost parent container's header.
  */
 Table.prototype.getHeaderID = function () {
     return this.id + "_header";
 };
 /**
- * 
+ *
  * @returns {string} The id of the area of the table immediately beneath the main container's header
  */
 Table.prototype.getTableContentAreaId = function () {
     return this.id + "_content_area";
 };
+
+
 /**
- * 
+ *
  * @returns {string} The id of the icon.
  */
 Table.prototype.getImageId = function () {
     return this.id + "_icon";
 };
 /**
- * 
+ *
  * @returns {string} The id of the bottom div.
  */
 Table.prototype.getContentFooterId = function () {
     return this.id + "_content_footer_id";
 };
 /**
- * 
+ *
  * @returns {string} The class of the bottom div.
  */
 Table.prototype.getContentFooterClass = function () {
     return this.id + "_content_footer_class";
 };
 /**
- * 
+ *
  * @returns {string} The id of the bottom div.
  */
 Table.prototype.getContentHeaderId = function () {
     return this.id + "_content_header_id";
-}; /**
- * 
+};
+/**
+ *
  * @returns {string} The class of the bottom div.
  */
 Table.prototype.getContentHeaderClass = function () {
     return this.id + "_content_header_class";
 };
 /**
- * 
+ *
  * @returns {string} The id of the icon.
  */
 Table.prototype.getImageClass = function () {
     return this.id + "_icon_class";
 };
 /**
- * 
+ *
  * @returns {string} The class name of the area of the table immediately beneath the main container's header
  */
 Table.prototype.getTableContentAreaClass = function () {
     return this.id + "_content_area_class";
 };
+Table.prototype.getCaptionClass = function () {
+    return this.id + "_caption_class";
+};
 /**
- * 
+ *
  * @returns {string} The class name of the area of the table immediately beneath the main container's header
  */
 Table.prototype.getTableCaptionClass = function () {
     return this.id + "_caption_class";
 };
 /**
- * 
+ *
  * @returns {string} The class of the area of the table's topmost parent container.
  */
 Table.prototype.getTableContainerClass = function () {
@@ -1496,7 +1484,7 @@ Table.prototype.getTableContainerClass = function () {
 };
 
 /**
- * 
+ *
  * @returns {string} The class of the area of the table's topmost parent container.
  */
 Table.prototype.getTableTrTdFirstChildBeforeClass = function () {
@@ -1504,7 +1492,7 @@ Table.prototype.getTableTrTdFirstChildBeforeClass = function () {
 };
 
 /**
- * 
+ *
  * @returns {string} The class of the area of the table's topmost parent container.
  */
 Table.prototype.getTableTrNotFirstChildClass = function () {
@@ -1512,36 +1500,36 @@ Table.prototype.getTableTrNotFirstChildClass = function () {
 };
 
 /**
- * 
+ *
  * @returns {string} The class of the table's pager.
  */
 Table.prototype.getPagerClass = function () {
     return this.id + "_pager_class";
 };
 /**
- * 
+ *
  * @returns {string} The class of the area of the table's topmost parent container's header.
  */
 Table.prototype.getHeaderClass = function () {
     return this.id + "_header_class";
 };
 /**
- * 
+ *
  * @returns {String}
  */
 Table.prototype.getTableCellClass = function () {
     return this.id + "_tbody_text_class";
 };
 /**
- * 
+ *
  * @returns {string} The class name of text on the content footer.
  */
 Table.prototype.getContentFooterTextClass = function () {
     return this.id + "_footer_text_class";
 };
 /**
- * 
- * @param {type} parent The html element that will be the parent of this table.
+ *
+ * @param {HTMLElement} parent The html element that will be the parent of this table.
  * For replacement purposes, it is advised that the parent should have this table to be its only child
  * @returns {StringBuffer.prototype@pro;dataArray@call;join}
  */
@@ -1549,7 +1537,7 @@ Table.prototype.build = function (parent) {
 
     this.assignParent(parent);
 
-    var checkMainDiv = document.getElementById(this.getTableContainerId());
+    let checkMainDiv = document.getElementById(this.getTableContainerId());
     if (checkMainDiv) {
         parent.removeChild(checkMainDiv);
     }
@@ -1558,16 +1546,15 @@ Table.prototype.build = function (parent) {
     checkMainDiv.setAttribute("id", this.getTableContainerId());
     addClass(checkMainDiv, this.getTableContainerClass());
     checkMainDiv.appendChild(this.buildHeader());
-    var table = this.buildTable();
+    let table = this.buildTable();
 
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    var css = new StringBuffer();
-    for (var key in this.registry) {
-        css.append(this.registry[key].styleSheetEntry("." + key));
+
+    for (let key in this.registry) {
+        let stl = this.registry[key];
+        stl.name = '.'+key;
+        updateOrCreateSelectorInStyleSheet(tableSheets , stl);
     }
 
-    style.innerHTML = css.toString();
     if (this.hasContainer === true) {
         checkMainDiv.appendChild(table);
         parent.appendChild(checkMainDiv);
@@ -1575,18 +1562,18 @@ Table.prototype.build = function (parent) {
         parent.appendChild(table);
     }
 
-    document.getElementsByTagName('head')[0].appendChild(style);
-    var pager = this.pager;
-    pager.draw();
+    this.makeScrollable();
 
+    let pager = this.pager;
+    pager.draw();
 
     this.buildCalled = true;
 
-
 };
+
 Table.prototype.buildHeader = function () {
 
-    var headerDiv;
+    let headerDiv;
     if (isEmptyText(this.icon)) {
         headerDiv = document.createElement("div");
         headerDiv.setAttribute("id", this.getHeaderID());
@@ -1596,7 +1583,7 @@ Table.prototype.buildHeader = function () {
         headerDiv = document.createElement("div");
         headerDiv.setAttribute("id", this.getHeaderID());
         addClass(headerDiv, this.getHeaderClass());
-        var img = document.createElement("img");
+        let img = document.createElement("img");
         img.setAttribute("id", this.getImageId());
         addClass(img, this.getImageClass());
         img.src = this.icon;
@@ -1609,12 +1596,12 @@ Table.prototype.buildHeader = function () {
 };
 Table.prototype.buildContentFooter = function () {
 
-    var mainDiv = document.createElement("div");
+    let mainDiv = document.createElement("div");
     mainDiv.setAttribute("id", this.getContentFooterId());
     addClass(mainDiv, this.getContentFooterClass());
     addClass(mainDiv, "unselectable");
     if (!isEmptyText(this.footerText)) {
-        var span = document.createElement("span");
+        let span = document.createElement("span");
         span.setAttribute("id", this.getContentFooterTextClass());
         addClass(span, this.getContentFooterTextClass());
         span.appendChild(document.createTextNode(this.footerText));
@@ -1632,13 +1619,14 @@ Table.prototype.buildContentFooter = function () {
 };
 /**
  * A Table function
- * Factory funcion that produces the HTML output of this
+ * Factory function that produces the HTML output of this
  * javascript brouhaha.
  * @returns {StringBuffer.prototype@pro;dataArray@call;join}
  */
 Table.prototype.buildTable = function () {
 
-    var mainDiv = document.createElement('div');
+    let mainDiv = document.createElement('div');
+    let tableWrapper = document.createElement('div');
     mainDiv.setAttribute("id", this.getTableContentAreaId());
     addClass(mainDiv, this.getTableContentAreaClass());
     mainDiv.appendChild(this.buildContentHeader());
@@ -1647,34 +1635,39 @@ Table.prototype.buildTable = function () {
 
     return mainDiv;
 };
+
+
 /**
- * 
+ *
  * A Table function
  * Factory funcion that produces the HTML output of this
  * javascript brouhaha.
- * 
+ *
  * @returns {Element|Table.prototype.buildRawTable.table}
  */
 Table.prototype.buildRawTable = function () {
 
-    var table = document.createElement('table');
+    let div = document.createElement('div');
+
+    let table = document.createElement('table');
     if (this.id !== null && this.id !== '') {
         table.setAttribute("id", this.id);
     }
     if (this.className !== null && this.className !== '') {
         addClass(table, this.className);
     }
+
     if (this.hasCaption === true) {
-        var caption = table.createCaption();
+        let caption = table.createCaption();
         addClass(caption, this.getCaptionClass());
         caption.innerHTML = this.caption;
     }
-    var rowLen = this.getRowLength();
-    var thead = table.createTHead();
-    var tbody = table.createTBody();
-    var tfoot = table.createTFoot();
-    for (var i = 0; i < rowLen; i++) {
-        var row = this.rows[i];
+    let rowLen = this.getRowLength();
+    let thead = table.createTHead();
+    let tbody = table.createTBody();
+    let tfoot = table.createTFoot();
+    for (let i = 0; i < rowLen; i++) {
+        let row = this.rows[i];
         row.setId(this.id + '_' + i);
         if (row.header === true) {
             thead.appendChild(row.getHtml());
@@ -1685,29 +1678,64 @@ Table.prototype.buildRawTable = function () {
         if (row.header !== true && row.footer !== true) {
             tbody.appendChild(row.getHtml());
         }
-
     }
 
 
     return table;
 };
 /**
- *  Generate the ui portion just above the table but still within the 
+ * Reference... accepted answer on:
+ * https://stackoverflow.com/questions/23989463/how-to-set-tbody-height-with-overflow-scroll
+ */
+Table.prototype.makeScrollable = function () {
+
+    let tbodyStyle = new Style('table#'+this.id + ' > tbody' , []);
+    if(this.scrollable === true){
+        tbodyStyle.addFromOptions({
+            display: 'block',
+            height: this.scrollHeight,
+            overflow: 'auto',
+        });
+    }
+
+    let theadAndTRsInTbodyStyle = new Style('table#'+this.id + ' > thead , ' + 'table#'+this.id + " > tbody tr " , []);
+
+    if(this.scrollable === true){
+    theadAndTRsInTbodyStyle.addFromOptions({
+        display: 'table',
+        width: '100%',
+        'table-layout': 'fixed'// even columns width , fix width of table too
+    });
+    }
+
+    let scrollBarWidth = getScrollBarWidth();
+    let theadStyle = new Style('table#'+this.id + ' thead',[]);
+    if(this.scrollable === true) {
+        theadStyle.addFromOptions({
+            width: 'calc( 100% - ' + scrollBarWidth + 'px )'// scrollbar is average 1em/16px width, remove it from thead width
+        });
+    }
+    updateOrCreateSelectorsInStyleSheet(tableSheets , [tbodyStyle , theadAndTRsInTbodyStyle, theadStyle]);
+};
+
+
+/**
+ *  Generate the ui portion just above the table but still within the
  * content area that contains the table. SearchableTable and GrowableTable
  * work by adding a Search field and a button respectively to this ui-area.
- * 
+ *
  * @returns {Element|Table.prototype.buildContentHeader.div}
  */
 Table.prototype.buildContentHeader = function () {
 
-    var div = document.createElement('div');
+    let div = document.createElement('div');
     div.setAttribute('id', this.getContentHeaderId());
     addClass(div, this.getContentHeaderClass());
     return div;
 };
 Table.prototype.buildPager = function () {
 
-    var canvas = document.createElement("canvas");
+    let canvas = document.createElement("canvas");
     canvas.setAttribute("id", this.pager.id);
     addClass(canvas, this.getPagerClass());
     canvas.setAttribute("width", this.pager.canvasWidth);
@@ -1769,7 +1797,7 @@ Table.prototype.reloadHeaders = function () {
     let row = new TableRow(this.headers, true, false);
     row.className = this.id + "_row";
 
-    for (var i = 0; i < this.headers.length; i++) {
+    for (let i = 0; i < this.headers.length; i++) {
         row.tableCells[i].className = this.getTableCellClass();
         row.tableCells[i].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
     }
@@ -1793,7 +1821,7 @@ Table.prototype.setHeaders = function (headers) {
 };
 
 /**
- * 
+ *
  * @param {type} data A 2d array of textual rows to add to the table.
  * @returns {undefined}
  */
@@ -1808,19 +1836,19 @@ Table.prototype.addRows = function (data) {
         }
 
 
-        for (var i = 0; i < data.length; i++) {
-            var rw = data[i];
-            var row = new TableRow(rw, false, false);
+        for (let i = 0; i < data.length; i++) {
+            let rw = data[i];
+            let row = new TableRow(rw, false, false);
             row.className = this.id + "_row";
-            for (var j = 0; j < row.tableCells.length; j++) {
+            for (let j = 0; j < row.tableCells.length; j++) {
                 row.tableCells[j].className = this.getTableCellClass();
                 row.tableCells[j].addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
             }
             this.rows.push(row);
         }
 
-        for (var i = 0; i < this.rows.length; i++) {
-            var row = this.rows[i];
+        for (let i = 0; i < this.rows.length; i++) {
+            let row = this.rows[i];
             row.setHeader(i === 0);
             row.setFooter(this.hasFooter === true ? i === this.rows.length - 1 : false);
         }
@@ -1862,17 +1890,16 @@ Table.prototype.clear = function (headersIncluded, autoRefresh) {
  * @returns {undefined}
  */
 Table.prototype.notifyDataSetChanged = function () {
-    var table = document.getElementById(this.id);
+    let table = document.getElementById(this.id);
     if (table && table !== null) {
-        var parentNode = table.parentNode;
-        var tableHtml = this.buildRawTable().outerHTML; // the new data structure of the table.
-
+        let parentNode = table.parentNode;
+        let tableHtml = this.buildRawTable().outerHTML; // the new data structure of the table.
 
 
         if (table.outerHTML) { //if outerHTML is supported
-            table.outerHTML = tableHtml; ///it's simple replacement of whole element with contents of str var
+            table.outerHTML = tableHtml; ///it's simple replacement of whole element with contents of str let
         } else { //if outerHTML is not supported, there is a weird but crossbrowsered trick
-            var tmpObj = document.createElement("div");
+            let tmpObj = document.createElement("div");
             tmpObj.innerHTML = '<!--REPLACE THIS-->';
             parentNode.replaceChild(tmpObj, table); //here we placing our temporary data instead of our target, so we can find it then and replace it into whatever we want to replace to
             parentNode.innerHTML = parentNode.innerHTML.replace('<div><!--REPLACE THIS--></div>', tableHtml);
@@ -1930,7 +1957,7 @@ Table.prototype.getRowAt = function (row) {
  * Also, only call this function once the page has loaded the table.
  */
 Table.prototype.getElementAt = function (row, col) {
-    var id = this.getRowAt(row).getCellIdAt(col);
+    let id = this.getRowAt(row).getCellIdAt(col);
     return document.getElementById(id);
 };
 /**
@@ -1943,7 +1970,7 @@ Table.prototype.getElementAt = function (row, col) {
  * Also, only call this function once the page has loaded the table.
  */
 Table.prototype.getElementIdAt = function (row, col) {
-    var id = this.getRowAt(row).getCellIdAt(col);
+    let id = this.getRowAt(row).getCellIdAt(col);
     return id;
 };
 /**
@@ -2010,7 +2037,7 @@ Table.prototype.isScrollable = function () {
 };
 /**
  * A Table function
- * @param {Boolean} scrollHeight The height above which the table will be forced 
+ * @param {Boolean} scrollHeight The height above which the table will be forced
  * to scroll(default is 150px).
  * @returns {undefined}
  */
@@ -2019,7 +2046,7 @@ Table.prototype.setScrollHeight = function (scrollHeight) {
 };
 /**
  * A Table function
- * @returns {scrollable} The height above which the table will be forced 
+ * @returns {scrollable} The height above which the table will be forced
  * to scroll(default is 150px).
  */
 Table.prototype.getScrollHeight = function () {
@@ -2032,7 +2059,7 @@ Table.prototype.getScrollHeight = function () {
  */
 Table.prototype.setClassName = function (className) {
     this.className = className;
-    var table = document.getElementById(this.id);
+    let table = document.getElementById(this.id);
     if (this.id && this.id !== null && table && table !== null) {
         table.className = className;
     }
@@ -2112,54 +2139,54 @@ Table.prototype.removeStyleElemCss = function (styleAttr) {
     }
 };
 /**
- * 
+ *
  * @param {string} bgColorCssVal1 The text color css of the even rows..0,2,4,6.. e.g. <code>#091123;</code>
  * list.
  * @param {string} bgColorCssVal2 The text color css of the odd rows..1,3,5,7.. e.g. <code>#081123;</code>
  * list.
- * 
+ *
  */
 Table.prototype.alternateBackgroundColors = function (bgColorCssVal1, bgColorCssVal2) {
-    for (var i = 0; i < this.rows.length; i++) {
-        var row = this.rows[i];
-        for (var j = 0; j < row.tableCells.length; j++) {
-            var tableCell = row.tableCells[j];
-            var style = tableCell.style;
+    for (let i = 0; i < this.rows.length; i++) {
+        let row = this.rows[i];
+        for (let j = 0; j < row.tableCells.length; j++) {
+            let tableCell = row.tableCells[j];
+            let style = tableCell.style;
             style.addStyleElementCss('background-color:' + (i % 2 === 0 ? bgColorCssVal1 : bgColorCssVal2) + ';');
         }
     }
 };
 /**
- * 
+ *
  * @param {string} fgColorCssVal1 The text color css of the even rows..0,2,4,6.. e.g. <code>#091123;</code>
  * list.
  * @param {string} fgColorCssVal2 The text color css of the odd rows..1,3,5,7.. e.g. <code>#081123;</code>
  * list.
- * 
+ *
  */
 Table.prototype.alternateForegroundColors = function (fgColorCssVal1, fgColorCssVal2) {
-    for (var i = 0; i < this.rows.length; i++) {
-        var row = this.rows[i];
-        for (var j = 0; j < row.tableCells.length; j++) {
-            var tableCell = row.tableCells[j];
-            var style = tableCell.style;
+    for (let i = 0; i < this.rows.length; i++) {
+        let row = this.rows[i];
+        for (let j = 0; j < row.tableCells.length; j++) {
+            let tableCell = row.tableCells[j];
+            let style = tableCell.style;
             style.addStyleElementCss('color:' + (i % 2 === 0 ? fgColorCssVal1 : fgColorCssVal2) + ';');
         }
     }
 };
 /**
- * 
+ *
  * @param {string} cssVar$Val The css to apply to all the cells e.g: font-size:10px;
  * The style gets applied to all the table cells.
- * 
+ *
  */
 Table.prototype.applyStyleCssToCells = function (cssVar$Val) {
-    for (var i = 0; i < this.rows.length; i++) {
-        var row = this.rows[i];
-        for (var j = 0; j < row.tableCells.length; j++) {
-            var tableCell = row.tableCells[j];
-            var style = tableCell.style;
-            style.addStyleElementCss(cssVar$Val);
+    for (let i = 0; i < this.rows.length; i++) {
+        let row = this.rows[i];
+        for (let j = 0; j < row.tableCells.length; j++) {
+            let tableCell = row.tableCells[j];
+            let style = tableCell.style;
+            style.addStyleElementCss(csslet$Val);
         }
     }
 };
@@ -2169,7 +2196,7 @@ Table.prototype.applyStyleCssToCells = function (cssVar$Val) {
  * @param {type} row The index of the row
  * @param {type} column The index of the column
  * @param {type} value The value to set into the cell
- * 
+ *
  */
 Table.prototype.setValueAt = function (row, column, value) {
     this.getRowAt(row).getTableCell(column).setColData(value);
@@ -2180,7 +2207,7 @@ Table.prototype.setValueAt = function (row, column, value) {
  * @param {type} row The index of the row
  * @param {type} column The index of the column
  * @returns {string} The value stored  in the cell.
- * 
+ *
  */
 Table.prototype.getValueAt = function (row, column) {
     return this.getRowAt(row).getTableCell(column).getColData();
@@ -2221,9 +2248,10 @@ Table.prototype.addTableStyle = function (attrName, attrVal) {
 Table.prototype.addCaptionStyle = function (attrName, attrVal) {
     this.captionStyle.addStyleElement(attrName, attrVal);
 };
+
 /**
- * 
- * @param {type} input The input string to check
+ *
+ * @param {string} input The input string to check
  * @returns {Boolean} true if the input contains only
  * white spaces or is null.
  */
@@ -2231,86 +2259,38 @@ function isEmptyText(input) {
     if (!input) {
         return true;
     }
-    if (input === null) {
-        return true;
-    }
-
-    if (/\S/.test(input)) {
-        return false;
-    }
-
-    return true;
-}
-
-function isBoolean(value)
-{
-    return typeof value !== 'undefined' && (value === true || value === false || toString.call(value) === '[object Boolean]');
+    return !/\S/.test(input);
 }
 /**
- * Always use this method to apply the style only on an element
- * that is already existing on the page.
- * 
- * @param {string} elemID the id of the element that we wish to apply the style to. 
- * @param {type} cssClassName The css class name without the dot.
- * @param {type} styleElem The Style object to apply.
- * @returns {undefined}
- */
-function createAndApplyStyle(elemID, cssClassName, styleElem) {
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    style.innerHTML = '.' + cssClassName + ' { ' + styleElem.getCss() + ' }';
-    document.getElementsByTagName('head')[0].appendChild(style);
-    document.getElementById(elemID).className = cssClassName;
-}
-
-
-/**
- * Always use this method to apply the style only on an element
- * that is already existing on the page.
- *  
- * @param {type} cssSelector The css class name(with the `.`), id name(with the `#`) or other selector.
- * @param {type} styleElem The Style object to apply.
- * @returns {undefined}
- */
-function applyStyle(cssSelector, styleElem) {
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    style.innerHTML = cssSelector + ' { ' + styleElem.rawCss() + ' }';
-    document.getElementsByTagName('head')[0].appendChild(style);
-}
-
-
-/**
- * This method does same as replaceChild, but it gets the 
+ * This method does same as replaceChild, but it gets the
  * parentElement automatically
  * @param {type} oldChildNode The child node to remove
  * @param {type} newChildNode The new child node to replace the old one
  * @returns {undefined}
  */
 function replaceInParent(oldChildNode, newChildNode) {
-    var parentNode = oldChildNode.parentNode;
-    if (parentNode && parentNode !== null) {
+    let parentNode = oldChildNode.parentNode;
+    if (parentNode) {
         if (oldChildNode.outerHTML) { //if outerHTML is supported
             oldChildNode.outerHTML = newChildNode.outerHTML; ///it's simple replacement of whole element with contents of str var
         } else { //if outerHTML is not supported, there is a weird but crossbrowsered trick
-            var nodeName = oldChildNode.nodeName.toLowerCase();
-            var tmpObj = document.createElement(oldChildNode.nodeName.toLowerCase());
-            var rndContent = "RND_" + new Date().getTime();
+            let nodeName = oldChildNode.nodeName.toLowerCase();
+            let tmpObj = document.createElement(oldChildNode.nodeName.toLowerCase());
+            let rndContent = "RND_" + new Date().getTime();
             tmpObj.innerHTML = '<!--REPLACE RANDOM-CONTENT ON ' + rndContent + '-->';
             parentNode.replaceChild(tmpObj, oldChildNode); //here we placing our temporary data instead of our target, so we can find it then and replace it into whatever we want to replace to
 
 
-
-            var outerHtmlHackDiv = document.createElement(newChildNode.nodeName.toLowerCase());
+            let outerHtmlHackDiv = document.createElement(newChildNode.nodeName.toLowerCase());
             outerHtmlHackDiv.appendChild(newChildNode);
-            var outerHtmlHack = getOuterHtml(newChildNode);
+            let outerHtmlHack = getOuterHtml(newChildNode);
             parentNode.innerHTML = parentNode.innerHTML.replace("<" + nodeName + ">" + tmpObj.innerHTML + "</" + nodeName + ">", outerHtmlHack);
         }
     }
 }
 
 /**
- * 
+ *
  * @param {type} parentNode The node that contains a node to be replaced
  * @param {type} oldChildNode The child node to remove
  * @param {type} newChildNode The new child node to replace the old one.xs
@@ -2321,46 +2301,44 @@ function replaceChild(parentNode, oldChildNode, newChildNode) {
     if (oldChildNode.outerHTML) { //if outerHTML is supported
         oldChildNode.outerHTML = newChildNode.outerHTML; ///it's simple replacement of whole element with contents of str var
     } else { //if outerHTML is not supported, there is a weird but crossbrowsered trick
-        var nodeName = oldChildNode.nodeName.toLowerCase();
-        var tmpObj = document.createElement(oldChildNode.nodeName.toLowerCase());
-        var rndContent = "RND_" + new Date().getTime();
+        let nodeName = oldChildNode.nodeName.toLowerCase();
+        let tmpObj = document.createElement(oldChildNode.nodeName.toLowerCase());
+        let rndContent = "RND_" + new Date().getTime();
         tmpObj.innerHTML = '<!--REPLACE RANDOM-CONTENT ON ' + rndContent + '-->';
         parentNode.replaceChild(tmpObj, oldChildNode); //here we placing our temporary data instead of our target, so we can find it then and replace it into whatever we want to replace to
 
 
-
-        var outerHtmlHackDiv = document.createElement(newChildNode.nodeName.toLowerCase());
+        let outerHtmlHackDiv = document.createElement(newChildNode.nodeName.toLowerCase());
         outerHtmlHackDiv.appendChild(newChildNode);
-        var outerHtmlHack = getOuterHtml(newChildNode);
+        let outerHtmlHack = getOuterHtml(newChildNode);
         parentNode.innerHTML = parentNode.innerHTML.replace("<" + nodeName + ">" + tmpObj.innerHTML + "</" + nodeName + ">", outerHtmlHack);
     }
 }
 
 
-
 /**
- * 
- * @param {type} node An element whose outerHTML we need
+ *
+ * @param {HTMLElement} node An element whose outerHTML we need
  * @returns {string}
  */
 function getOuterHtml1(node) {
     if (node) {
-        var outerHtmlHackElem = document.createElement(node.nodeName.toLowerCase());
+        let outerHtmlHackElem = document.createElement(node.nodeName.toLowerCase());
         outerHtmlHackElem.appendChild(node);
-        var outerHtmlHack = outerHtmlHackElem.innerHTML;
+        let outerHtmlHack = outerHtmlHackElem.innerHTML;
         return outerHtmlHack;
     }
     return null;
 }
 
 /**
- * 
+ *
  * @param {HTMLElement} node An element whose outerHTML we need
  * @returns {string}
  */
 function getOuterHtml(node) {
     if (node) {
-        var outerHtmlHackElem = null;
+        let outerHtmlHackElem = null;
         const nodeName = node.nodeName.toLowerCase();
         if (nodeName === 'li') {
             outerHtmlHackElem = document.createElement('ul');
@@ -2374,7 +2352,7 @@ function getOuterHtml(node) {
             outerHtmlHackElem = document.createElement('div');
         }
         outerHtmlHackElem.appendChild(node);
-        var outerHtmlHack = outerHtmlHackElem.innerHTML;
+        let outerHtmlHack = outerHtmlHackElem.innerHTML;
         return outerHtmlHack;
     }
     return null;

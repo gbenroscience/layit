@@ -142,25 +142,16 @@ function InputTable(options) {
             for (var i = 0; i < this.rows.length; i++) {
                 var row = this.rows[i];
 
-
-
                 var len = row.tableCells.length;
                 for (var j = 0; j < this.actioncolumns.length; j++) {
-
 
                     if (i === 0) {
                         var cell = new TableCell(this.actioncolumns[j], row.header, row.footer);
                         cell.setId(row.getCellIdAt(len + j));
                         cell.setStyle(new Style("#" + cell.getId(), []));
-
-
-
                         cell.className = this.getTableCellClass();
                         //cell.addStyle("max-width", "calc( 100% / " + row.tableCells.length + "  )");
-
-
                         row.tableCells.push(cell);
-
                     } else {
                         var btnHtml = new StringBuffer("<input type='button' class='").append(this.getTableCellButtonTypeClass()).append(" ")
                                 .append(this.getTableCellButtonColumnClass(len + j)).append("' value='").append(this.actioncolumns[j]).append("' />");
@@ -171,7 +162,6 @@ function InputTable(options) {
                         row.tableCells.push(cell);
                     }
                 }
-
             }
 
             /*
@@ -496,7 +486,7 @@ InputTable.prototype.getTableCellButtonColumnClass = function (column) {
 };
 
 InputTable.prototype.build = function (parent) {
-    var checkBoxStyle = new Style("#" + this.getTableCellCheckBoxTypeClass(), []);
+    let checkBoxStyle = new Style("#" + this.getTableCellCheckBoxTypeClass(), []);
 
     checkBoxStyle.addFromOptions({
         'display': "table",
@@ -504,26 +494,66 @@ InputTable.prototype.build = function (parent) {
         'margin': "0 auto",
         'cursor': "pointer"
     });
-    var btnStyle = new Style("#" + this.getTableCellButtonTypeClass(), []);
+    let btnStyle = new Style("#" + this.getTableCellButtonTypeClass(), []);
     btnStyle.addFromOptions({
         'display': "block",
+        'height': '2.4em',
+        'min-height': '18px',
         'font-size': '0.9em',
         'min-width': '80%',
         'max-width': '95%',
-        'margin': "auto"
+        'margin': "auto",
+        'background-color': brightenColor(this.colorTheme , 0.3),
+        'color': 'white',
+        "border-radius": '12px'
     });
 
-    var textFieldStyle = new Style("#" + this.getTableCellTextFieldTypeClass(), []);
+let btnClass = this.getTableCellButtonTypeClass();
+    let btnStyleHover = new Style(btnClass + ":hover", []);
+    let btnStyleActive = new Style(btnClass + ":active", []);
+    let cssOptionsHover = {
+        cursor: "pointer",
+        'background-color': brightenColor(this.colorTheme , 0.65)
+    };
+
+    let cssOptionsActive = {
+        cursor: "pointer",
+        opacity: '0.5',
+        filter: 'alpha(opacity = 50)'
+    };
+
+    btnStyleHover.addFromOptions(cssOptionsHover);
+    btnStyleActive.addFromOptions(cssOptionsActive);
+
+
+
+
+
+    let textFieldStyle = new Style("#" + this.getTableCellTextFieldTypeClass(), []);
     textFieldStyle.addFromOptions({
         'display': "block",
         'padding': '2px',
         'min-width': '80%',
         'max-width': '95%',
         'margin': "auto",
-        'border': '0.5px solid gray'
+        'border': '0.5px solid gray',
+        'border-radius': '4px'
     });
 
-    var selectStyle = new Style("#" + this.getTableCellSelectTypeClass(), []);
+    let textFieldStyleActive = new Style(this.getTableCellTextFieldTypeClass()+":active" , []);
+    let textFieldCssOptionsActive = {
+        border: "1px solid blue"
+    };
+    textFieldStyleActive.addFromOptions(textFieldCssOptionsActive);
+
+    let textFieldStyleFocused = new Style(this.getTableCellTextFieldTypeClass()+":focus" , []);
+    let textFieldCssOptionsFocused = {
+        border: "2px solid #000077"
+    };
+    textFieldStyleFocused.addFromOptions(textFieldCssOptionsFocused);
+
+
+    let selectStyle = new Style("#" + this.getTableCellSelectTypeClass(), []);
     selectStyle.addFromOptions({
         'display': "block",
         'margin': "auto",
@@ -536,7 +566,11 @@ InputTable.prototype.build = function (parent) {
 
     this.registry[this.getTableCellCheckBoxTypeClass()] = checkBoxStyle;
     this.registry[this.getTableCellButtonTypeClass()] = btnStyle;
+    this.registry[btnStyleHover.name] = btnStyleHover;
+    this.registry[btnStyleActive.name] = btnStyleActive;
     this.registry[this.getTableCellTextFieldTypeClass()] = textFieldStyle;
+    this.registry[textFieldStyleActive.name] = textFieldStyleActive;
+    this.registry[textFieldStyleFocused.name] = textFieldStyleFocused;
     this.registry[this.getTableCellSelectTypeClass()] = selectStyle;
 
 //call to the overriden function from Table
@@ -598,21 +632,21 @@ InputTable.prototype.addRows = function (data) {
             }
         }
         //actionColumns
-        for (var i = this.rows.length - data.length; i < this.rows.length; i++) {
-            var row = this.rows[i];
-            var len = row.tableCells.length;
-            for (var j = 0; j < this.actioncolumns.length; j++) {
+        for (let i = this.rows.length - data.length; i < this.rows.length; i++) {
+            let row = this.rows[i];
+            let len = row.tableCells.length;
+            for (let j = 0; j < this.actioncolumns.length; j++) {
 
                 if (i === 0) {
-                    var cell = new TableCell(this.actioncolumns[j], row.header, row.footer);
+                    let cell = new TableCell(this.actioncolumns[j], row.header, row.footer);
                     cell.setId(row.getCellIdAt(len + j));
                     cell.setStyle(new Style("#" + cell.getId(), []));
                     cell.className = this.getTableCellClass();
                     row.tableCells.push(cell);
                 } else {
-                    var btnHtml = new StringBuffer("<input type='button' class='").append(this.getTableCellButtonTypeClass()).append(" ")
+                    let btnHtml = new StringBuffer("<input type='button' class='").append(this.getTableCellButtonTypeClass()).append(" ")
                             .append(this.getTableCellButtonColumnClass(len + j)).append("' value='").append(this.actioncolumns[j]).append("' />");
-                    var cell = new TableCell(new Array(btnHtml.toString()), row.header, row.footer);
+                    let cell = new TableCell(new Array(btnHtml.toString()), row.header, row.footer);
                     cell.setId(row.getCellIdAt(len + j));
                     cell.setStyle(new Style("#" + cell.getId(), []));
                     cell.className = this.getTableCellClass();
@@ -635,7 +669,7 @@ InputTable.prototype.addRows = function (data) {
                     row.tableCells.push(cell);
                 } else {
                     var textFieldHtml = new StringBuffer("<input type='text' class='").append(this.getTableCellTextFieldTypeClass()).append(" ")
-                            .append(this.getTableCellTextFieldColumnClass(len + j)).append("' value='").append(this.textcolumns[j]).append("' />");
+                            .append(this.getTableCellTextFieldColumnClass(len + j)).append("' placeholder='").append(this.textcolumns[j]).append("' />");
                     var cell = new TableCell(new Array(textFieldHtml.toString()), row.header, row.footer);
                     cell.setId(row.getCellIdAt(len + j));
                     cell.setStyle(new Style("#" + cell.getId(), []));

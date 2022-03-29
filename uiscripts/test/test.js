@@ -58,6 +58,11 @@ TestController.prototype.onViewsAttached = function (wid) {
         src: "faces/seven.jpg"
     });
 
+    customList.data.push({
+        name: "Lex Mannings",
+        phone: "08024798567",
+        src: "faces/nine.png"
+    });
 
     let adapter = new ListAdapter(customList , function () {
 

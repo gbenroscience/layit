@@ -1,8 +1,8 @@
 /**
  *
- * @param {type} input The string input to be split
- * @param {type} includeTokensInOutput If true, the tokens are retained in the splitted output.
- * @param {type} tokens The tokens to be employed in splitting the original string.
+ * @param {string} input The string input to be split
+ * @param {boolean} includeTokensInOutput If true, the tokens are retained in the splitted output.
+ * @param {String[]} tokens The tokens to be employed in splitting the original string.
  * @returns {Scanner}
  */
 function Scanner(input, includeTokensInOutput, tokens) {

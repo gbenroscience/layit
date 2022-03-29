@@ -5,7 +5,7 @@
  */
 
 /**
- * 
+ *
  * @param {string} attr The attribute
  * @param {string} value Its value
  * @returns {StyleElement}
@@ -37,14 +37,20 @@ StyleElement.prototype.getCss = function () {
 
 
 /**
- * 
+ *
  * @param {string} name The name of the Style
  * @param {StyleElement[]} values An array of StyleElement values
  * @returns {Style}
  */
 function Style(name, values) {
+    if (!values) {
+        values = [];
+    }
+    if (!isOneDimArray(values)) {
+        throw new Error('One dimensional array of style elements expected');
+    }
     this.name = name.trim();
-    this.styleElements = values !== null ? values : [];
+    this.styleElements = values;
 }
 
 Style.prototype.setName = function (name) {
@@ -76,6 +82,7 @@ Style.prototype.isEmpty = function () {
  * into a stylesheet
  */
 Style.prototype.styleSheetEntry = function (entryName) {
+    this.name = entryName;
     let styleBuffer = new StringBuffer();
     if (this.styleElements.length === 0) {
         return '';
@@ -110,6 +117,7 @@ function injectStyleSheets(htmlStyleElement, stylesArray) {
     if (Object.prototype.toString.call(stylesArray) === '[object Array]') {
         let cssSheet = new StringBuffer('');
         cssSheet.append(htmlStyleElement.innerHTML);
+
         for (let i = 0; i < stylesArray.length; i++) {
             let style = stylesArray[i];
             if (style.constructor.name !== 'Style') {
@@ -127,10 +135,141 @@ function injectStyleSheets(htmlStyleElement, stylesArray) {
         throw new Error("Please supply an array of styles");
     }
 }
-;
 
 /**
- * 
+ * Loads a stylesheet and checks if a name like the given style name already exists...e.g. #id or .kkk or table > tr > td.inner
+ * If it does, it returns the index of the selector in the scanned stylesheet. Else it returns -1.
+ * This index may make no meaning to the developer
+ * except someone who knows how the Scanner method works.
+ * @param htmlStyleElement  An html style element <<<htmlStyleElement = document.createElement('style');>>>
+ * @param selector A given selector.
+ * @return The index of the selector in the scanned style sheet
+ */
+function indexOfSelector(htmlStyleElement, selector) {
+    let css = htmlStyleElement.innerHTML;
+    let scanner = new Scanner(css, true, ['{', '}']);
+    let tokens = scanner.scan();
+    for (let i = 0; i < tokens.length; i++) {
+        if (tokens[i] === '{') {
+            if (i - 1 >= 0) {
+                if (selector.trim() === tokens[i - 1].trim()) {
+                    return i - 1;
+                }
+            }
+        }
+    }
+    return -1;
+}
+
+
+/**
+ * Loads a stylesheet and checks if a name like the given style name already exists...e.g. #id or .kkk or table > tr > td.inner
+ * @param htmlStyleElement  An html style element <<<htmlStyleElement = document.createElement('style');>>>
+ * @param selector A given selector.
+ */
+function sheetContainsSelector(htmlStyleElement, selector) {
+    let css = htmlStyleElement.innerHTML;
+    return indexOfSelector(css, selector) !== -1;
+}
+
+/**
+ * Parses a style sheet, and generates an array of styles
+ * @param htmlStyleElement  An html style element <<<htmlStyleElement = document.createElement('style');>>>
+ * @return {*[]} An array of Style objects
+ */
+function getAllStyles(htmlStyleElement) {
+    let css = htmlStyleElement.innerHTML;
+    let scanner = new Scanner(css, true, ['{', '}', ';']);
+    let tokens = scanner.scan();
+
+    let styles = [];
+    for (let i = 0; i < tokens.length; i++) {
+        if (tokens[i] === '{') {
+            if (i - 1 >= 0) {
+                let selector = tokens[i - 1].trim();
+                let currentStyle = new Style(selector, []);
+                styles.push(currentStyle);
+            }
+        }
+        if (tokens[i] === ';') {
+            let currentStyle = styles[styles.length - 1];
+            currentStyle.addStyleElementCss(tokens[i - 1] + ";");
+        }
+    }
+
+    return styles;
+}
+
+/**
+ * Adds a style to a stylesheet if it doesn't already exist in it. If it does exist in it, it updates it to the new one
+ * @param htmlStyleElement  An html style element <<<htmlStyleElement = document.createElement('style');>>>
+ * @param newStyle A given style.
+ */
+function updateOrCreateSelectorInStyleSheet(htmlStyleElement, newStyle) {
+    if(newStyle.constructor.name === 'Style'){
+        let selector = newStyle.name;
+        let styles = getAllStyles(htmlStyleElement);
+        let found = false;
+        for (let i = 0; i < styles.length; i++) {
+            let style = styles[i];
+            if (style.name.trim() === selector) {
+                found = true;
+                style.styleElements = newStyle.styleElements;
+            }
+        }
+        if (!found) {
+            styles.push(newStyle);
+        }
+
+        htmlStyleElement.innerHTML = '';
+        injectStyleSheets(htmlStyleElement, styles);
+        return true;
+    } else {
+        throw new Error('Invalid style object supplied')
+    }
+}
+
+
+/**
+ * Adds an array of styles to a stylesheet if it doesn't already exist in it. If it does exist in it, it updates it to the new one
+ * @param htmlStyleElement  An html style element <<<htmlStyleElement = document.createElement('style');>>>
+ * @param newStyles An array of styles.
+ */
+function updateOrCreateSelectorsInStyleSheet(htmlStyleElement, newStyles) {
+    /*    for(let i=0; i<newStyles.length; i++){
+            updateOrCreateSelectorInStyleSheet(htmlStyleElement , newStyles[i]);
+        }*/
+
+    if (!isOneDimArray(newStyles)) {
+        throw new Error('A one dimensional array expected for `newStyles`');
+    }
+    let styles = getAllStyles(htmlStyleElement);
+    for (let i = 0; i < newStyles.length; i++) {
+        let newStyle = newStyles[i];
+        if(newStyle.constructor.name === 'Style'){
+            let selector = newStyle.name;
+            let found = false;
+            for(let j=0; j<styles.length; j++){
+                let style = styles[j];
+                if(style.name.trim() === selector){
+                    found = true;
+                    style.styleElements = newStyle.styleElements;//update
+                }
+            }
+            if(!found){
+                styles.push(newStyle);// create if not found
+            }
+        }else{
+            throw new Error('Invalid style object supplied')
+        }
+    }
+
+    htmlStyleElement.innerHTML = '';
+    injectStyleSheets(htmlStyleElement , styles);
+}
+
+/**
+ *
  * @param {type} options A map of css keys and values, e.g.
  * {
  * width: "12em",
@@ -146,7 +285,7 @@ Style.prototype.addFromOptions = function (options) {
     }
 };
 /**
- * 
+ *
  * @returns {String} A css that can be injected as inline css on an html element.
  */
 Style.prototype.getCss = function () {
@@ -163,8 +302,8 @@ Style.prototype.getCss = function () {
     return styleBuffer.toString();
 };
 /**
- * 
- * @returns {String} The pure css that can be injected directly 
+ *
+ * @returns {String} The pure css that can be injected directly
  * into a stylesheet, but without the id or class or the curly braces
  */
 Style.prototype.rawCss = function () {
@@ -182,10 +321,8 @@ Style.prototype.rawCss = function () {
 };
 
 
-
-
 /**
- * 
+ *
  * @param {StyleElement} style The style object to remove
  * @returns {undefined}
  */
@@ -203,7 +340,7 @@ Style.prototype.removeStyleElementObj = function (style) {
     }
 };
 /**
- * 
+ *
  * @param {string} styleAttr The attribute name of the StyleElement object to remove
  * @returns {undefined}
  */
@@ -218,9 +355,8 @@ Style.prototype.removeStyleElementByAttr = function (styleAttr) {
 };
 
 
-
 /**
- * 
+ *
  * @param {string} attr The attribute name of the StyleElement
  * @param {string} val The value of the style
  * @returns {void}
@@ -240,11 +376,11 @@ Style.prototype.addStyleElement = function (attr, val) {
 };
 
 /**
- * 
+ *
  * Adds an array of style elements to this Style object.
- * @param {Array} styleElemsArray An array of StyleElement objects 
+ * @param {Array} styleElemsArray An array of StyleElement objects
  * @returns {undefined}
- * 
+ *
  */
 Style.prototype.addStyleElementsArray = function (styleElemsArray) {
 
@@ -255,16 +391,16 @@ Style.prototype.addStyleElementsArray = function (styleElemsArray) {
 
 };
 /**
- * 
+ *
  * @param {StyleElement} style The style element object
  * @returns {undefined}
  */
 Style.prototype.addStyleElementObj = function (style) {
 
     if (StyleElement.prototype.isPrototypeOf(style)) {
-        var attr = style.getAttr();
-        for (var index = 0; index < this.styleElements.length; index++) {
-            var styl = this.styleElements[index];
+        let attr = style.getAttr();
+        for (let index = 0; index < this.styleElements.length; index++) {
+            let styl = this.styleElements[index];
             if (styl.getAttr() === attr) {//attribute exists already..update and exit
                 this.styleElements[index] = style;
                 return;
@@ -292,10 +428,9 @@ Style.prototype.addStyleElementCss = function (style) {
             let attr = style.substring(0, indexOfColon);
             let val = style.substring(indexOfColon + 1, indexOfSemiColon);
 
-            if (attr.indexOf(":") === -1 && attr.indexOf(";") === -1 && 
-                    ( (val.indexOf('url') === -1 && val.indexOf(":") === -1 && val.indexOf(";") === -1) ||
-                       val.indexOf('url') !== '-1' && val.indexOf(";") === -1) )
-                      {
+            if (attr.indexOf(":") === -1 && attr.indexOf(";") === -1 &&
+                ((val.indexOf('url') === -1 && val.indexOf(":") === -1 && val.indexOf(";") === -1) ||
+                    val.indexOf('url') !== '-1' && val.indexOf(";") === -1)) {
 
                 let styleObj = new StyleElement(attr, val);
 
@@ -306,29 +441,30 @@ Style.prototype.addStyleElementCss = function (style) {
                         return;
                     }
                 }
-           
+
                 this.styleElements[this.styleElements.length] = styleObj;
 
-            }else{
-                   throw new Error('Weird css line expression!');
+            } else {
+                throw new Error('Weird css line expression!');
             }
         } else {
             throw new Error('Invalid css line expression!');
         }
 
-    }else{
-                  throw new Error('No css line supplied!');
+    } else {
+        throw new Error('No css line supplied!');
     }
 };
+
 /**
- * 
+ *
  * @param {string} attr The attribute name
- * @returns {string}  the value of the attribute in this style object.
+ * @return {null|string} The value of the attribute in this style object.
  */
 Style.prototype.getValue = function (attr) {
 
-    for (var i = 0; i < this.styleElements.length; i++) {
-        var elem = this.styleElements[i];
+    for (let i = 0; i < this.styleElements.length; i++) {
+        let elem = this.styleElements[i];
         if (elem.attr === attr) {
             return elem.value;
         }

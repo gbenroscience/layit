@@ -55,12 +55,13 @@ function GrowableTable(options) {
     this.btnStyle = new Style("#" + this.getBtnClass(), []);
     this.btnStyleHover = new Style("#" + this.getBtnClass() + "_hover", []);
     this.btnStyleActive = new Style("#" + this.getBtnClass() + "_active", []);
-    var cssOptions = {
+    let cssOptions = {
         float: "left",
         "margin-top": "0em",
         "margin-bottom": '0.75em',
         "font-weight": 'bold',
         padding: '0.4em 1.2em',
+        "background-color": this.colorTheme,
         color: 'white',
         "border-radius": '4px'
     };
@@ -69,17 +70,16 @@ function GrowableTable(options) {
     cssOptions.visibility = this.showLeftBtn === true ? 'visible' : 'hidden';
 
 
-    var cssOptionsHover = {
+    let cssOptionsHover = {
         cursor: "pointer"
     };
 
-    var cssOptionsActive = {
+    let cssOptionsActive = {
         cursor: "pointer",
         opacity: '0.5',
         filter: 'alpha(opacity = 50)'
     };
 
-    cssOptions[ "background-color" ] = this.colorTheme;
     this.btnStyle.addFromOptions(cssOptions);
     this.btnStyleHover.addFromOptions(cssOptionsHover);
     this.btnStyleActive.addFromOptions(cssOptionsActive);
@@ -97,7 +97,7 @@ function GrowableTable(options) {
 
 
 GrowableTable.prototype.build = function (parent) {
-    var checkBoxStyle = new Style("#" + this.getTableCellCheckBoxTypeClass(), []);
+    let checkBoxStyle = new Style("#" + this.getTableCellCheckBoxTypeClass(), []);
 
     checkBoxStyle.addFromOptions({
         'display': "table",
@@ -106,7 +106,7 @@ GrowableTable.prototype.build = function (parent) {
     });
 
 
-    var btnStyle = new Style("#" + this.getTableCellButtonTypeClass(), []);
+    let btnStyle = new Style("#" + this.getTableCellButtonTypeClass(), []);
 
     btnStyle.addFromOptions({
         'display': "table",
@@ -118,13 +118,13 @@ GrowableTable.prototype.build = function (parent) {
     this.registry[this.getTableCellCheckBoxTypeClass()] = checkBoxStyle;
     this.registry[this.getTableCellButtonTypeClass()] = btnStyle;
 
-    var table = this;
+    let table = this;
 
 //call to the overriden function from Table
     InputTable.prototype.build.call(this, parent);
    // Object.getPrototypeOf(GrowableTable.prototype).build.call(this, parent);
 
- var btn = document.getElementById(table.getBtnClass());
+ let btn = document.getElementById(table.getBtnClass());
         if (btn !== null) {
             btn.onclick = table.onAddBtnClicked;
         }
@@ -140,7 +140,7 @@ GrowableTable.prototype.build = function (parent) {
  */
 GrowableTable.prototype.buildTable = function () {
 
-    var div = document.createElement("div");
+    let div = document.createElement("div");
 
     div.setAttribute("id", this.getTableContentAreaId());
     addClass(div, this.getTableContentAreaClass());
@@ -164,7 +164,7 @@ GrowableTable.prototype.getBtnClass = function () {
  * @returns {unresolved}
  */
 GrowableTable.prototype.buildContentHeader = function () {
-    var div = document.createElement("div");
+    let div = document.createElement("div");
     div.setAttribute("id", this.getContentHeaderId());
     addClass(div, this.getContentHeaderClass());
      div.appendChild(this.buildButton());  
@@ -180,7 +180,7 @@ GrowableTable.prototype.buildContentHeader = function () {
  */
 GrowableTable.prototype.buildButton = function () {
 
-    var btn = document.createElement("input");
+    let btn = document.createElement("input");
     btn.type = "button";
     btn.setAttribute("id", this.getBtnClass());
 
@@ -196,7 +196,7 @@ GrowableTable.prototype.setButtonLabel = function (text) {
     if (!text || text.length === '') {
         text = 'Add +';
     }
-    var btn = document.getElementById(this.getBtnClass());
+    let btn = document.getElementById(this.getBtnClass());
     if (btn && btn !== null) {
         btn.value = text;
     }

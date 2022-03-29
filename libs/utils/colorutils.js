@@ -85,7 +85,7 @@ function normalizeHexColor(hexString) {
 /**
  * Darkens a given hexadecimal color
  * If an rgb color is supplied it converts it to hexadecimal and then darkens it, and returns the result in hexadecimal
- * @param {String} color An hexxadecimal string e.g #00FFCC
+ * @param {String} color An hexadecimal string e.g #00FFCC
  * @param {Number} percent A number between 0.0 and 1.0
  * @returns {undefined} an hexadecimal string that is a darkened version of the color
  */

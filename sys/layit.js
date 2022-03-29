@@ -27,6 +27,9 @@ const BODY_ID = 'html_main';
 
 const SCRIPTS_BASE = getScriptBaseUrl();
 
+const styleSheet = document.createElement('style');
+styleSheet.setAttribute('type', 'text/css');
+
 
 const nativeScripts = [
     SCRIPTS_BASE + 'sys/mustache420.js',
@@ -282,8 +285,6 @@ function Workspace(options) {
     this.layoutCount = 0;
     this.loadedCount = 0;
     this.deadEnds = 0;
-    this.styleSheet = document.createElement('style');
-    this.styleSheet.setAttribute('type', 'text/css');
     this.rootXml = null;
     /**
      * The ViewController that can be used with the view.
@@ -329,9 +330,8 @@ function Parser(workspace, xml, parentId) {
             '-moz-box-sizing': 'border-box',
             'overscroll-behavior': 'none'
         });
-        injectStyleSheets(workspace.styleSheet, [generalStyle]);
+        updateOrCreateSelectorInStyleSheet(styleSheet , generalStyle);
         workspace.allStyles.push(generalStyle);
-
     }
 
 
@@ -877,7 +877,6 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
 
 Parser.prototype.buildUI = function (wkspc) {
 
-
     injectButtonDefaults:{
         let defBtnStyle = new Style("input[type='button']:hover", []);
         defBtnStyle.addStyleElement('cursor', 'pointer');
@@ -889,7 +888,6 @@ Parser.prototype.buildUI = function (wkspc) {
         styleObj.addStyleElement('position', 'absolute');
         styleObj.addStyleElement('padding', '0');
         styleObj.addStyleElement('margin', '0');
-
         wkspc.allStyles.push(styleObj);
     }
 
@@ -933,7 +931,8 @@ Parser.prototype.buildUI = function (wkspc) {
 
 
     this.html = this.rootView.toHTML();
-    injectStyleSheets(wkspc.styleSheet, wkspc.allStyles);
+    //injectStyleSheets(styleSheet, wkspc.allStyles);
+    updateOrCreateSelectorsInStyleSheet(styleSheet , wkspc.allStyles);
 
     makeDefaultPositioningDivs:{
 
@@ -977,10 +976,6 @@ Parser.prototype.buildUI = function (wkspc) {
             //layout the xml of an included layout with respect to its root
             autoLayout(rootChild.htmlElement, include.constraints);
             //console.log('Generated Child Constraints for ', view.id, view.constraints);
-            if(include instanceof FormView){
-                console.log('include.constraints: ', include.constraints);
-                console.log('include.directChildConstraints: ', include.directChildConstraints);
-            }
         });
 
         compounds.forEach((child) => {

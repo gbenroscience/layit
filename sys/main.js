@@ -272,7 +272,6 @@ function View(wkspc, node) {
 
 
         this.dimRatio = -1;//Not specified... dimRatio is width/height
-
         this.wrapWidth = "";
         this.wrapHeight = "";
 
@@ -422,6 +421,8 @@ function View(wkspc, node) {
                 case attrKeys.layout_paddingEnd:
                     this.style.addStyleElement("padding-right", attrValue);
                     break;
+
+//paddings saved
                 case attrKeys.border:
                     this.style.addStyleElement("border", attrValue);
                     break;
@@ -507,8 +508,56 @@ function View(wkspc, node) {
                     this.style.addStyleElement(attrKeys.resize, attrValue);
 
                     break;
+                case attrKeys.borderTop:
+                    this.style.addStyleElement("border-top", attrValue);
+                    break;
+                case attrKeys.borderBottom:
+                    this.style.addStyleElement("border-bottom", attrValue);
+                    break;
+                case attrKeys.borderLeft:
+                    this.style.addStyleElement("border-left", attrValue);
+                    break;
+                case attrKeys.borderRight:
+                    this.style.addStyleElement("border-right", attrValue);
+                    break;
+                case attrKeys.borderTopColor:
+                    this.style.addStyleElement("border-top-color", attrValue);
+                    break;
+                case attrKeys.borderBottomColor:
+                    this.style.addStyleElement("border-bottom-color", attrValue);
+                    break;
+                case attrKeys.borderLeftColor:
+                    this.style.addStyleElement("border-left-color", attrValue);
+                    break;
+                case attrKeys.borderRightColor:
+                    this.style.addStyleElement("border-right-color", attrValue);
+                    break;
+                case attrKeys.borderTopWidth:
+                    this.style.addStyleElement("border-top-width", attrValue);
+                    break;
+                case attrKeys.borderBottomWidth:
+                    this.style.addStyleElement("border-bottom-width", attrValue);
+                    break;
+                case attrKeys.borderLeftWidth:
+                    this.style.addStyleElement("border-left-width", attrValue);
+                    break;
+                case attrKeys.borderRightWidth:
+                    this.style.addStyleElement("border-right-width", attrValue);
+                    break;
+                case attrKeys.borderTopLeftRadius:
+                    this.style.addStyleElement("border-top-left-radius", attrValue);
+                    break;
+                case attrKeys.borderTopRightRadius:
+                    this.style.addStyleElement("border-top-right-radius", attrValue);
+                    break;
+                case attrKeys.borderBottomLeftRadius:
+                    this.style.addStyleElement("border-bottom-left-radius", attrValue);
+                    break;
+                case attrKeys.borderBottomRightRadius:
+                    this.style.addStyleElement("border-bottom-right-radius", attrValue);
+                    break;
 
-//paddings saved
+
                 default:
                     break;
             }
@@ -739,8 +788,8 @@ View.prototype.makeVFL = function (wkspc) {
     let parent, hasIncludedParent;
     if (attributeNotEmpty(this.parentId)) {
         parent = wkspc.viewMap.get(this.parentId);
-        hasIncludedParent = parent && (parent.constructor.name === 'IncludedView' || parent.constructor.name === 'FormView' );
-       // hasIncludedParent = parent && (parent instanceof FormView || parent instanceof IncludedView );
+        hasIncludedParent = parent && (parent.constructor.name === 'IncludedView' || parent.constructor.name === 'FormView');
+        // hasIncludedParent = parent && parent instanceof IncludedView;
     }
     /**
      * Must be the root node in an included file
@@ -1096,8 +1145,8 @@ View.prototype.createElement = function (node) {
     this.htmlElement.id = id;
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     this.calculateWrapContentSizes(node);
@@ -1235,8 +1284,8 @@ CheckBox.prototype.createElement = function (node) {
         this.htmlElement.value = value;
     }
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
 
@@ -1266,10 +1315,10 @@ Button.prototype.createElement = function (node) {
 
     let type = node.getAttribute(attrKeys.inputType);
 
-    if(type !== 'button' && type !== 'submit'){
-        this.htmlElement.setAttribute('type' , 'button');
-    }else{
-        this.htmlElement.setAttribute('type' , type);
+    if (type !== 'button' && type !== 'submit') {
+        this.htmlElement.setAttribute('type', 'button');
+    } else {
+        this.htmlElement.setAttribute('type', type);
     }
 
     let value = node.getAttribute(attrKeys.value);
@@ -1282,8 +1331,8 @@ Button.prototype.createElement = function (node) {
     }
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     this.calculateWrapContentSizes(node);
@@ -1315,7 +1364,7 @@ ImageButton.prototype.createElement = function (node) {
     this.style.addStyleElementCss('background-position: center;');
     this.style.addStyleElementCss('background-size: contain;');
     this.style.addStyleElementCss('background-origin: content-box;');
-    this.style.addStyleElementCss('background-image: url(\'' + PATH_TO_IMAGES + node.getAttribute(attrKeys.src) + '\');');
+    this.style.addStyleElementCss('background-image: url(\'' + getImagePath(node.getAttribute(attrKeys.src))  + '\');');
 
 
     let id = node.getAttribute(attrKeys.id);
@@ -1331,8 +1380,8 @@ ImageButton.prototype.createElement = function (node) {
     }
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     this.calculateWrapContentSizes(node);
@@ -1358,8 +1407,8 @@ NativeTable.prototype.createElement = function (node) {
     this.assignId();
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     let thead = document.createElement('thead');
@@ -1468,8 +1517,8 @@ CustomTableView.prototype.createElement = function (node) {
     this.assignId();
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     let hasCaption = node.getAttribute(attrKeys.hasCaption);
@@ -1661,8 +1710,8 @@ InputTableView.prototype.createElement = function (node) {
     this.assignId();
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     let hasCaption = node.getAttribute(attrKeys.hasCaption);
@@ -1879,8 +1928,8 @@ GrowableTableView.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
     let hasCaption = node.getAttribute(attrKeys.hasCaption);
     let caption = node.getAttribute(attrKeys.caption);
@@ -2102,9 +2151,12 @@ SearchableTableView.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
 
+    this.style.addStyleElementCss('overflow: auto;');
+
+
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
     let hasCaption = node.getAttribute(attrKeys.hasCaption);
     let caption = node.getAttribute(attrKeys.caption);
@@ -2273,6 +2325,7 @@ SearchableTableView.prototype.createElement = function (node) {
         selectColumns = JSON.parse(selectColumns);
     }
 
+
     this.options = {
         id: this.htmlElement.id + '_core',
         hasCaption: hasCaption,
@@ -2287,7 +2340,7 @@ SearchableTableView.prototype.createElement = function (node) {
         onAddBtnClicked: function () {
         },
         'main-style': {
-            'margin-top': '1.2em'
+            'margin-top': '0em'
         },
         icon: icon,
         fontSize: fontSize,
@@ -2313,7 +2366,11 @@ SearchableTableView.prototype.createElement = function (node) {
     if (cssClass && cssClass !== "") {
         this.options.classname = cssClass;
     }
+
+
+
     this.customTable = new SearchableTable(this.options);
+
     // this.customTable.build(this.htmlElement);
 };
 
@@ -2339,8 +2396,8 @@ TextField.prototype.createElement = function (node) {
     this.htmlElement.id = id;
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     let value = node.getAttribute(attrKeys.value);
@@ -2405,8 +2462,8 @@ ProgressBar.prototype.createElement = function (node) {
     let fontStyle = node.getAttribute(attrKeys.fontStyle);
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     this.htmlElement = document.createElement('canvas');
@@ -2472,8 +2529,8 @@ TextArea.prototype.createElement = function (node) {
 
     this.htmlElement.id = id;
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     if (attributeNotEmpty(rows)) {
@@ -2528,8 +2585,8 @@ DropDown.prototype.createElement = function (node) {
     items = items.replace(regex2, '","');
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     if (attributeNotEmpty(items)) {
@@ -2581,8 +2638,8 @@ NativeList.prototype.createElement = function (node) {
     this.style.addStyleElementCss('overflow: auto;');
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
 
@@ -2658,15 +2715,14 @@ function CustomList(wkspc, node) {
 }
 
 
-
 CustomList.prototype.setData = function (items) {
-    if(items){
-        if(isOneDimArray(items)){
+    if (items) {
+        if (isOneDimArray(items)) {
             this.data = items;
-        }else{
+        } else {
             throw new Error('One dimensional array of items required here')
         }
-    }else{
+    } else {
         throw new Error('Please set an array of items to display in the list');
     }
 }
@@ -2685,12 +2741,12 @@ CustomList.prototype.createElement = function (node) {
     this.style.addStyleElementCss('list-style-type: none;');
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     let items = node.getAttribute(attrKeys.items);
-    if(attributeNotEmpty(items)){
+    if (attributeNotEmpty(items)) {
         items = items.replace(/\n|\r/g, '');//remove new lines
         let regex1 = /(')(\s*)(,)(\s*)(')/g;
         let regex2 = /(")(\s*)(,)(\s*)(")/g;
@@ -2701,8 +2757,8 @@ CustomList.prototype.createElement = function (node) {
         try {
             this.data = JSON.parse(items);
         } catch (e) {
-            console.log('JSON error: '+items);
-            throw new Error( 'error: '+e+', Error in `items` array while expanding view: '+this.id);
+            console.log('JSON error: ' + items);
+            throw new Error('error: ' + e + ', Error in `items` array while expanding view: ' + this.id);
         }
 
 
@@ -2745,8 +2801,8 @@ Label.prototype.createElement = function (node) {
     let fontSz = node.getAttribute(attrKeys.fontSize);
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
 
@@ -2790,8 +2846,8 @@ MultiLineLabel.prototype.createElement = function (node) {
     this.style.addStyleElementCss('text-overflow: ellipsis;');
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     let text = node.getAttribute(attrKeys.text);
@@ -2840,8 +2896,8 @@ CanvasView.prototype.createElement = function (node) {
     this.htmlElement.id = id;
 
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     this.htmlElement.setAttribute('width', parseInt(width));
@@ -2920,8 +2976,8 @@ ClockView.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('canvas');
     this.htmlElement.id = id;
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     this.clockOptions = {
@@ -2968,8 +3024,8 @@ RadioGroup.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 };
 RadioGroup.prototype.calculateWrapContentSizes = function (node) {
@@ -3019,11 +3075,11 @@ function ImageView(wkspc, node) {
 
 ImageView.prototype.createElement = function (node) {
     this.htmlElement = document.createElement('img');
-    this.htmlElement.src = PATH_TO_IMAGES + node.getAttribute(attrKeys.src);
+    this.htmlElement.src = getImagePath(node.getAttribute(attrKeys.src));
     this.htmlElement.alt = node.getAttribute(attrKeys.alt);
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
     this.assignId();
 };
@@ -3175,8 +3231,8 @@ IncludedView.prototype.createElement = function (node) {
     let id = node.getAttribute(attrKeys.id);
     this.htmlElement.id = id;
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
     this.calculateWrapContentSizes(node);
 };
@@ -3186,7 +3242,6 @@ IncludedView.prototype.calculateWrapContentSizes = function (node) {
     this.wrapWidth = 300;
     this.wrapHeight = 320;
 };
-
 
 
 /**
@@ -3226,31 +3281,31 @@ FormView.prototype.createElement = function (node) {
     let acceptCharset = node.getAttribute(attrKeys.acceptCharset);
     let name = node.getAttribute(attrKeys.name);
 
-    if(attributeNotEmpty(action)){
+    if (attributeNotEmpty(action)) {
         form.setAttribute(attrKeys.action, action);
     }
-    if(attributeNotEmpty(method)){
+    if (attributeNotEmpty(method)) {
         form.setAttribute(attrKeys.method, method);
     }
-    if(attributeNotEmpty(target)){
+    if (attributeNotEmpty(target)) {
         form.setAttribute(attrKeys.target, target);
     }
-    if(attributeNotEmpty(autocomplete)){
+    if (attributeNotEmpty(autocomplete)) {
         form.setAttribute(attrKeys.autocomplete, autocomplete);
     }
-    if(attributeNotEmpty(novalidate)){
+    if (attributeNotEmpty(novalidate)) {
         form.setAttribute(attrKeys.novalidate, novalidate);
     }
-    if(attributeNotEmpty(enctype)){
+    if (attributeNotEmpty(enctype)) {
         form.setAttribute(attrKeys.enctype, enctype);
     }
-    if(attributeNotEmpty(rel)){
+    if (attributeNotEmpty(rel)) {
         form.setAttribute(attrKeys.rel, rel);
     }
-    if(attributeNotEmpty(acceptCharset)){
+    if (attributeNotEmpty(acceptCharset)) {
         form.setAttribute(attrKeys.acceptCharset, "accept-charset");
     }
-    if(attributeNotEmpty(name)){
+    if (attributeNotEmpty(name)) {
         form.setAttribute(attrKeys.name, name);
     }
 
@@ -3266,6 +3321,7 @@ FormView.prototype.calculateWrapContentSizes = function (node) {
     this.wrapWidth = 300;
     this.wrapHeight = 320;
 };
+
 /**
  *
  * @param {type} wkspc
@@ -3290,8 +3346,8 @@ VideoView.prototype.createElement = function (node) {
     let controls = node.getAttribute(attrKeys.controls);
     let preload = node.getAttribute(attrKeys.preload);
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
     if (attributeEmpty(sources)) {
@@ -3408,8 +3464,8 @@ AudioView.prototype.createElement = function (node) {
         throw new Error('`id` must be specified for view!');
     }
     let name = node.getAttribute(attrKeys.name);
-    if(attributeNotEmpty(name)){
-        this.htmlElement.setAttribute(attrKeys.name , name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
     }
     let sources = node.getAttribute(attrKeys.sources);
     let autoplay = node.getAttribute(attrKeys.autoplay);
@@ -3545,7 +3601,6 @@ function validateTableJson(jsonObj) {
 
 
 }
-
 
 
 function isFontWeight(val) {
