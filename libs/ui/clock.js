@@ -722,22 +722,7 @@ Tick.prototype.getTickValue = function () {
 
 
 
-/**
- * Stores a line of text and its pixel width
- * @param {string} txtline
- * @param {Number} width
- * @returns {LineAndWidth}
- */
-function LineAndWidth(txtline, width) {
-    if (typeof txtline !== 'string' || typeof width !== 'number') {
-        this.line = "";
-        this.width = 0;
-        return;
-    }
 
-    this.line = txtline;
-    this.width = width;
-}
 
 
 

@@ -492,8 +492,38 @@
             cx_align="custom_list"
             top_bottom="custom_list"
             border="1px solid purple"
-
-
+    />
+        <Label
+            id="tabview_one_label"
+            width="wrap_content"
+            height="wrap_content"
+            end_start='tabview'
+            cy_align="tabview"
+            textAlign="center"
+            backgroundColor="pink"
+            marginEnd="16"
+            textColor="red"
+            paddingStart="0"
+            value="Here is a TabView"
+            textSize="1.2em"
+            textStyle="bold"
+            fontFamily="Arial"
+    />
+       <TabView
+            id="tabview"
+            width="400px"
+            height="48px"
+            name="tab_view"
+            marginTop="32px"
+            cx_align="form"
+            top_bottom="form"
+            selectedFg='purple'
+            deselectedFg='darkred'
+            iconSize="64px"
+            fontStyle="bold"
+            borderRadius='32px'
+            border='2px solid gray'
+            tabItems='[{"value":"scenery/fine-7.jpg","type":"image"},{"value":"Views","type":"text"},{"value":"Profile","type":"text"},{"value":"scenery/fine-6.jpg","type":"image"}]'
     />
 
 </ConstraintLayout>

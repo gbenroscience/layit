@@ -15,6 +15,11 @@ function standardizeColor(str){
     return ctx.fillStyle;
 }
 
+function standardColor(context, colorStr){
+    context.fillStyle = colorStr;
+    return context.fillStyle;
+}
+
 
 function rgbToHex(rgb) {
     if (typeof rgb !== 'string') {
@@ -209,7 +214,7 @@ function brightenColor(color, percent) {
         isRGB = true;
     }
     if (!color.startsWith("#")) {
-        throw new Error("Invalid color format! `#` not found... hexadecimal colors alone allowed... input: color = " + color + " , percent = " + percent);
+        color = standardizeColor(color);
     }
 
     if (color.length === 4 || color.length === 5 || color.length === 7 || color.length === 9) {

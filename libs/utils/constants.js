@@ -43,7 +43,7 @@ const SERVER_CODES = {
     DUPLICATE: -2,
     ERROR: -1,
     PENDING: 0,
-    SUCCESSFUL: 1,
+    SUCCESSFUL: 1
 };
 
 /**
@@ -54,15 +54,15 @@ const NOTIF_TYPES = {
     ERROR: -1,
     UPSTREAM: 1,
     OPENING: 0,
-    CLOSING: 2,
-}
+    CLOSING: 2
+};
 
 const WS_CODES = {
     NORMAL_CLOSE: 1000, //– the default, normal closure (used if no code supplied),
     UNDEFINED_CLOSE: 1006, //– no way to set such code manually, indicates that the connection was lost (no close frame).
     PEER_CLOSE: 1001, //– the party is going away, e.g. server is shutting down, or a browser leaves the page,
     PACKET_TOO_LARGE: 1009,// – the message is too big to process,
-    SERVER_ERROR: 1011,//– unexpected error on server,
+    SERVER_ERROR: 1011//– unexpected error on server,
 };
 
 /**
@@ -95,6 +95,6 @@ const WS_STOP_UPLOAD = 'stop_file_upload';
 const UI_WORKET_FLAGS = {
     SOCKET_OPEN: 1,
     SOCKET_CLOSE: 2
-}
+};
 
 

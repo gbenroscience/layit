@@ -306,11 +306,12 @@ Polygon.prototype.updateBounds = function (x, y) {
  * @param {string} variant
  * @returns {Font}
  */
-function Font(style, size, name, sizeUnits) {
+function Font(style, size, name, sizeUnits, variant) {
     this.style = style;
     this.size = size;
     this.name = name;
-    this.variant = null;
+    this.variant = variant ? variant : null;
+
     if (typeof sizeUnits === 'undefined') {
         this.sizeUnits = CssSizeUnits.EM;
     } else {
@@ -722,6 +723,173 @@ Graphics.prototype.fillRoundRect = function (x, y, width, height, radius) {
 
 
 /**
+ * Fills a rectangular shape's outline and curves the rectangle on the left edges.
+ * @param {number} x The left coordinates of the rectangle
+ * @param {number} y The right top coordinates of the rectangle
+ * @param {number} width The width of the rectangle
+ * @param {number} height The height of the rectangle
+ * @param {number} radius The radius of the rectangle
+ * @returns {undefined}
+ */
+Graphics.prototype.fillRoundRectLeftSide = function (x, y, width, height, radius) {
+    if (typeof x === 'number' && typeof y === 'number' && typeof width === 'number' && typeof height === 'number' && typeof radius === 'number') {
+
+        if (typeof stroke === 'undefined') {
+            stroke = true;
+        }
+        if (typeof radius === 'undefined') {
+            radius = 5;
+        }
+        if (typeof radius === 'number') {
+            radius = {tl: radius, tr: 0, br: 0, bl: radius};
+        } else {
+            var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+            for (var side in defaultRadius) {
+                radius[side] = radius[side] || defaultRadius[side];
+            }
+        }
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + radius.tl, y);
+        this.ctx.lineTo(x + width - radius.tr, y);
+        this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+        this.ctx.lineTo(x + width, y + height - radius.br);
+        this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+        this.ctx.lineTo(x + radius.bl, y + height);
+        this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+        this.ctx.lineTo(x, y + radius.tl);
+        this.ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+        this.ctx.closePath();
+        this.ctx.fill();
+    }
+};
+
+
+/**
+ * Fills a rectangular shape's outline and curves the rectangle on the right edges.
+ * @param {number} x The left coordinates of the rectangle
+ * @param {number} y The right top coordinates of the rectangle
+ * @param {number} width The width of the rectangle
+ * @param {number} height The height of the rectangle
+ * @param {number} radius The radius of the rectangle
+ * @returns {undefined}
+ */
+Graphics.prototype.fillRoundRectRightSide = function (x, y, width, height, radius) {
+    if (typeof x === 'number' && typeof y === 'number' && typeof width === 'number' && typeof height === 'number' && typeof radius === 'number') {
+
+        if (typeof stroke === 'undefined') {
+            stroke = true;
+        }
+        if (typeof radius === 'undefined') {
+            radius = 5;
+        }
+        if (typeof radius === 'number') {
+            radius = {tl: 0, tr: radius, br: radius, bl: 0};
+        } else {
+            var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+            for (var side in defaultRadius) {
+                radius[side] = radius[side] || defaultRadius[side];
+            }
+        }
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + radius.tl, y);
+        this.ctx.lineTo(x + width - radius.tr, y);
+        this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+        this.ctx.lineTo(x + width, y + height - radius.br);
+        this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+        this.ctx.lineTo(x + radius.bl, y + height);
+        this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+        this.ctx.lineTo(x, y + radius.tl);
+        this.ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+        this.ctx.closePath();
+        this.ctx.fill();
+    }
+};
+
+
+/**
+ * Fills a rectangular shape's outline and curves the rectangle on the top edges.
+ * @param {number} x The left coordinates of the rectangle
+ * @param {number} y The right top coordinates of the rectangle
+ * @param {number} width The width of the rectangle
+ * @param {number} height The height of the rectangle
+ * @param {number} radius The radius of the rectangle
+ * @returns {undefined}
+ */
+Graphics.prototype.fillRoundRectTopSide = function (x, y, width, height, radius) {
+    if (typeof x === 'number' && typeof y === 'number' && typeof width === 'number' && typeof height === 'number' && typeof radius === 'number') {
+
+        if (typeof stroke === 'undefined') {
+            stroke = true;
+        }
+        if (typeof radius === 'undefined') {
+            radius = 5;
+        }
+        if (typeof radius === 'number') {
+            radius = {tl: radius, tr: radius, br: 0, bl: 0};
+        } else {
+            var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+            for (var side in defaultRadius) {
+                radius[side] = radius[side] || defaultRadius[side];
+            }
+        }
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + radius.tl, y);
+        this.ctx.lineTo(x + width - radius.tr, y);
+        this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+        this.ctx.lineTo(x + width, y + height - radius.br);
+        this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+        this.ctx.lineTo(x + radius.bl, y + height);
+        this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+        this.ctx.lineTo(x, y + radius.tl);
+        this.ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+        this.ctx.closePath();
+        this.ctx.fill();
+    }
+};
+
+
+
+/**
+ * Fills a rectangular shape's outline and curves the rectangle on the bottom edges.
+ * @param {number} x The left coordinates of the rectangle
+ * @param {number} y The right top coordinates of the rectangle
+ * @param {number} width The width of the rectangle
+ * @param {number} height The height of the rectangle
+ * @param {number} radius The radius of the rectangle
+ * @returns {undefined}
+ */
+Graphics.prototype.fillRoundRectBottomSide = function (x, y, width, height, radius) {
+    if (typeof x === 'number' && typeof y === 'number' && typeof width === 'number' && typeof height === 'number' && typeof radius === 'number') {
+
+        if (typeof stroke === 'undefined') {
+            stroke = true;
+        }
+        if (typeof radius === 'undefined') {
+            radius = 5;
+        }
+        if (typeof radius === 'number') {
+            radius = {tl: 0, tr: 0, br: radius, bl: radius};
+        } else {
+            var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+            for (var side in defaultRadius) {
+                radius[side] = radius[side] || defaultRadius[side];
+            }
+        }
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + radius.tl, y);
+        this.ctx.lineTo(x + width - radius.tr, y);
+        this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+        this.ctx.lineTo(x + width, y + height - radius.br);
+        this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+        this.ctx.lineTo(x + radius.bl, y + height);
+        this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+        this.ctx.lineTo(x, y + radius.tl);
+        this.ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+        this.ctx.closePath();
+        this.ctx.fill();
+    }
+};
+/**
  * Draws an ellipse
  * @param {Number} cenX The x-center of the ellipse
  * @param {Number} cenY The y-center of the ellipse
@@ -980,7 +1148,7 @@ Graphics.prototype.getHorizontalExtent = function () {
     let r = height;
     let c = width;
 
-   
+
     // 3. get right
     c = width;
     while (!right && c) {
@@ -1069,10 +1237,10 @@ Graphics.prototype.getVerticalExtent = function () {
             }
         }
         r++;
-        
-             // If we've got it then return the height
+
+        // If we've got it then return the height
         if (first) {
-            return {top: ret.top , bottom: ret.bottom};
+            return {top: ret.top, bottom: ret.bottom};
         }
     }
 
@@ -1163,8 +1331,8 @@ Graphics.prototype.getBoundingBox = function () {
             return new Rectangle(ret.left, ret.top, ret.right, ret.bottom);
         }
     }
-    
-console.log('lol!!...'+JSON.stringify(ret));
+
+    console.log('lol!!...' + JSON.stringify(ret));
     // A mess-up occurred ...
     return null;
 };
@@ -1375,30 +1543,30 @@ Graphics.prototype.stringWidth = function (text) {
  */
 Graphics.prototype.getTextWidth = function (text) {
     if (typeof text === 'string') {
-         if(text.length === 0){
+        if (text.length === 0) {
             return 0;
         }
         let cv = document.createElement('canvas');
 
         cv.width = this.width;
         cv.height = this.height;
-        cv.style.width = this.width+'px';
-        cv.style.height = this.height+'px';
+        cv.style.width = this.width + 'px';
+        cv.style.height = this.height + 'px';
         document.body.appendChild(cv);
 
         let gg = new Graphics(cv);
-        
+
         gg.ctx.font = this.ctx.font;
-        
+
         gg.setBackground('#000');
-        gg.drawString(text, 10 , cv.height/2 );
+        gg.drawString(text, 10, cv.height / 2);
 
         let bounds = gg.getHorizontalExtent();
         cv.remove();
         gg.clear();
         gg.destroy();
         gg = null;
-        if(bounds){
+        if (bounds) {
             return bounds.right - bounds.left;
         }
     }
@@ -1414,30 +1582,30 @@ Graphics.prototype.getTextWidth = function (text) {
  */
 Graphics.prototype.getTextHeight = function (text) {
     if (typeof text === 'string') {
-         if(text.length === 0){
+        if (text.length === 0) {
             return 0;
         }
         let cv = document.createElement('canvas');
 
         cv.width = this.width;
         cv.height = this.height;
-        cv.style.width = this.width+'px';
-        cv.style.height = this.height+'px';
+        cv.style.width = this.width + 'px';
+        cv.style.height = this.height + 'px';
         document.body.appendChild(cv);
 
         let gg = new Graphics(cv);
-        
+
         gg.ctx.font = this.ctx.font;
-        
+
         gg.setBackground('#000');
-        gg.drawString(text, 10 , cv.height/2 );
+        gg.drawString(text, 10, cv.height / 2);
 
         let bounds = gg.getVerticalExtent();
         cv.remove();
         gg.clear();
         gg.destroy();
         gg = null;
-        if(bounds){
+        if (bounds) {
             return bounds.bottom - bounds.top;
         }
     }
@@ -1452,22 +1620,22 @@ Graphics.prototype.getTextHeight = function (text) {
  */
 Graphics.prototype.getTextSize = function (text) {
     if (typeof text === 'string') {
-        if(text.length === 0){
-            return new Rectangle(0,0,0,0);
+        if (text.length === 0) {
+            return new Rectangle(0, 0, 0, 0);
         }
         let cv = document.createElement('canvas');
 
         cv.width = this.width;
         cv.height = this.height;
-        cv.style.width = this.width+'px';
-        cv.style.height = this.height+'px';
+        cv.style.width = this.width + 'px';
+        cv.style.height = this.height + 'px';
         document.body.appendChild(cv);
 
         let gg = new Graphics(cv);
         gg.ctx.font = this.ctx.font;
-        
+
         gg.setBackground('#000');
-        gg.drawString(text, 10 , cv.height/2 );
+        gg.drawString(text, 10, cv.height / 2);
 
         let rect = gg.getBoundingBox();
         cv.remove();
@@ -1491,3 +1659,101 @@ Graphics.prototype.textHeight = function (text) {
     }
     return 0;
 };
+
+
+
+/**
+ * Stores a line of text and its pixel width
+ * @param {string} txtline
+ * @param {Number} width
+ * @returns {LineAndWidth}
+ */
+function LineAndWidth(txtline, width) {
+    if (typeof txtline !== 'string' || typeof width !== 'number') {
+        this.text = "";
+        this.width = 0;
+        return;
+    }
+
+    this.text = txtline;
+    this.width = width;
+}
+
+/**
+ * Does the same thing as the <code>getLinesByMaxWidthAlgorithm</code> method, but provides finer detail by
+ * wrapping text to the next line even if it is in the middle of a word.
+ * If this behaviour is undesirable, please use the <code>getLinesByMaxWidthAlgorithm</code> method; as that method
+ * is word sensitive.
+ * @param {string} txt A text to be scanned into lines based on a specified width of available space.
+ * @param {Number} availableWidth The width available for drawing text.
+ * @returns {Array|scanLines.lines}
+ */
+Graphics.prototype.scanLines = function (txt, availableWidth) {
+    let lines = [];
+    let ctx = this.ctx;
+
+    let token = new StringBuffer();
+    for (var i = 0; i < txt.length; i++) {
+
+        if (ctx.measureText(token.toString()).width < availableWidth) {
+            token.append(txt.substring(i, i + 1));
+        } else {
+            let tx = token.toString();
+            let line = {
+                width: ctx.measureText(tx).width,
+                text: tx
+            };
+
+            lines.push(line);
+            token = new StringBuffer();
+            token.append(txt.substring(i, i + 1));
+        }
+    }
+    if (token.toString().length > 0) {
+        let tx = token.toString();
+        let line = {
+            width: ctx.measureText(tx).width,
+            text: tx
+        };
+        lines.push(line);
+    }
+    return lines;
+};
+
+/**
+ * @param {string} text The text to split into lines of text.
+ * @param {Number} lineWidth The maximum width of the line.
+ * The splitting algorithm ensures that no line of text is ever longer pixel-wise than the specified line-width
+ * @return the text divided into lines.
+ */
+Graphics.prototype.getLinesByMaxWidthAlgorithm = function (text, lineWidth) {
+    let lines = [];
+    let ctx = this.ctx;
+
+    let cs = new Scanner(text, true, [" ", "\n"]);
+    let list = cs.scan();
+    let sz = list.length;
+
+let line = new StringBuffer();
+let oldWidth = 0;
+    for (let i = 0; i < sz; i++) {
+        let entry = list[i];
+        let wid = ctx.measureText(line.toString()+entry).width;
+        if (wid < lineWidth) {
+            line.append(entry);
+        }else if(wid === lineWidth || list[i] === "\n"){
+             line.append(entry);
+             lines.push(new LineAndWidth(line.toString(), wid));
+             line = new StringBuffer();
+        }else if(wid > lineWidth){
+               lines.push(new LineAndWidth(line.toString(), oldWidth));
+               line = new StringBuffer();
+        }
+        oldWidth = wid;
+    }//end for loop
+
+       if(line.toString().length > 0){
+           lines.push(new LineAndWidth(line.toString(), oldWidth));
+       }
+    return lines;
+};//end method

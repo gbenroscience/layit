@@ -619,7 +619,7 @@ Rectangle.prototype.translate = function (dx, dy) {
         }
     }
     this.top = newv;
-    
+
 };
 /**
  * 
@@ -1440,82 +1440,6 @@ Random.prototype.generateUUID = function () { // Public Domain/MIT
         return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
     });
 };
-
-
-/**
- * 
- * @param {string} txt
- * @param {Canvas} ctx
- * @param {Number} availableWidth The width available for drawing text.
- * @returns {Array|scanLines.lines}
- */
-function scanLines(txt, ctx, availableWidth) {
-//txt ='Page 1 is about our country. What do we do about the countenance of people towards this great nation called Nigeria? God bless Nigeria.';
-    var lines = [];
-
-    var token = new StringBuffer();
-    for (var i = 0; i < txt.length; i++) {
-
-        if (ctx.measureText(token.toString()).width < availableWidth) {
-            token.append(txt.substring(i, i + 1));
-        } else {
-            var tx = token.toString();
-            var line = {
-                width: ctx.measureText(tx).width,
-                text: tx
-            };
-
-            lines.push(line);
-            token = new StringBuffer();
-            token.append(txt.substring(i, i + 1));
-        }
-    }
-    if (token.toString().length > 0) {
-        var tx = token.toString();
-        var line = {
-            width: ctx.measureText(tx).width,
-            text: tx
-        };
-        lines.push(line);
-    }
-    return lines;
-}
-
-/**
- * @param {string} text The text to split into lines of text.
- * @param {Context} ctx The Canvas context used to display the text.
- * @param {Number} lineWidth The maximum width of the line.
- * The splitting algorithm ensures 
- * @return the text divided into lines.
- */
-function getLinesByMaxWidthAlgorithm(text, ctx, lineWidth) {
-    var lines = new Array();
-
-    var cs = new Scanner(text, true, new Array(" ", "\n"));
-    var list = cs.scan();
-    var sz = list.size();
-
-
-    for (var i = 0; i < sz; i++) {
-        var line = "";
-        var wid = ctx.measureText(line).width;
-        while (wid <= lineWidth && i < sz) {
-            if (list.get(i).equals("\n")) {
-                break;
-            }
-            line = line.concat(list.get(i));
-            wid = ctx.measureText(line);
-            if (wid >= lineWidth) {
-                break;
-            } else {
-                ++i;
-            }
-
-        }//end while
-        lines.push(new LineAndWidth(line, wid));
-    }//end for loop
-    return lines;
-}//end method
 
 
 

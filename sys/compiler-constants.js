@@ -59,6 +59,7 @@ const xmlKeys = {
     multiLabel: "MultiLineLabel",
     clock: "Clock",
     canvas: "Canvas",
+    tabview: "TabView",
     include: "include"
 };
 
@@ -152,7 +153,7 @@ const attrKeys = {
     src: "src",
     alt: "alt", //image tag
     border: "border", //e.g 1px solid red
-    borderRadius: "borderRadius", //e.g 1px solid red
+    borderRadius: "borderRadius", //e.g 4px
     background: "background",
     backgroundImage: "backgroundImage",
     backgroundColor: "backgroundColor",
@@ -225,5 +226,20 @@ const attrKeys = {
     enctype: "enctype", //application/x-www-form-urlencoded OR multipart/form-data OR text/plain
     rel: "rel",
     acceptCharset: "acceptCharset",
+    // properties for TabView
+    selectedBg: "selectedBg",
+    selectedFg: "selectedFg",
+    deselectedBg: "deselectedBg",
+    deselectedFg: "deselectedFg",
+    tabItems: "tabItems",
+    tabEdgeColor: "tabEdgeColor",
+    tabEdgeWidth: "tabEdgeWidth",// the thickness of the dividing line between tabs
+    iconSize: "iconSize"
+    
+    //TabView properties
+    
+    
+    
+    
 
 };

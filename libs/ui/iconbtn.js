@@ -345,7 +345,7 @@ IconButton.prototype.performClick = function (duration) {
 
 
     if(typeof duration !== 'number'){
-        throw new Error("Please supply a number for the duration in milliseconds")
+        throw new Error("Please supply a number for the duration in milliseconds");
     }
 
     if(typeof duration === 'undefined'){
@@ -357,14 +357,14 @@ IconButton.prototype.performClick = function (duration) {
         btn.g.clear();
         btn.pressed = true;
         btn.render();
-    }
+    };
 
     var release = function () {
         btn.g.clear();
         btn.pressed = false;
         btn.render();
         btn.onclick();
-    }
+    };
     press();
 
     setTimeout(release , duration);

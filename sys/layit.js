@@ -50,6 +50,7 @@ const nativeScripts = [
     SCRIPTS_BASE + 'libs/ui/clock.js',
     SCRIPTS_BASE + 'libs/ui/iconbtn.js',
     SCRIPTS_BASE + 'libs/ui/iconlabel.js',
+    SCRIPTS_BASE + 'libs/ui/tabbedbar.js',
     SCRIPTS_BASE + 'libs/ui/imagebox.js',
     SCRIPTS_BASE + 'libs/ui/list.js',
     SCRIPTS_BASE + 'libs/ui/pager.js',
@@ -741,6 +742,9 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
         case xmlKeys.progress:
             view = new ProgressBar(wkspc, node);
             break;
+        case xmlKeys.tabview:
+            view = new TabView(wkspc, node);
+            break;
 
         case xmlKeys.field:
             view = new TextField(wkspc, node);
@@ -923,7 +927,8 @@ Parser.prototype.buildUI = function (wkspc) {
 
             view.htmlElement.appendChild(child.htmlElement);
             if (child.constructor.name === 'ClockView' || child.constructor.name === 'LabelView' 
-                    || child.constructor.name === 'ProgressBar' || child instanceof CustomTableView) {
+                    || child.constructor.name === 'ProgressBar' || child instanceof CustomTableView 
+                    || child.constructor.name === 'TabView') {
                 compounds.push(child);
             }
         }

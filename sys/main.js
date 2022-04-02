@@ -405,7 +405,7 @@ function View(wkspc, node) {
                     }
                     break;
 
-                //as a bonus save the paddings in this pass
+                    //as a bonus save the paddings in this pass
                 case attrKeys.layout_padding:
                     this.style.addStyleElement("padding", attrValue);
                     break;
@@ -611,7 +611,7 @@ View.prototype.getTextSize = function (txt) {
     let formattedWidth = size.width + "px";
 
     document.querySelector('#za_span').textContent
-        = formattedWidth;
+            = formattedWidth;
     document.body.removeChild(span);
 
     return size;
@@ -686,7 +686,7 @@ function parseNumberAndUnits(val) {
     for (let i = val.length - 1; i > 0; i--) {
         let token = val.substring(i, i + 1);
         if (token !== '0' && token !== '1' && token !== '2' && token !== '3' && token !== '4' && token !== '5' &&
-            token !== '6' && token !== '7' && token !== '8' && token !== '9') {
+                token !== '6' && token !== '7' && token !== '8' && token !== '9') {
             units = token + units;
         } else {
             number = val.substring(0, i + 1);
@@ -1229,6 +1229,9 @@ ImageView.prototype = Object.create(View.prototype);
 ImageView.prototype.constructor = ImageView;
 
 
+TabView.prototype = Object.create(View.prototype);
+TabView.prototype.constructor = TabView;
+
 ProgressBar.prototype = Object.create(View.prototype);
 ProgressBar.prototype.constructor = ProgressBar;
 
@@ -1364,7 +1367,7 @@ ImageButton.prototype.createElement = function (node) {
     this.style.addStyleElementCss('background-position: center;');
     this.style.addStyleElementCss('background-size: contain;');
     this.style.addStyleElementCss('background-origin: content-box;');
-    this.style.addStyleElementCss('background-image: url(\'' + getImagePath(node.getAttribute(attrKeys.src))  + '\');');
+    this.style.addStyleElementCss('background-image: url(\'' + getImagePath(node.getAttribute(attrKeys.src)) + '\');');
 
 
     let id = node.getAttribute(attrKeys.id);
@@ -1674,7 +1677,7 @@ CustomTableView.prototype.createElement = function (node) {
         theme: theme,
         parent: this.htmlElement,
         headers: headers,
-        data: data,
+        data: data
     };
     this.options.bodyData = data;
     if (cssClass && cssClass !== "") {
@@ -2408,7 +2411,7 @@ TextField.prototype.createElement = function (node) {
         type = 'text';//default
     }
     if (type && type !== 'text' && type !== 'password' && type !== 'file' && type !== 'date' && type !== 'search' && type !== 'datetime'
-        && type !== 'tel' && type !== 'phone' && type !== 'time' && type !== 'color' && type !== 'url' && type !== 'email') {
+            && type !== 'tel' && type !== 'phone' && type !== 'time' && type !== 'color' && type !== 'url' && type !== 'email') {
         throw 'Unsupported input type---(' + type + ')';
     }
 
@@ -3069,6 +3072,154 @@ Radio.prototype.calculateWrapContentSizes = function (node) {
  * @param {type} node
  * @returns {ImageView}
  */
+function TabView(wkspc, node) {
+    this.options = {};
+    this.tabbedBar = null;
+    View.call(this, wkspc, node);
+}
+
+TabView.prototype.createElement = function (node) {
+    this.htmlElement = document.createElement('canvas');
+
+
+    let name = node.getAttribute(attrKeys.name);
+    if (attributeNotEmpty(name)) {
+        this.htmlElement.setAttribute(attrKeys.name, name);
+    }
+
+    let fontSize = node.getAttribute(attrKeys.fontSize);
+    let textSize = node.getAttribute(attrKeys.textSize);
+    let fontName = node.getAttribute(attrKeys.fontName);
+    let fontStyle = node.getAttribute(attrKeys.fontStyle);
+    let selectedBg = node.getAttribute(attrKeys.selectedBg);
+    let selectedFg = node.getAttribute(attrKeys.selectedFg);
+    let deselectedBg = node.getAttribute(attrKeys.deselectedBg);
+    let deselectedFg = node.getAttribute(attrKeys.deselectedFg);
+    let tabEdgeColor = node.getAttribute(attrKeys.tabEdgeColor);
+    let tabEdgeWidth = node.getAttribute(attrKeys.tabEdgeWidth);
+    let iconSize = node.getAttribute(attrKeys.iconSize);
+    let borderRadius = node.getAttribute(attrKeys.borderRadius);
+    let tabItems = node.getAttribute(attrKeys.tabItems);
+    
+    fontSize = attributeEmpty(fontSize) ? textSize : fontSize;
+    if (attributeEmpty(fontSize)) {
+        fontSize = '14px';
+    }
+    if (attributeEmpty(fontName)) {
+        fontName = 'serif';
+    }
+    if (attributeEmpty(fontStyle)) {
+        fontStyle = FontStyle.REGULAR;
+    }
+    let ctx = document.createElement("canvas").getContext("2d");
+
+
+    if (attributeEmpty(selectedBg)) {
+        selectedBg = "midnightblue";
+    } else {
+        selectedBg = standardColor(ctx, selectedBg);
+    }
+    if (attributeEmpty(selectedFg)) {
+        selectedFg = "white";
+    } else {
+        selectedFg = standardColor(ctx, selectedFg);
+    }
+    if (attributeEmpty(deselectedBg)) {
+        deselectedBg = "darkgray";
+    } else {
+        deselectedBg = standardColor(ctx, deselectedBg);
+    }
+    if (attributeEmpty(deselectedFg)) {
+        deselectedFg = "pink";
+    } else {
+        deselectedFg = standardColor(ctx, deselectedFg);
+    }
+    if (attributeEmpty(tabEdgeColor)) {
+        tabEdgeColor = "#fff";
+    } else {
+        tabEdgeColor = standardColor(ctx, tabEdgeColor);
+    }
+    if (attributeEmpty(iconSize)) {
+        iconSize = "16px";
+    }
+    if (attributeEmpty(tabEdgeWidth)) {
+        tabEdgeWidth = "1px";
+    }
+    if (attributeEmpty(borderRadius)) {
+        borderRadius = "8px";
+    }
+    if (attributeNotEmpty(tabItems)) {
+        tabItems = JSON.parse(tabItems);
+        if (!tabItems) {
+            throw new Error('Invalid `tabItems` array!');
+        }
+        if (!isOneDimArray(tabItems)) {
+            throw new Error('`tabItems` must be a one dimensional array!');
+        }
+    } else {
+        throw new Error('`tabItems` not specified for TabView: ' + this.id);
+    }
+
+    let sizeUnits = "";
+
+    if (!endsWithAnyOf(fontSize, ['px', 'pt', 'em'])) {
+        throw new Error("Invalid font size units specified");
+    }
+    if (endsWith(fontSize, 'px')) {
+        sizeUnits = CssSizeUnits.PX;
+    }
+    if (endsWith(fontSize, 'pt')) {
+        sizeUnits = CssSizeUnits.PT;
+    }
+    if (endsWith(fontSize, 'em')) {
+        sizeUnits = CssSizeUnits.EM;
+    }
+    let styles = Object.values(FontStyle);
+    if (styles.indexOf(fontStyle) === -1) {
+        throw new Error("Invalid font style specified on view: " + this.id);
+    }
+
+    this.options = {
+        tabId: this.id,
+        selectedBg: selectedBg, // the bg color when a tab is selected
+        deselectedBg: deselectedBg, // the bg color when a tab is not selected
+        selectedFg: selectedFg, // the color of the tab's text when the tab is selected
+        deselectedFg: deselectedFg, // the color of the tab's text when the tab is deselected
+        tabEdgeColor: tabEdgeColor, // the color of the lines between the tabs
+        borderRadius: borderRadius,
+        tabEdgeWidth: tabEdgeWidth, // or without the units... this is the borderwidth of the line that separates the tabs
+        fontName: fontName, // The font name
+        fontSize: fontSize, //The font size
+        iconSize: iconSize, // The height of the tab icons, where used
+        sizeUnits: sizeUnits, //The size units to be used for the font and the border radius; e.g CssSizeUnits.EM or CssSizeUnits.PX or CssSizeUnits.PT
+        fontStyle: fontStyle, // e.g bold or italic or italic bold or 
+        tabItems: tabItems,
+        onTabChanged: function (newIndex, oldIndex) {
+            console.log('onTabChanged: newIndex: ',newIndex,", oldIndex: ", oldIndex);
+        }
+    };
+    
+
+
+    this.assignId();
+    this.calculateWrapContentSizes(node);
+};
+
+TabView.prototype.runView = function () {
+    this.tabbedBar = new TabbedBar(this.options);
+};
+
+TabView.prototype.calculateWrapContentSizes = function (node) {
+    this.wrapWidth = 360;
+    this.wrapHeight = 60;
+};
+
+/**
+ *
+ * @param {Workspace} wkspc
+ * @param {type} node
+ * @returns {ImageView}
+ */
 function ImageView(wkspc, node) {
     View.call(this, wkspc, node);
 }
@@ -3255,14 +3406,14 @@ function FormView(wkspc, node) {
 }
 
 /*
-    action: "action",
-    method: "method",
-    target: "target",
-    autocomplete: "autocomplete",
-    novalidate: "novalidate",
-    enctype: "enctype",
-    rel: "rel",
-    acceptCharset: "accept-charset",
+ action: "action",
+ method: "method",
+ target: "target",
+ autocomplete: "autocomplete",
+ novalidate: "novalidate",
+ enctype: "enctype",
+ rel: "rel",
+ acceptCharset: "accept-charset",
  */
 FormView.prototype.createElement = function (node) {
     let form = document.createElement('form');
@@ -3606,8 +3757,8 @@ function validateTableJson(jsonObj) {
 function isFontWeight(val) {
     if (val && typeof val === 'string') {
         if (val === 'bold' || val === 'bolder' || val === 'lighter' || val === 'normal' ||
-            val === '100' || val === '200' || val === '300' || val === '400' ||
-            val === '500' || val === '600' || val === '700' || val === '800' || val === '900') {
+                val === '100' || val === '200' || val === '300' || val === '400' ||
+                val === '500' || val === '600' || val === '700' || val === '800' || val === '900') {
             return true;
         }
     }
