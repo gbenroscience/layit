@@ -4,6 +4,7 @@ Layouts on steroids with android-style xml constraint-layouts on the web, backed
 
 **Integrates seamlessly with Electron, thereby allowing you to use android style ConstraintLayout for designing desktop UI!**<br>
 **Added support for listadapters and forms**
+**Added support for TabViews**
 
 This project already works, but is currently under development and new ui widgets are been added to it.
 
