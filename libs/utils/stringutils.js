@@ -127,22 +127,18 @@ function endsWith(str, endItem) {
  * @param inneritem The string to check for inside <code>str</code>
  * @return true if the variable <code>str</code> contains variable <code>item</code>
  */
-function contain( str,inneritem ){
-       if(typeof str === "string" && typeof inneritem === "string" ){
-            let len = str.length;
-            let otherLen = inneritem.length;
-        if( len === otherLen ){
+function contain(str, inneritem) {
+    if (typeof str === "string" && typeof inneritem === "string") {
+        let len = str.length;
+        let otherLen = inneritem.length;
+        if (len === otherLen) {
             return str === inneritem;
-        }
-        else if( len < otherLen ){
+        } else if (len < otherLen) {
             return false;
-        }
-        
-        else{
+        } else {
             return str.indexOf(inneritem, 0) !== -1;
         }
-    }
-    else{
+    } else {
         return false;
     }
 }//end function
@@ -154,16 +150,30 @@ function contain( str,inneritem ){
  * @param endItems An array containing the strings to check for at the end of <code>str</code>
  * @return true if the variable <code>str</code> ends with any of the variables in <code>endItems</code>
  */
-function endsWithAnyOf( str,endItems ){
+function endsWithAnyOf(str, endItems) {
     var len = endItems.length;
-for(var i=0;i<len;i++){
-    if(endsWith(str, endItems[i])){
-        return true;
+    for (var i = 0; i < len; i++) {
+        if (endsWith(str, endItems[i])) {
+            return true;
+        }
     }
-    
-}
-return false;
+    return false;
+}//end function
 
+/**
+ * @param str The string in consideration
+ * @param endItems An array containing the strings to check for at the end of <code>str</code>
+ * @return the index of the first item in the endItems which is found to end this string or -1 if none is found
+ * to end it.
+ */
+function indexOfEnder(str, endItems) {
+    var len = endItems.length;
+    for (var i = 0; i < len; i++) {
+        if (endsWith(str, endItems[i])) {
+            return i;
+        }
+    }
+    return -1;
 }//end function
 
 /**
@@ -171,15 +181,31 @@ return false;
  * @param startItems An array containing the strings to check for at the start of <code>str</code>
  * @return true if the variable <code>str</code> starts with any of the variables in <code>startItems</code>
  */
-function startsWithAnyOf( str,startItems ){
+function startsWithAnyOf(str, startItems) {
     var len = startItems.length;
-for(var i=0;i<len;i++){
-    if(startsWith(str, startItems[i])){
-        return true;
+    for (var i = 0; i < len; i++) {
+        if (startsWith(str, startItems[i])) {
+            return true;
+        }
     }
-    
-}
-return false;
+    return false;
+
+}//end function
+
+/**
+ * @param str The string in consideration
+ * @param startItems An array containing the strings to check for at the start of <code>str</code>
+ * @return the index of the first item in the startItems array which is found to start this string or -1
+ * if none is found to start it
+ */
+function indexOfStarter(str, startItems) {
+    var len = startItems.length;
+    for (var i = 0; i < len; i++) {
+        if (startsWith(str, startItems[i])) {
+            return i;
+        }
+    }
+    return -1;
 
 }//end function
 
@@ -188,15 +214,15 @@ return false;
  * @param innerItems An array containing the strings to check for inside <code>str</code>
  * @return true if the variable <code>str</code> contains any of the variables in <code>endItems</code>
  */
-function containsAnyOf( str,innerItems ){
+function containsAnyOf(str, innerItems) {
     const len = innerItems.length;
-for(let i=0;i<len;i++){
-    if(contain(str, innerItems[i])){
-        return true;
+    for (let i = 0; i < len; i++) {
+        if (contain(str, innerItems[i])) {
+            return true;
+        }
+
     }
-    
-}
-return false;
+    return false;
 
 }//end function
 
@@ -207,14 +233,14 @@ return false;
  * @param str The string to reverse
  * @return the string in reversed order.
  */
-function reverse( str ){
-    var len =str.length;
-    var reversed='';
-    for(var i=len-1;i>=0;i--){
-        reversed = reversed+str.charAt(i);
+function reverse(str) {
+    var len = str.length;
+    var reversed = '';
+    for (var i = len - 1; i >= 0; i--) {
+        reversed = reversed + str.charAt(i);
     }
-    
-    
+
+
     return reversed;
 }//end function
 
@@ -224,26 +250,26 @@ function reverse( str ){
  * @returns {Boolean} true if the input contains only
  * white spaces or is null.
  */
-function isWhiteSpacesOnly(input){
-    if(input === null){
+function isWhiteSpacesOnly(input) {
+    if (input === null) {
         return true;
     }
-    if(!input){
-       return true;
-   }
+    if (!input) {
+        return true;
+    }
     if (/\S/.test(input)) {
-    return false;
-   }
-  
-return true;
+        return false;
+    }
+
+    return true;
 }
 
 function validateEmail(email) {
-  var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
 }
 
-function validateUserName(userName){
-   var re = /(?=^.{3,20}$)^[a-zA-Z][a-zA-Z0-9]*[._-]?[a-zA-Z0-9]+$/;
-   return re.test(userName);
+function validateUserName(userName) {
+    var re = /(?=^.{3,20}$)^[a-zA-Z][a-zA-Z0-9]*[._-]?[a-zA-Z0-9]+$/;
+    return re.test(userName);
 }

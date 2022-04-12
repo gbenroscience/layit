@@ -13,34 +13,36 @@
  * The text is always positioned relative to the left side of the label.
  * 
  * @param {Object} options If supplied, no other args should be passed to this constructor.
- * @param {string} canvasId
- * @param {string} text
- * @param {string} src
- * @param {Gravity} gravity One of Gravity.LEFT or Gravity.RIGHT or Gravity.CENTER... determines the placement of the icon. The text is always positioned relative to the left side of the label.
- * @param {string} fontName The font name
- * @param {Number} fontSize The font size
- * @param {Number} sizeUnits The size units to be used for the font and the border radius; e.g CssSizeUnits.EM or CssSizeUnits.PX or CssSizeUnits.PT
- * @param {string} fontStyle e.g bold or italic or italic bold or 
- * @param {string} labelColor The label's background color - An hexadecimal value, e.g. #00FF22
- * @param {string} labelColorHover The label's background color when the widget is moused over - An hexadecimal value, e.g. #00FF22
- * @param {string} textColor The label's font color - An hexadecimal value, e.g. #00FF22
- * @param {string} textColorHover The label's font color when the widget is moused over- An hexadecimal value, e.g. #00FF22
- * @param {Number} borderRadius The border radius... the units are same as the units for the font  e.g CssSizeUnits.EM or CssSizeUnits.PX or CssSizeUnits.PT
- * @param {Number} padding The padding used for the text:
- * When gravity is LEFT, padding is the distance between the icon and the left side of the label. To specify a gap between the icon and the text, use iconTextGap.
- * When gravity is RIGHT, padding is the distance between the icon and the right side of the label. It is also the distance between the text and the left side of the label
- * When gravity is CENTER, padding is the distance between the text and the left side of the label. The units are same as the units for the font  e.g CssSizeUnits.EM or CssSizeUnits.PX or CssSizeUnits.PT
- * @param {Number} iconTextGap The distance between the icon and the text... This works only with Gravity.LEFT. It is used to control the distance between the text and the icon.
- * The units are same as the units for the font  e.g CssSizeUnits.EM or CssSizeUnits.PX or CssSizeUnits.PT
- * @param {Number} iconSize The size of the icon: the units are same as the units for the font  e.g CssSizeUnits.EM or CssSizeUnits.PX or CssSizeUnits.PT
- * @param {Function} onclick Function called when the button is clicked
+ {
+ id: 'html_id_of_canvas',
+ text: 'text to show on label',
+ src: 'path-to-image icon',
+ gravity: Gravity.LEFT, //One of Gravity.LEFT or Gravity.RIGHT or Gravity.CENTER... determines the placement of the icon. The text is always positioned relative to the left side of the label.
+ fontName: 'Arial', //The font name
+ fontSize: 16, //The font size.. no units
+ sizeUnits: CssSizeUnits.PX, //The size units to be used for the font and the border radius; e.g CssSizeUnits.EM or CssSizeUnits.PX or CssSizeUnits.PT
+ fontStyle: FontStyle.REGULAR, //e.g bold or italic or italic bold...
+ labelColor: 'transparent', //The label's background color - An hexadecimal value, e.g. #00FF22
+ labelColorHover: 'whitesmoke', //The label's background color when the widget is moused over - An hexadecimal value, e.g. #00FF22
+ textColor: 'black', //The label's font color - An hexadecimal value, e.g. #00FF22
+ textColorHover: 'red', //The label's font color when the widget is moused over- An hexadecimal value, e.g. #00FF22
+ borderRadius: 4, //... the units are same as the units for the font  e.g CssSizeUnits.EM or CssSizeUnits.PX or CssSizeUnits.PT
+ padding: 4,   // The padding used for the text:
+ // When gravity is LEFT, padding is the distance between the icon and the left side of the label. To specify a gap between the icon and the text, use iconTextGap.
+ // When gravity is RIGHT, padding is the distance between the icon and the right side of the label. It is also the distance between the text and the left side of the label
+ // When gravity is CENTER, padding is the distance between the text and the left side of the label. The units are same as the units for the font  e.g CssSizeUnits.EM or CssSizeUnits.PX or CssSizeUnits.PT
+ iconTextGap: 4, // The distance between the icon and the text... This works only with Gravity.LEFT. It is used to control the distance between the text and the icon.
+ // The units are same as the units for the font  e.g CssSizeUnits.EM or CssSizeUnits.PX or CssSizeUnits.PT
+ iconSize: 24,  // The size of the icon: the units are same as the units for the font  e.g CssSizeUnits.EM or CssSizeUnits.PX or CssSizeUnits.PT
+ onclick: function(e){} Function called when the button is clicked
+ } 
  * @returns {IconButton}
  */
-function IconLabel(options, canvasId, text, src, gravity, fontName, fontSize, sizeUnits, fontStyle, labelColor, labelColorHover, textColor, textColorHover, borderRadius, padding, iconTextGap, iconSize, onclick) {
+function IconLabel(options) {
     var canvas = null;
     if (options && typeof options === 'object') {
-        if (options.canvasId && typeof options.canvasId === 'string') {
-            canvas = document.getElementById(options.canvasId);
+        if (options.id && typeof options.id === 'string') {
+            canvas = document.getElementById(options.id);
             if (canvas && canvas instanceof HTMLCanvasElement) {
                 this.canvas = canvas;
             }
@@ -50,7 +52,7 @@ function IconLabel(options, canvasId, text, src, gravity, fontName, fontSize, si
         if (typeof options.text === 'string') {
             this.text = options.text;
         } else {
-            this.text = 'BUTTON';
+            this.text = 'LABEL';
         }
 
         if (typeof options.src === 'string') {
@@ -143,184 +145,77 @@ function IconLabel(options, canvasId, text, src, gravity, fontName, fontSize, si
 
 
 
+        this.g = new Graphics(canvas);
 
-    } else {
+        this.font = new Font(this.fontStyle, this.fontSize, this.fontName, this.sizeUnits);
+        this.g.setFont(this.font);
 
-        if (canvasId && typeof canvasId === 'string') {
-            canvas = document.getElementById(canvasId);
-            if (canvas && canvas instanceof HTMLCanvasElement) {
-                this.canvas = canvas;
-            }
-        } else {
-            throw new Error("Please supply the id of a valid canvas");
-        }
-        if (typeof text === 'string') {
-            this.text = text;
-        } else {
-            this.text = 'BUTTON';
-            throw new Error("The button text should be a string");
-        }
+        this.pressed = false;
+        this.hovering = false;
 
-        if (typeof src === 'string') {
-            this.src = src;
-        } else {
-            this.src = "";
-        }
-
-        if (typeof gravity === 'string') {
-            this.gravity = gravity;
-        } else {
-            if (this.src === "") {
-                this.gravity = Gravity.CENTER;
-            }
-        }
-
-        if (typeof sizeUnits === 'string') {
-            this.sizeUnits = sizeUnits;
-        } else {
-            this.sizeUnits = CssSizeUnits.PX;
-        }
-
-        if (typeof fontName === 'string') {
-            this.fontName = fontName;
-        } else {
-            this.fontName = "Segoe UI";
-        }
-
-        if (typeof fontSize === 'number') {
-            this.fontSize = fontSize;
-        } else {
-            this.fontSize = 13;//13px
-        }
-
-        if (typeof fontStyle === 'string') {
-            this.fontStyle = fontStyle;
-        } else {
-            this.fontStyle = FontStyle.REGULAR;
-        }
-
-        if (typeof borderRadius === 'number') {
-            this.borderRadius = borderRadius;
-        } else {
-            this.borderRadius = 2;
-        }
-        if (typeof labelColor === 'string') {
-            this.labelColor = labelColor;
-        } else {
-            this.labelColor = "#DDDDDD";
-        }
-        if (typeof labelColorHover === 'string') {
-            this.labelColorHover = labelColorHover;
-        } else {
-            this.labelColorHover = "#FFFFFF";
-        }
-        if (typeof textColor === 'string') {
-            this.textColor = textColor;
-        } else {
-            this.textColor = "#000000";
-        }
-        if (typeof textColorHover === 'string') {
-            this.textColorHover = textColorHover;
-        } else {
-            this.textColorHover = "#FFFFFF";
-        }
-        if (typeof padding === 'number') {
-            this.padding = padding;
-        } else {
-            this.padding = 4;
-        }
-        if (typeof iconTextGap === 'number') {
-            this.iconTextGap = iconTextGap;
-        } else {
-            this.iconTextGap = 4;
-        }
-        if (typeof iconSize === 'number') {
-            this.iconSize = iconSize;
-        } else {
-            this.iconSize = 16;
-        }
-        if (typeof onclick === 'function') {
-            this.onclick = onclick;
-        } else {
-            if (!onclick) {
-                this.onclick = function () {};
-            } else {
-                throw new Error("The `onclick parameter must be a function");
-            }
-
-        }
+        this.width = canvas.width;
+        this.height = canvas.height;
 
 
-    }// end else
+        this.icon = new Image(this.iconSize, this.iconSize);
+        var label = this;
+        this.icon.onload = function () {
+            label.render();
+        };
+
+        this.icon.onerror = function () {
+            label.render();
+        };
+
+        this.icon.src = this.src;
 
 
-    this.g = new Graphics(canvas);
-
-    this.font = new Font(this.fontStyle, this.fontSize, this.fontName, this.sizeUnits);
-    this.g.setFont(this.font);
-
-    this.pressed = false;
-    this.hovering = false;
-
-    this.width = canvas.width;
-    this.height = canvas.height;
-
-
-    this.icon = new Image(this.iconSize, this.iconSize);
-    var label = this;
-    this.icon.onload = function () {
-        label.render();
-    };
-
-    this.icon.onerror = function () {
-        label.render();
-    };
-
-    this.icon.src = this.src;
-
-
-    canvas.addEventListener('mouseover', function (e) {
-        canvas.style.cursor = 'pointer';
-        label.g.clear();
-        label.hovering = true;
-        label.render();
-
-    });
-
-    canvas.addEventListener('mouseout', function (e) {
-        canvas.style.cursor = 'auto';
-        if (label.selected === true) {
+        canvas.addEventListener('mouseover', function (e) {
+            canvas.style.cursor = 'pointer';
             label.g.clear();
-            label.hovering = false;
+            label.hovering = true;
+            label.render();
+
+        });
+
+        canvas.addEventListener('mouseout', function (e) {
+            canvas.style.cursor = 'auto';
+            if (label.selected === true) {
+                label.g.clear();
+                label.hovering = false;
+                label.selected = false;
+                label.render();
+            } else {
+                label.g.clear();
+                label.hovering = false;
+                label.render();
+            }
+
+        });
+
+        canvas.addEventListener('mouseup', function (e) {
+            label.g.clear();
             label.selected = false;
             label.render();
-        } else {
+            label.onclick();
+        });
+
+        canvas.addEventListener('mousedown', function (e) {
             label.g.clear();
-            label.hovering = false;
+            label.selected = true;
             label.render();
-        }
+        });
 
-    });
-
-    canvas.addEventListener('mouseup', function (e) {
-        label.g.clear();
-        label.selected = false;
-        label.render();
-        label.onclick();
-    });
-
-    canvas.addEventListener('mousedown', function (e) {
-        label.g.clear();
-        label.selected = true;
-        label.render();
-    });
-
-
+    } else {
+        throw new Error('Invalid parameters for IconLabel');
+    }
 }
 
+IconLabel.prototype.size = function () {
+    return this.g.getTextSize(this.text);
+};
 
 IconLabel.prototype.render = function () {
-
 
     var g = this.g;
     var w = this.width;
@@ -328,7 +223,7 @@ IconLabel.prototype.render = function () {
     var backgroundColor = this.labelColor;
     var backgroundColorHover = typeof this.labelColorHover === 'undefined' ? darkenColor(backgroundColor, 0.1) : this.labelColorHover;
     var textColor = this.textColor;
-    var textColorHover =  typeof this.textColorHover === 'undefined' ? darkenColor(textColor, 0.1) : this.textColorHover;
+    var textColorHover = typeof this.textColorHover === 'undefined' ? darkenColor(textColor, 0.1) : this.textColorHover;
     var borderRadius = this.borderRadius;
     var font = this.font;
     var gravity = this.gravity;
@@ -339,11 +234,10 @@ IconLabel.prototype.render = function () {
     var iconSize = this.iconSize;
     var hovering = this.hovering;
     var selected = this.selected;
-    
-     
-
-
-
+    let hasImageMaybe = false;
+    if (this.src) {
+        hasImageMaybe = true;
+    }
 
     //PAINT THE BG OVER:
 
@@ -354,27 +248,39 @@ IconLabel.prototype.render = function () {
     g.setBackground(hovering ? textColorHover : textColor);
 
     var textHeight = g.textHeight(txt);
+    let lineWidth = g.stringWidth(txt);
     switch (gravity) {
 
         case Gravity.LEFT:
-            g.drawImageAtLocWithSize(icon, padding, (h - icon.height) / 2, iconSize, iconSize);
-            g.drawString(txt, padding + iconSize + iconTextGap, ((h - textHeight) * 0.5 + textHeight));
+            if (hasImageMaybe) {
+                g.drawImageAtLocWithSize(icon, padding, (h - icon.height) / 2, iconSize, iconSize);
+                g.drawString(txt, padding + iconSize + iconTextGap, ((h - textHeight) * 0.5 + textHeight));
+            } else {
+                g.drawString(txt, padding, ((h - textHeight) * 0.5 + textHeight));
+            }
+
             break;
         case Gravity.RIGHT:
-            g.drawImageAtLocWithSize(icon, w - padding - iconSize, (h - icon.height) / 2, iconSize, iconSize);
-            g.drawString(txt, padding, ((h - textHeight) * 0.5 + textHeight));
+            if (hasImageMaybe) {
+                g.drawImageAtLocWithSize(icon, w - padding - iconSize, (h - icon.height) / 2, iconSize, iconSize);
+                g.drawString(txt, padding, ((h - textHeight) * 0.5 + textHeight));
+            } else {
+                g.drawString(txt, (w - padding - lineWidth), ((h - textHeight) * 0.5 + textHeight));
+            }
+
             break;
         case Gravity.CENTER:
-            g.drawImageAtLocWithSize(icon, (w - iconSize) / 2, (h - icon.height) / 2, iconSize, iconSize);
-            g.drawString(txt, padding, ((h - textHeight) * 0.5 + textHeight));
+            if (hasImageMaybe) {
+                g.drawImageAtLocWithSize(icon, (w - iconSize) / 2, (h - icon.height) / 2, iconSize, iconSize);
+                g.drawString(txt, padding, ((h - textHeight) * 0.5 + textHeight));
+            } else {
+                g.drawString(txt, (w - lineWidth) / 2, ((h - textHeight) * 0.5 + textHeight));
+            }
+
             break;
         default:
 //default is left..
             g.drawImageAtLocWithSize(icon, padding, (h - icon.height) / 2, iconSize, iconSize);
             break;
     }
-
-
-
-
 };

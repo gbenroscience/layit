@@ -10,6 +10,7 @@ and open the template in the editor.
         width="50%"
         height="200px"
         border="1px dashed midnightblue"
+        cx_align="parent"
 >
 
     <Label

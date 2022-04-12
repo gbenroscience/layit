@@ -7,7 +7,7 @@
 
 
 
-/* global ViewController */
+/* global ViewController, ListAdapter */
 
 TestController.prototype = Object.create(ViewController.prototype);
 TestController.prototype.constructor = TestController;
@@ -41,6 +41,7 @@ TestController.prototype.onViewsAttached = function (wid) {
 
 
     let customList = this.findViewById('custom_list');
+    let customGrid =  this.findViewById('custom_grid');
     customList.data.push({
         name: "Emmanuel Phanuel",
         phone: "08168990132",
@@ -64,23 +65,65 @@ TestController.prototype.onViewsAttached = function (wid) {
         src: "faces/nine.png"
     });
 
-    let adapter = new ListAdapter(customList , function () {
-
-    });
+    let adapter = new ListAdapter();
     adapter.bindData = function (pos, li) {
         li.style.backgroundColor = 'midnightblue';
         li.style.border = '1px solid white';
-        ListAdapter.prototype.bindData.call(this, pos, li);
+       // ListAdapter.prototype.bindData.call(this, pos, li);
         let item = this.getItem(pos);
-        let personImageView = this.getChildView(pos,"person_img");
-        let personNameView = this.getChildView(pos,"person_name");
-        let personPhoneView = this.getChildView(pos,"person_phone");
+        let personImageView = this.getChildView(li,"person_img");
+        let personNameView = this.getChildView(li,"person_name");
+        let personPhoneView = this.getChildView(li,"person_phone");
 
         personImageView.src = getImagePath(item.src);
         personNameView.textContent = item.name;
         personPhoneView.textContent = item.phone;
-
     };
+    
+    customList.setAdapter(adapter, function () {
+        
+    });
+    
+    
+    customGrid.data.push({
+        name: "Emmanuel Phanuel",
+        phone: "08168990132",
+        src: "faces/five.jpg"
+    });
+    customGrid.data.push({
+        name: "Abike Omodunni",
+        phone: "08098226543",
+        src: "faces/six.jpg"
+    });
+
+    customGrid.data.push({
+        name: "Phil Simmons",
+        phone: "07063645578",
+        src: "faces/seven.jpg"
+    });
+    customGrid.data.push({
+        name: "Lex Mannings",
+        phone: "08024798567",
+        src: "faces/nine.png"
+    });
+
+    
+        let gridAdapter = new GridAdapter();
+    gridAdapter.bindData = function (pos, li) {
+       // ListAdapter.prototype.bindData.call(this, pos, li);
+        let item = this.getItem(pos);
+        let personImageView = this.getChildView(li,"p_img");
+        let personNameView = this.getChildView(li,"p_name");
+        let personPhoneView = this.getChildView(li,"p_phone");
+
+        personImageView.src = getImagePath(item.src);
+        personNameView.textContent = item.name;
+        personPhoneView.textContent = item.phone;
+    };
+    
+    customGrid.setAdapter(gridAdapter, function () {
+        
+    });
 
 
 
@@ -108,7 +151,7 @@ TestController.prototype.onViewsAttached = function (wid) {
 
     };
     loginBtn.onclick = function () {
-        let progress = self.findViewById('progress').progress;
+        let progress = self.findViewById('progress').exoticView;
 
         let val = 0;
         let interval = setInterval(function () {

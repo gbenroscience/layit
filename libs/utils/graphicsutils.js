@@ -1521,3 +1521,33 @@ function dragElement(elmnt) {
         document.onmousemove = null;
     }
 }
+
+let getTextSize = function (text, font) {
+    if (typeof text === 'string') {
+        if (text.length === 0) {
+            return new Rectangle(0, 0, 0, 0);
+        }
+        let cv = document.createElement('canvas');
+
+        cv.width = 1024;
+        cv.height = 190;
+        cv.style.width = cv.width + 'px';
+        cv.style.height = cv.height + 'px';
+        document.body.appendChild(cv);
+
+        let gg = new Graphics(cv);
+        gg.ctx.font = font;
+
+        gg.setBackground('#000');
+        gg.drawString(text, 10, cv.height / 2);
+
+        let rect = gg.getBoundingBox();
+        cv.remove();
+        gg.clear();
+        gg.destroy();
+        gg = null;
+        return rect;
+    }
+
+    return null;
+};

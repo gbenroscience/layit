@@ -22,12 +22,36 @@ const Gravity = {
     RIGHT: "right",
     CENTER: "center"
 };
-
+/**
+ * Always sort the entries according to length, please!
+ * @type type
+ */
 const CssSizeUnits = {
+    VMAX: "vmax",
+    VMIN: "vmin",
+    REM: "rem",
+
     EM: "em",
     PT: "pt",
-    PX: "px"
+    PX: "px",
+
+    CM: "cm",
+    IN: "in",
+    MM: "mm",
+    VM: "vm",
+    VH: "vh",
+    VW: "vw",
+    PC: "pc",
+    EX: "ex",
+    CH: "ch",
+    GD: "gd",
+    PCT: "%",
+    Q: "q"
+
 };
+const CssSizeUnitsValues = Object.values(CssSizeUnits).sort(function (a, b) {
+    return b.length - a.length;
+});
 
 const FontStyle = {
     REGULAR: "normal",
@@ -1648,6 +1672,50 @@ Graphics.prototype.getTextSize = function (text) {
     return null;
 };
 
+
+
+/**
+ * Computes the size of an arra of strings using same canvas to optimize dom editing.
+ * @param {string} textArray An array of strings whose dimensions are needed
+ * @returns {Array} An array of rectangles containing the width and height of the strings in the specified order
+ */
+Graphics.prototype.getTextSizes = function (textArray) {
+    if (isOneDimArray(textArray)) {
+        if (textArray.length === 0) {
+            return new Rectangle(0, 0, 0, 0);
+        }
+        let cv = document.createElement('canvas');
+
+        cv.width = this.width;
+        cv.height = this.height;
+        cv.style.width = this.width + 'px';
+        cv.style.height = this.height + 'px';
+        document.body.appendChild(cv);
+
+        let gg = new Graphics(cv);
+        gg.ctx.font = this.ctx.font;
+
+        gg.setBackground('#000');
+
+        let rectArray = [];
+
+        for (let i = 0; i < textArray.length; i++) {
+            gg.drawString(textArray[i], 10, cv.height / 2);
+            let rect = gg.getBoundingBox();
+            gg.clear();
+            rectArray.push(rect);
+        }
+
+
+        cv.remove();
+        gg.destroy();
+        gg = null;
+        return rect;
+    }
+
+    return null;
+};
+
 /**
  *
  * @param {String} text A number between 0 and 1
@@ -1730,30 +1798,33 @@ Graphics.prototype.getLinesByMaxWidthAlgorithm = function (text, lineWidth) {
     let lines = [];
     let ctx = this.ctx;
 
-    let cs = new Scanner(text, true, [" ", "\n"]);
+    let cs = new Scanner(text, true, [ "\r\n", "\t","\r"," ", "\n"]);
     let list = cs.scan();
     let sz = list.length;
 
-let line = new StringBuffer();
-let oldWidth = 0;
+    let line = new StringBuffer();
+    let oldWidth = 0;
     for (let i = 0; i < sz; i++) {
         let entry = list[i];
-        let wid = ctx.measureText(line.toString()+entry).width;
+        let wid = ctx.measureText(line.toString() + entry).width;
         if (wid < lineWidth) {
             line.append(entry);
-        }else if(wid === lineWidth || list[i] === "\n"){
-             line.append(entry);
-             lines.push(new LineAndWidth(line.toString(), wid));
-             line = new StringBuffer();
-        }else if(wid > lineWidth){
-               lines.push(new LineAndWidth(line.toString(), oldWidth));
-               line = new StringBuffer();
+        } else if (wid === lineWidth || entry === "\r\n" || entry === "\r" || entry === "\n" ) {
+            line.append(entry);
+            lines.push(new LineAndWidth(line.toString(), wid));
+            line = new StringBuffer();
+        } else if (wid > lineWidth) {
+            lines.push(new LineAndWidth(line.toString(), oldWidth));
+            line = new StringBuffer();
+            line.append(entry);
         }
         oldWidth = wid;
     }//end for loop
+  let ln = line.toString();
+    if (ln.length > 0) {
+        lines.push(new LineAndWidth(ln, oldWidth));
+    }
 
-       if(line.toString().length > 0){
-           lines.push(new LineAndWidth(line.toString(), oldWidth));
-       }
+
     return lines;
 };//end method

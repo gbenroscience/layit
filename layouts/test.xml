@@ -16,10 +16,10 @@
             end_end='parent'
 
     />
-    <MultiLineLabel
+    <Paragraph
             id="site_title"
             width="wrap_content"
-            height="80px"
+            height="wrap_content"
             maxWidth="250px"
             padding="0"
             start_start='section_top'
@@ -445,7 +445,7 @@
             start_end="notes_area"
             top_top="notes_area"
     />
-    <CustomList
+    <ListView
             id='custom_list'
             width='400px'
             height='600px'
@@ -453,14 +453,13 @@
             top_bottom='yes'
             cx_align='parent'
             marginEnd='16'
-            listType='ul'
-            showBullets='false'
             items='[{"name": "Mayowa Oloruntobi","phone": "08165779034","src":"one.png"},{"name": "George Phinehas","phone": "07039347746","src":"faces/two.png"},{"name": "Floyd Lloyd","phone": "08038009643","src":"faces/three.png"},{"name": "Marcus Davis","phone": "08032162798","src":"faces/four.jpg"}]'
             itemViews='["listcell1.xml"]'
             border='1px solid midnightblue'
-            backgroundColor='white'
-
+            backgroundColor='transparent'
+            cellSpacing="4px"
     />
+    
     <Label
             id="form_one_label"
             width="wrap_content"
@@ -524,6 +523,80 @@
             borderRadius='32px'
             border='2px solid gray'
             tabItems='[{"value":"scenery/fine-7.jpg","type":"image"},{"value":"Views","type":"text"},{"value":"Profile","type":"text"},{"value":"scenery/fine-6.jpg","type":"image"}]'
+    />
+       
+          <Label
+            id="custom_grid_label"
+            width="wrap_content"
+            height="wrap_content"
+            end_start='custom_grid'
+            cy_align="custom_grid"
+            textAlign="center"
+            backgroundColor="pink"
+            marginEnd="16"
+            textColor="red"
+            paddingStart="0"
+            value="Here is a GridView!"
+            textSize="1.2em"
+            textStyle="bold"
+            fontFamily="Arial"
+    />
+        <GridView
+            id='custom_grid'
+            width='450px'
+            height='560px'
+            marginTop="32px"
+            top_bottom='tabview'
+            cx_align='parent'
+            marginEnd='16'
+            cols="3"
+            minGridHeight="232px"
+            items='[{"name": "Mayowa Oloruntobi","phone": "08165779034","src":"one.png"},{"name": "George Phinehas","phone": "07039347746","src":"faces/two.png"},{"name": "Floyd Lloyd","phone": "08038009643","src":"faces/three.png"},{"name": "Marcus Davis","phone": "08032162798","src":"faces/four.jpg"}]'
+            itemViews='["gridcell.xml"]'
+            border='1px solid midnightblue'
+            backgroundColor='transparent'
+            cellSpacing="12px"
+            cellBackground='lightblue'
+            cellBorder="1px solid darkred"
+    />
+                    
+        <IconLabelView
+            id='icon_view'
+            width='220'
+            height='64'
+            marginTop="32px"
+            end_start="custom_grid_label"
+            cy_align='custom_grid_label'
+            marginEnd='16'
+            text="Another way to label things!"
+            gravity="end"
+            fontStyle='bold'
+            textColor="white"
+            textColorHover="#ccc"
+            backgroundColor="gray"
+            backgroundColorHover="#999"
+            
+    />
+        <MultiLineLabel
+            id='multi_line'
+            width='500px'
+            height='200px'
+            marginTop="32px"
+            start_end="custom_grid"
+            cy_align='custom_grid'
+            marginStart='16'
+            padding="2px"
+            fontSize="28px"
+            text="1. Documenting a large idea requires multiple lines of text. Shun single line text for such! 2. Documenting a large idea requires multiple lines of text. Shun single line text for such! 3. Documenting a large idea requires multiple lines of text. Shun single line text for such! 4. Documenting a large idea requires multiple lines of text. Shun single line text for such! 5. Documenting a large idea requires multiple lines of text. Shun single line text for such! 6.Documenting a large idea requires multiple lines of text. Shun single line text for such! 7. Documenting a large idea requires multiple lines of text. Shun single line text for such! 8. Documenting a large idea requires multiple lines of text. Shun single line text for such!  9. Documenting a large idea requires multiple lines of text. Shun single line text for such! 10. Documenting a large idea requires multiple lines of text. Shun single line text for such! 11. Documenting a large idea requires multiple lines of text. Shun single line text for such! 12. Documenting a large idea requires multiple lines of text. Shun single line text for such! 13. Documenting a large idea requires multiple lines of text. Shun single line text for such! 14. Documenting a large idea requires multiple lines of text. Shun single line text for such! 15. Documenting a large idea requires multiple lines of text. Shun single line text for such! 16. Documenting a large idea requires multiple lines of text. Shun single line text for such! 17. Documenting a large idea requires multiple lines of text. Shun single line text for such! 18. Documenting a large idea requires multiple lines of text. Shun single line text for such! 19. Documenting a large idea requires multiple lines of text. Shun single line text for such! 20. Documenting a large idea requires multiple lines of text. Shun single line text for such! 21. Documenting a large idea requires multiple lines of text. Shun single line text for such! 22. Documenting a large idea requires multiple lines of text. Shun single line text for such! "
+            fontStyle='bold'
+            textColor="#ccc"
+            backgroundColor="midnightblue"
+            lineSpacing="14"
+            border="2px solid black"
+            gravity="start"
+            scrollBarWidth="12px"
+            scrollBarTheme="gray"
+            
     />
 
 </ConstraintLayout>

@@ -4,7 +4,29 @@
  * and open the template in the editor.
  */
 
-/* global PATH_TO_UI_SCRIPTS, xmlKeys, attrKeys, DISABLE_INPUT_SHADOW, PATH_TO_COMPILER_SCRIPTS, ViewController, HTMLCanvasElement */
+/* global PATH_TO_UI_SCRIPTS, xmlKeys, attrKeys, DISABLE_INPUT_SHADOW, PATH_TO_COMPILER_SCRIPTS, ViewController, HTMLCanvasElement, CharacterData, DocumentType, Element, IncludedView */
+
+
+
+//Polyfill for Node.remove()
+(function (arr) {
+    arr.forEach(function (item) {
+        if (item.hasOwnProperty('remove')) {
+            return;
+        }
+        Object.defineProperty(item, 'remove', {
+            configurable: true,
+            enumerable: true,
+            writable: true,
+            value: function remove() {
+                this.parentNode && this.parentNode.removeChild(this);
+            }
+        });
+    });
+})([Element.prototype, CharacterData.prototype, DocumentType.prototype].filter(Boolean));
+
+
+
 /**
  * All workspaces loaded for this page.
  * Each workspace has the ability to parse a root xml layout which may have several included layouts.
@@ -30,14 +52,16 @@ const SCRIPTS_BASE = getScriptBaseUrl();
 const styleSheet = document.createElement('style');
 styleSheet.setAttribute('type', 'text/css');
 
-
 const nativeScripts = [
     SCRIPTS_BASE + 'sys/mustache420.js',
     SCRIPTS_BASE + 'sys/resizesensor.js',
     SCRIPTS_BASE + 'sys/autolayout.js',
     SCRIPTS_BASE + 'sys/main.js',
     SCRIPTS_BASE + 'sys/compiler-constants.js',
+    SCRIPTS_BASE + 'libs/utils/parserutils.js',
     SCRIPTS_BASE + 'sys/sdk/listadapter.js',
+    SCRIPTS_BASE + 'sys/sdk/horizontaladapter.js',
+    SCRIPTS_BASE + 'sys/sdk/gridadapter.js',
     SCRIPTS_BASE + 'sys/sdk/viewcontroller.js',
     SCRIPTS_BASE + 'libs/ext/canvas2blob.js',
     SCRIPTS_BASE + 'libs/utils/utils.js',
@@ -50,6 +74,7 @@ const nativeScripts = [
     SCRIPTS_BASE + 'libs/ui/clock.js',
     SCRIPTS_BASE + 'libs/ui/iconbtn.js',
     SCRIPTS_BASE + 'libs/ui/iconlabel.js',
+    SCRIPTS_BASE + 'libs/ui/textelement.js',
     SCRIPTS_BASE + 'libs/ui/tabbedbar.js',
     SCRIPTS_BASE + 'libs/ui/imagebox.js',
     SCRIPTS_BASE + 'libs/ui/list.js',
@@ -80,42 +105,31 @@ let workspaces = new Map();
  * 
  * 
  * This method will help fetch this workspace from the cache if it has been previously created, or create a new one if not.
- * The Workspace options may take 3 or 4 properties:
- * 
- * They do different things so please take note!
- 
+ * The Workspace options:
  {
  layoutName: 'layout.xml',
  bindingElemId: 'id_of_element_layout_will_be_attached_to',
+ xmlContent: 'You do not wish to load the xml from the supplied layout name. So supply the xml here directly'.
+ onLayoutLoaded: function(layoutName, xmlContent){}... This callback is fired everytime the worker threads successfully
+ load a certain layout. Do nothing or as little as posssible in it, so as not to slow down the layout loading and parsing
+ process, which will affect the rendering speed of your UI. You have been warned:)
  onComplete: 'A function to run when the layout has been parsed and loaded',
- }
- 
- OR 
- 
- {
- layoutName: 'layout.xml',
- bindingElemId: 'id_of_element_layout_will_be_attached_to',
- xmlContent: 'You do not wish to load the xml from the supplied layout name. So supply the xml here directly',
- onComplete: 'A function to run when the layout has been parsed and loaded',
+ isTemplate: true If true, the layout being loaded is to be used as a layout cell in a list, grid, or a table(not yet implemented)
  }
  
  
- * If it takes 3, then the args are:
  * 
- * 1. The layout name...e.g test.xml,
- * 2. The html id of the DOM element that the generated html layout
- * will be bound to, and lastly, 
- * 3. A callback function to run when the xml document has been parsed into html.
+ * 1. The layout name...e.g test.xml, may be a dummy name! 
+ * 2. The html id of the DOM element that the generated html layout will be attached to
+ * 3. The xml content of the specified layout, and lastly. If this field is specified, the function will not load the xml from
+ * the path, but will instead use the specified xml.
+ * 4. This callback is fired everytime the worker threads successfully
+ * load a certain layout. Do nothing or as little as posssible in it, so as not to slow down the layout loading and parsing
+ * process, which will affect the rendering speed of your UI. You have been warned:)
+ * 5. A callback function to run when the xml document has been parsed into html.
+ * 6. This specifies that the xml laout being loaded is to be reused in a sequential layout like a list, a grid or a table.
  * 
- * If it takes 4, then the args are:
- * 
- * 1. The layout name...e.g test.xml, may be a dummy name! It is only required for identifying the xml content supplied
- * 2. The html id of the DOM element that the generated html layout
- * will be bound to
- * 3. The xml content of the specified layout, and lastly, 
- * 4. A callback function to run when the xml document has been parsed into html.
- * 
- * The 4 args property-type options is important because, a user may have generated some xml dynamically and wish to load it on the interface.
+ * The <code>xmlContent</code> options is important because, a user may have generated some xml dynamically and wish to load it on the interface.
  * This dummy content of course has no file representation in the layouts folder. So we need the user to supply a unique file name that we may use to
  * identify this xml.
  * 
@@ -134,11 +148,9 @@ function getWorkspace(options) {
     }
 
     let bindingElemId = BODY_ID;
-    if (options.bindingElemId && typeof options.bindingElemId === 'string') {
+    if (options.bindingElemId && typeof options.bindingElemId === 'string' && options.bindingElemId.length !== 0) {
         bindingElemId = options.bindingElemId;
     }
-
-
     let spaceId = bindingElemId + '_' + rootLayoutName;
     let space = workspaces.get(spaceId);
     if (!space) {
@@ -149,9 +161,9 @@ function getWorkspace(options) {
     if (options.onComplete) {
         if (typeof options.onComplete === 'function') {
             onComplete = options.onComplete;
-        }else if(options.onComplete.length !== 1){
+        } else if (options.onComplete.length !== 1) {
             throw new Error('The onComplete callback must take one parameter... the rootView of the expanded document');
-        }  else {
+        } else {
             throw new Error('If you are supplying this callback, then it must be a function!');
         }
     }
@@ -184,51 +196,36 @@ document.currentScript = document.currentScript || (function () {
 /**
  * 
  * Creates a new Workspace.
- * The Workspace options may take a maximum of 4 or 5 properties:
- * 
- * They do different things so please take note!
- 
+ * This method will help fetch this workspace from the cache if it has been previously created, or create a new one if not.
+ * The Workspace options:
  {
  layoutName: 'layout.xml',
  bindingElemId: 'id_of_element_layout_will_be_attached_to',
- templateData: A JSON object that contains data that can be passed into specified areas of the xml. This allows the lbrary to work with server-side technology.
+ xmlContent: 'You do not wish to load the xml from the supplied layout name. So supply the xml here directly'.
+ onLayoutLoaded: function(layoutName, xmlContent){}... This callback is fired everytime the worker threads successfully
+ load a certain layout. Do nothing or as little as posssible in it, so as not to slow down the layout loading and parsing
+ process, which will affect the rendering speed of your UI. You have been warned:)
  onComplete: 'A function to run when the layout has been parsed and loaded',
- }
- 
- OR 
- 
- {
- layoutName: 'layout.xml',
- bindingElemId: 'id_of_element_layout_will_be_attached_to',
- templateData: A JSON object that contains data that can be passed into specified areas of the xml. This allows the lbrary to work with server-side technology.
- xmlContent: 'You do not wish to load the xml from the supplied layout name. So supply the xml here directly',
- onComplete: 'A function to run when the layout has been parsed and loaded',
+ isTemplate: true If true, the layout being loaded is to be used as a layout cell in a list, grid, or a table(not yet implemented)
  }
  
  
- * If it takes 4, then the args are:
  * 
- * 1. The layout name...e.g test.xml,
- * 2. The html id of the DOM element that the generated html layout
- * will be bound to, and lastly, 
- * 3. A JSON object that contains data that can be passed into the xml layouts using the appropriate syntax
- * 4. A callback function to run when the xml document has been parsed into html.
- * 
- * If it takes 5, then the args are:
- * 
- * 1. The layout name...e.g test.xml, may be a dummy name! It is only required for identifying the xml content supplied
- * 2. The html id of the DOM element that the generated html layout
- * will be bound to
- * 3. A JSON object that contains data that can be passed into the xml layouts using the appropriate syntax
- * 4. The xml content of the specified layout, and lastly, 
+ * 1. The layout name...e.g test.xml, may be a dummy name! 
+ * 2. The html id of the DOM element that the generated html layout will be attached to
+ * 3. The xml content of the specified layout, and lastly. If this field is specified, the function will not load the xml from
+ * the path, but will instead use the specified xml.
+ * 4. This callback is fired everytime the worker threads successfully
+ * load a certain layout. Do nothing or as little as posssible in it, so as not to slow down the layout loading and parsing
+ * process, which will affect the rendering speed of your UI. You have been warned:)
  * 5. A callback function to run when the xml document has been parsed into html.
+ * 6. This specifies that the xml laout being loaded is to be reused in a sequential layout like a list, a grid or a table.
  * 
- * The 4 args property-type options is important because, a user may have generated some xml dynamically and wish to load it on the interface.
+ * The <code>xmlContent</code> options is important because, a user may have generated some xml dynamically and wish to load it on the interface.
  * This dummy content of course has no file representation in the layouts folder. So we need the user to supply a unique file name that we may use to
  * identify this xml.
  * 
- * Basically, the discriminator here is the xmlContent field. Once it exists, the constructor's behaviour changes from trying to load xml from a source,
- * to using the supplied xml string and creating a dummy key for it in the cache.
+ * 
  * 
  * @param {Object} options An object that defines the properties needed to load the workspace
  * @returns {Workspace}
@@ -248,7 +245,7 @@ function Workspace(options) {
 
 
     this.systemRootId = BODY_ID;
-    if (options.bindingElemId && typeof options.bindingElemId === 'string') {
+    if (options.bindingElemId && typeof options.bindingElemId === 'string' && options.bindingElemId.length !== 0) {
         this.systemRootId = options.bindingElemId;
     }
 
@@ -264,16 +261,34 @@ function Workspace(options) {
 
 
     this.onComplete = function (rootView) {};
+
     if (options.onComplete) {
         if (typeof options.onComplete === 'function') {
             this.onComplete = options.onComplete;
-        }else if(options.onComplete.length !== 1){
+        } else if (options.onComplete.length !== 1) {
             throw new Error('The onComplete callback must take one parameter... the rootView of the expanded document');
         } else {
             throw new Error('If you are supplying this callback, then it must be a function!');
         }
     }
+    if (options.onLayoutLoaded) {
+        if (typeof options.onLayoutLoaded === 'function') {
+            this.onLayoutLoaded = options.onLayoutLoaded;
+        } else if (options.onLayoutLoaded.length !== 2) {
+            throw new Error('The onLayoutLoaded callback must take two parameters... the name of the layout loaded and its xmlcontent');
+        } else {
+            throw new Error('If you are supplying this callback, then it must be a function!');
+        }
+    }
 
+    this.template = false;
+    if (options.isTemplate) {
+        if (typeof options.isTemplate === "boolean") {
+            this.template = options.isTemplate;
+        } else {
+            throw new Error('Invalid type specified for `template` field');
+        }
+    }
 
     this.id = this.systemRootId + '_' + this.layoutName.replace(".", "_");//This is the workspace id.
 
@@ -293,6 +308,7 @@ function Workspace(options) {
     this.controller = null;
 
     workspaces.set(this.id, this);
+
 
     if (xmlContent) {
         this.setContentView(this.layoutName, xmlContent);
@@ -331,7 +347,7 @@ function Parser(workspace, xml, parentId) {
             '-moz-box-sizing': 'border-box',
             'overscroll-behavior': 'none'
         });
-        updateOrCreateSelectorInStyleSheet(styleSheet , generalStyle);
+        updateOrCreateSelectorInStyleSheet(styleSheet, generalStyle);
         workspace.allStyles.push(generalStyle);
     }
 
@@ -419,7 +435,7 @@ function getScriptBaseUrl() {
  * If the image is in a folder in the images folder, then it is specified as  foldername/imagename.png|jpg etc.
  * @returns {*}
  */
-function getImagePath(layitSrc){
+function getImagePath(layitSrc) {
     return PATH_TO_IMAGES + layitSrc;
 }
 
@@ -546,7 +562,6 @@ function loadScripts(scripts, onload) {
  */
 Workspace.prototype.prefetchAllLayouts = function (rootLayoutName, xmlContent, onPreStart, onload) {
 
-
     let self = this;
 
     if (onload.length !== 1) {
@@ -558,6 +573,9 @@ Workspace.prototype.prefetchAllLayouts = function (rootLayoutName, xmlContent, o
     }
 
     let callback = function (layoutXml) {
+        if (self.onLayoutLoaded) {
+            self.onLayoutLoaded(rootLayoutName, layoutXml);
+        }
         let layouts = findIncludes(layoutXml);
         self.loadedCount++;
         self.xmlIncludes.set(rootLayoutName, layoutXml);
@@ -720,7 +738,6 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
                     }
                 });
             } else {
-                console.log(wkspc.rootParser);
                 throw new Error('Please insert your imports in the root xml layout(' + wkspc.id + ') alone. ');
             }
 
@@ -735,7 +752,7 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
             break;
         case xmlKeys.imageButton:
             view = new ImageButton(wkspc, node);
-            break;            
+            break;
         case xmlKeys.imageView:
             view = new ImageView(wkspc, node);
             break;
@@ -797,16 +814,32 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
 
             break;
 
-        case xmlKeys.customList:
-            view = new CustomList(wkspc, node);
+        case xmlKeys.listView:
+            view = new ListView(wkspc, node);
+            break;
+        case xmlKeys.iconLabel:
+            view = new IconLabelView(wkspc, node);
+            break;
+        case xmlKeys.multiLineLabel:
+            view = new MultiLineLabel(wkspc, node);
+            break;
+
+        case xmlKeys.gridView:
+            view = new GridView(wkspc, node);
+
+            break;
+
+        case xmlKeys.horizontalListView:
+            view = new HorizontalListView(wkspc, node);
+
             break;
 
         case xmlKeys.label:
             view = new Label(wkspc, node);
             break;
 
-        case xmlKeys.multiLabel:
-            view = new MultiLineLabel(wkspc, node);
+        case xmlKeys.paragraph:
+            view = new Paragraph(wkspc, node);
             break;
 
         case xmlKeys.dropDown:
@@ -926,18 +959,20 @@ Parser.prototype.buildUI = function (wkspc) {
             }
 
             view.htmlElement.appendChild(child.htmlElement);
-            if (child.constructor.name === 'ClockView' || child.constructor.name === 'LabelView' 
-                    || child.constructor.name === 'ProgressBar' || child instanceof CustomTableView 
-                    || child.constructor.name === 'TabView') {
+
+            if (child.runView/*child.constructor.name === 'ClockView' || child.constructor.name === 'LabelView'
+                    || child.constructor.name === 'ProgressBar' || child instanceof CustomTableView
+                    || child.constructor.name === 'TabView' || child.constructor.name === 'IconLabelView' 
+                    || child.constructor.name === 'MultiLineLabel'*/) {
                 compounds.push(child);
             }
+
         }
     });
 
 
     this.html = this.rootView.toHTML();
-    //injectStyleSheets(styleSheet, wkspc.allStyles);
-    updateOrCreateSelectorsInStyleSheet(styleSheet , wkspc.allStyles);
+    updateOrCreateSelectorsInStyleSheet(styleSheet, wkspc.allStyles);
 
     makeDefaultPositioningDivs:{
 
@@ -949,8 +984,9 @@ Parser.prototype.buildUI = function (wkspc) {
             baseRoot = document.getElementById(wkspc.systemRootId);
         }
 
-
-        baseRoot.style.backgroundColor = 'white';
+        if (!baseRoot) {
+            console.log(baseRoot, this.rootView);
+        }
         baseRoot.appendChild(this.rootView.htmlElement);
 
 
@@ -962,10 +998,16 @@ Parser.prototype.buildUI = function (wkspc) {
             ]);
         }
 
-        // layout the root layout on the baseRoot(the element we are attaching the xml layout to)
-        autoLayout(baseRoot, [
-            'HV:|-0-[' + this.rootView.htmlElement.id + ']-0-|'
-        ]);
+        if (baseRoot.nodeName.toLowerCase() === 'li' || baseRoot.nodeName.toLowerCase() === 'td' || baseRoot.nodeName === 'th') {
+            //layout the template view on its li|td|th
+            autoLayout(baseRoot, this.rootView.templateConstraints);
+        } else {
+            // layout the root layout on the baseRoot(the element we are attaching the xml layout to)
+            autoLayout(baseRoot, [
+                'HV:|-0-[' + this.rootView.htmlElement.id + ']-0-|'
+            ]);
+        }
+
 
 
         // layout the xml layout with respect to its rootview
@@ -982,6 +1024,8 @@ Parser.prototype.buildUI = function (wkspc) {
             autoLayout(rootChild.htmlElement, include.constraints);
             //console.log('Generated Child Constraints for ', view.id, view.constraints);
         });
+
+//layout generated views on their lis        
 
         compounds.forEach((child) => {
             child.runView();
@@ -1000,6 +1044,7 @@ Parser.prototype.buildUI = function (wkspc) {
     //  console.log('UI construction logic done...', wkspc.viewMap.size);
 
 };
+
 
 
 /**
@@ -1030,10 +1075,10 @@ function autoLayout(parentElm, visualFormat) {
         if (elm) {
             elm.className += elm.className ? ' abs' : 'abs';
             elements[key] = elm;
-           /* new ResizeSensor(elm, function () {
-                console.log('Changed to ' + elm.clientWidth);
-                updateLayout();
-            });*/
+            /* new ResizeSensor(elm, function () {
+             console.log('Changed to ' + elm.clientWidth);
+             updateLayout();
+             });*/
         }
     }
     var updateLayout = function () {
@@ -1060,6 +1105,8 @@ Workspace.prototype.startFetchWorker = function (layoutFileName, onSucc) {
                 let layoutXML = e.data.content;
                 if (onSucc.length === 1) {
                     onSucc(layoutXML);
+                } else {
+                    console.log(onSucc);
                 }
             }, function (e) {
         throw e;

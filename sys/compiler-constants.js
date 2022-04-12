@@ -25,9 +25,15 @@ const sizes = {
 
 const orientations = {
     VERTICAL: 'vertical',
-    HORIZONTAL: 'horizontal'
+    HORIZONTAL: 'horizontal',
+    GRID: 'grid'// Not available to all views
 };
 
+const DRAG_STATE = {
+    NO_DRAG: 0,
+    READY: 1,
+    DRAGGING: 2
+};
 
 const xmlKeys = {
     imports: "imports",
@@ -47,7 +53,10 @@ const xmlKeys = {
     separator: "Separator",
     dropDown: "DropDown",
     guide: "Guideline",
-    customList: "CustomList",
+    listView: "ListView",
+    horizontalListView: "HorizontalListView",
+    gridView: "GridView",
+
     list: "NativeList",
     table: "NativeTable",
     form: "Form",
@@ -56,7 +65,9 @@ const xmlKeys = {
     searchableTable: "SearchableTableView",
     customTable: "CustomTableView",
     label: "Label",
-    multiLabel: "MultiLineLabel",
+    paragraph: "Paragraph",
+    multiLineLabel: "MultiLineLabel",
+    iconLabel: "IconLabelView",
     clock: "Clock",
     canvas: "Canvas",
     tabview: "TabView",
@@ -111,7 +122,6 @@ const attrKeys = {
 
     // an array of view template(reference them by their filenames) to be used to construct the custom views for the list's cell. The type of the view is its index in this array
     itemViews: 'itemViews',
-
     items: "items", // an array of items to display in a list or a dropdown
     tableHeaders: 'tableHeaders', //a 1d array of items to display as a custom table view's headers
     tableItems: 'tableItems', //a 2d array of items to display on a table
@@ -119,7 +129,7 @@ const attrKeys = {
     showBorders: 'showBorders', // show the custom table's inner borders(does not apply to the native table)
     pagingEnabled: 'pagingEnabled',
     tableTheme: 'tableTheme', // for custom tables only
-    cellPadding: 'cellPadding', //works only for the custom tables
+    cellPadding: 'cellPadding', //works only for the custom tables, and the ListView, HorizontalListView and teh GridView
     headerPadding: 'headerPadding',
     showLeftBtn: 'showLeftBtn', // only works for the SeachableTableView
     buttonText: "buttonText", // the text on the top left button
@@ -138,12 +148,12 @@ const attrKeys = {
     muted: 'muted', //boolean
     controls: 'controls', // boolean
     preload: 'preload', //boolean
-    
-    
     hasCaption: "hasCaption",
     caption: "caption",
+    //for custom tables and the MultiLineLabel
     scrollHeight: "scrollHeight",
     withNumbering: "withNumbering",
+    //All views
     cssClass: "cssClass",
     resize: "resize",
     progressColor: "progressColor",
@@ -184,6 +194,9 @@ const attrKeys = {
     borderBottomLeftRadius: "borderBottomLeftRadius",
     borderBottomRightRadius: "borderBottomRightRadius",
 
+    overflow: "overflow",
+    overflowX: "overflowX",
+    overflowY: "overflowY",
 
     boxShadow: "boxShadow",
     inputType: "inputType", //text or password
@@ -196,7 +209,7 @@ const attrKeys = {
     fontSize: "fontSize",
     fontWeight: "fontWeight", // normal | bold | oblique
     fontStyle: "fontStyle", // normal | italic | oblique
-    gravity: 'gravity', 
+    gravity: 'gravity',
     fontStretch: "fontStretch",
     checked: "checked",
     name: "name",
@@ -217,6 +230,7 @@ const attrKeys = {
     clockOuterCircleAsFractionOfFrameSize: 'clockOuterCircleAsFractionOfFrameSize',
     clockShowBaseText: 'clockShowBaseText',
     description: 'description',
+
     //FORM properties
     action: "action",
     method: "method",
@@ -226,6 +240,7 @@ const attrKeys = {
     enctype: "enctype", //application/x-www-form-urlencoded OR multipart/form-data OR text/plain
     rel: "rel",
     acceptCharset: "acceptCharset",
+
     // properties for TabView
     selectedBg: "selectedBg",
     selectedFg: "selectedFg",
@@ -233,13 +248,34 @@ const attrKeys = {
     deselectedFg: "deselectedFg",
     tabItems: "tabItems",
     tabEdgeColor: "tabEdgeColor",
-    tabEdgeWidth: "tabEdgeWidth",// the thickness of the dividing line between tabs
-    iconSize: "iconSize"
+    tabEdgeWidth: "tabEdgeWidth", // the thickness of the dividing line between tabs
+    iconSize: "iconSize",
+
+    //GridView properties"
+    minGridHeight: "minGridHeight", // All items in the grid will be at least this height
+
+    //HorizontalListView property
+    minCellWidth: "minCellWidth",
+
+    //ListView property
+    minCellHeight: "minCellHeight",
+
+    //ListView and HorizontalListView and GridView's property... The gap between consecutive cells
+    cellSpacing: "cellSpacing", // the space between items in the ListView|HorizontalListView|GridView's cells
+    //ListView and HorizontalListView and GridView's property... The background of a list|grid cell
+    cellBackground: "cellBackground",
+    //ListView and HorizontalListView and GridView's property... The border of a list|grid cell
+    cellBorder: "cellBorder",
+    //IconLabel
+    backgroundColorHover: 'backgroundColorHover',
+    textColorHover: 'textColorHover',
+    iconTextGap: 'iconTextGap',
+    lineSpacing: 'lineSpacing',
     
-    //TabView properties
-    
-    
-    
+    //Properties used for the MultiLineLabel
+    scrollBarTheme: 'scrollBarTheme',
+    scrollBarWidth: 'scrollBarWidth',
+    scrollBarHeight: 'scrollBarHeight'
     
 
 };

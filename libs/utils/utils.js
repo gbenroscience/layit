@@ -127,7 +127,7 @@ function ResizeSensor(element, callback)
         let newWidth = size.width;
         let newHeight = size.height;
 
-        if(newWidth != currentWidth || newHeight != currentHeight)
+        if(newWidth !== currentWidth || newHeight !== currentHeight)
         {
             currentWidth = newWidth;
             currentHeight = newHeight;
@@ -141,4 +141,5 @@ function ResizeSensor(element, callback)
     expand.addEventListener('scroll', onScroll);
     shrink.addEventListener('scroll', onScroll);
 };
+
 

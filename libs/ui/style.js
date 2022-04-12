@@ -108,6 +108,19 @@ Style.prototype.injectStyleSheet = function () {
         document.getElementsByTagName('head')[0].appendChild(style);
     }
 };
+/**
+ * Converts a Style object to a generic Javascript/JSON object
+ * @returns {Object}
+ */
+Style.prototype.toOptions = function(){
+  let o = {};
+  for(let i=0;i<this.styleElements.length;i++){
+      let el = this.styleElements[i];
+      let values = Object.values(el);
+      o[values[0]] = values[1];
+  }
+    return o;
+};
 
 /**
  * @param htmlStyleElement An html style element <<<htmlStyleElement = document.createElement('style');>>>
@@ -200,13 +213,52 @@ function getAllStyles(htmlStyleElement) {
     return styles;
 }
 
+
+/**
+ * Edits the individual style-elements of a selector existing in a stylesheet already.
+ * If it tries to edit a non-existent style, it will create a new style for it instead.
+ * Checks if a style exists in the specified stylesheet, then applies the style elements in <code>newStyle</code>
+ *  (e.g. width: 20px;) to it. 
+ *  If it already contains the specified elements, it updates their values to the ones specified in 
+ * <code>newStyle</code>
+ * @param htmlStyleElement  An html style element <<<htmlStyleElement = document.createElement('style');>>>
+ * @param newStyle A given style.
+ */
+function editSelectorInStyleSheet(htmlStyleElement, newStyle) {
+    if (newStyle.constructor.name === 'Style') {
+        let selector = newStyle.name;
+        let styles = getAllStyles(htmlStyleElement);
+        let found = false;
+        for (let i = 0; i < styles.length; i++) {
+            let style = styles[i];
+            if (style.name.trim() === selector) {
+                found = true;
+                for(let k=0; k < newStyle.styleElements.length; k++){
+                    let elem = newStyle.styleElements[k];
+                    style.addStyleElement(elem.attr , elem.value, false);
+                }
+                break;
+            }
+        }
+        if (!found) {
+            styles.push(newStyle);
+        }
+
+        htmlStyleElement.innerHTML = '';
+        injectStyleSheets(htmlStyleElement, styles);
+        return true;
+    } else {
+        throw new Error('Invalid style object supplied');
+    }
+}
+
 /**
  * Adds a style to a stylesheet if it doesn't already exist in it. If it does exist in it, it updates it to the new one
  * @param htmlStyleElement  An html style element <<<htmlStyleElement = document.createElement('style');>>>
  * @param newStyle A given style.
  */
 function updateOrCreateSelectorInStyleSheet(htmlStyleElement, newStyle) {
-    if(newStyle.constructor.name === 'Style'){
+    if (newStyle.constructor.name === 'Style') {
         let selector = newStyle.name;
         let styles = getAllStyles(htmlStyleElement);
         let found = false;
@@ -225,7 +277,7 @@ function updateOrCreateSelectorInStyleSheet(htmlStyleElement, newStyle) {
         injectStyleSheets(htmlStyleElement, styles);
         return true;
     } else {
-        throw new Error('Invalid style object supplied')
+        throw new Error('Invalid style object supplied');
     }
 }
 
@@ -236,36 +288,32 @@ function updateOrCreateSelectorInStyleSheet(htmlStyleElement, newStyle) {
  * @param newStyles An array of styles.
  */
 function updateOrCreateSelectorsInStyleSheet(htmlStyleElement, newStyles) {
-    /*    for(let i=0; i<newStyles.length; i++){
-            updateOrCreateSelectorInStyleSheet(htmlStyleElement , newStyles[i]);
-        }*/
-
     if (!isOneDimArray(newStyles)) {
         throw new Error('A one dimensional array expected for `newStyles`');
     }
     let styles = getAllStyles(htmlStyleElement);
     for (let i = 0; i < newStyles.length; i++) {
         let newStyle = newStyles[i];
-        if(newStyle.constructor.name === 'Style'){
+        if (newStyle.constructor.name === 'Style') {
             let selector = newStyle.name;
             let found = false;
-            for(let j=0; j<styles.length; j++){
+            for (let j = 0; j < styles.length; j++) {
                 let style = styles[j];
-                if(style.name.trim() === selector){
+                if (style.name.trim() === selector) {
                     found = true;
                     style.styleElements = newStyle.styleElements;//update
                 }
             }
-            if(!found){
+            if (!found) {
                 styles.push(newStyle);// create if not found
             }
-        }else{
-            throw new Error('Invalid style object supplied')
+        } else {
+            throw new Error('Invalid style object supplied');
         }
     }
 
     htmlStyleElement.innerHTML = '';
-    injectStyleSheets(htmlStyleElement , styles);
+    injectStyleSheets(htmlStyleElement, styles);
 }
 
 /**
@@ -359,19 +407,28 @@ Style.prototype.removeStyleElementByAttr = function (styleAttr) {
  *
  * @param {string} attr The attribute name of the StyleElement
  * @param {string} val The value of the style
+ * @param {boolean} duplicateAllowed If true, a duplicate style element can be allowed in the style.
+ * Due to the messed up nature of browsers, this is desirable at times: e.g..
+ * li{
+ * display: -moz-inline-stack;
+ * display: inline-block;
+ * }
+ * If this parameter is not specified, then the method assumes no duplicate styles are allowed in a selector.
  * @returns {void}
  */
-Style.prototype.addStyleElement = function (attr, val) {
-
-    for (let index = 0; index < this.styleElements.length; index++) {
-        let styl = this.styleElements[index];
-        if (styl.getAttr() === attr) {//attribute exists already..update and exit
-            this.styleElements[index] = new StyleElement(attr, val);
-            return;
+Style.prototype.addStyleElement = function (attr, val, duplicateAllowed) {
+    if (duplicateAllowed) {
+        this.styleElements.push(new StyleElement(attr, val));
+    } else {
+        for (let index = 0; index < this.styleElements.length; index++) {
+            let styl = this.styleElements[index];
+            if (styl.getAttr() === attr) { //attribute exists already..update and exit
+                this.styleElements[index] = new StyleElement(attr, val);
+                return;
+            }
         }
+        this.styleElements.push(new StyleElement(attr, val));
     }
-    this.styleElements[this.styleElements.length] = new StyleElement(attr, val);
-
 
 };
 
@@ -379,45 +436,93 @@ Style.prototype.addStyleElement = function (attr, val) {
  *
  * Adds an array of style elements to this Style object.
  * @param {Array} styleElemsArray An array of StyleElement objects
+ * @param {boolean} duplicateAllowed If true, a duplicate style element can be allowed in the style.
+ * Due to the messed up nature of browsers, this is desirable at times: e.g..
+ * li{
+ * display: -moz-inline-stack;
+ * display: inline-block;
+ * }
+ * If this parameter is not specified, then the method assumes no duplicate styles are allowed in a selector.
  * @returns {undefined}
  *
  */
-Style.prototype.addStyleElementsArray = function (styleElemsArray) {
+Style.prototype.addStyleElementsArray = function (styleElemsArray, duplicateAllowed) {
 
     for (let index = 0; index < styleElemsArray.length; index++) {
         let styl = styleElemsArray[index];
-        this.addStyleElementObj(styl);
+        this.addStyleElementObj(styl, duplicateAllowed);
     }
 
 };
 /**
  *
  * @param {StyleElement} style The style element object
+ * @param {boolean} duplicateAllowed If true, a duplicate style element can be allowed in the style.
+ * Due to the messed up nature of browsers, this is desirable at times: e.g..
+ * li{
+ * display: -moz-inline-stack;
+ * display: inline-block;
+ * }
+ * If this parameter is not specified, then the method assumes no duplicate styles are allowed in a selector.
  * @returns {undefined}
  */
-Style.prototype.addStyleElementObj = function (style) {
+Style.prototype.addStyleElementObj = function (style, duplicateAllowed) {
+
 
     if (StyleElement.prototype.isPrototypeOf(style)) {
-        let attr = style.getAttr();
-        for (let index = 0; index < this.styleElements.length; index++) {
-            let styl = this.styleElements[index];
-            if (styl.getAttr() === attr) {//attribute exists already..update and exit
-                this.styleElements[index] = style;
-                return;
+        if (duplicateAllowed) {
+            this.styleElements.push(style);
+        } else {
+            let attr = style.getAttr();
+            for (let index = 0; index < this.styleElements.length; index++) {
+                let styl = this.styleElements[index];
+                if (styl.getAttr() === attr) {//attribute exists already..update and exit
+                    this.styleElements[index] = style;
+                    return;
+                }
             }
+            this.styleElements.push(style);
         }
-        this.styleElements[this.styleElements.length] = style;
-
+    } else {
+        throw new Error("Invalid Style specified.");
     }
 
 
 };
 /**
+ * Creates a clone of this <code>Style</code>.
+ * If the newName parameter is not supplied, then the name of the style is also cloned.
+ * @param {string} newName
+ * @returns {Style}
+ */
+Style.prototype.clone = function (newName) {
+    let arr = [];
+    
+    for(let i=0; i<this.styleElements.length; i++){
+        let elem = this.styleElements[i];
+        arr.push(new StyleElement(elem.attr, elem.value));
+    }
+    /**
+     * if no name|selector was supplied, the user wants to clone the name also.
+     */
+    if(!newName){
+        newName = this.name;
+    }
+ return new Style(newName, arr);
+};
+/**
  * The library handles all the details for you. The string MUST describe only 1 style element..e.g. width:10px;
  * @param {string} style The style string to add e.g. width:10;
+ * @param {boolean} duplicateAllowed If true, a duplicate style element can be allowed in the style.
+ * Due to the messed up nature of browsers, this is desirable at times: e.g..
+ * li{
+ * display: -moz-inline-stack;
+ * display: inline-block;
+ * }
+ * If this parameter is not specified, then the method assumes no duplicate styles are allowed in a selector.
  * @returns {void}
  */
-Style.prototype.addStyleElementCss = function (style) {
+Style.prototype.addStyleElementCss = function (style, duplicateAllowed) {
 
     if (style) {
         let indexOfColon = style.indexOf(":");
@@ -429,21 +534,21 @@ Style.prototype.addStyleElementCss = function (style) {
             let val = style.substring(indexOfColon + 1, indexOfSemiColon);
 
             if (attr.indexOf(":") === -1 && attr.indexOf(";") === -1 &&
-                ((val.indexOf('url') === -1 && val.indexOf(":") === -1 && val.indexOf(";") === -1) ||
-                    val.indexOf('url') !== '-1' && val.indexOf(";") === -1)) {
-
+                    ((val.indexOf('url') === -1 && val.indexOf(":") === -1 && val.indexOf(";") === -1) ||
+                            val.indexOf('url') !== '-1' && val.indexOf(";") === -1)) {
                 let styleObj = new StyleElement(attr, val);
-
-                for (let index = 0; index < this.styleElements.length; index++) {
-                    let styl = this.styleElements[index];
-                    if (styl.getAttr() === attr) {//attribute exists already..update and exit
-                        this.styleElements[index] = styleObj;
-                        return;
+                if (duplicateAllowed) {
+                    this.styleElements.push(styleObj);
+                } else {
+                    for (let index = 0; index < this.styleElements.length; index++) {
+                        let styl = this.styleElements[index];
+                            if (styl.getAttr() === attr) {//attribute exists already..update and exit
+                                this.styleElements[index] = styleObj;
+                                return;
+                            }
                     }
+                    this.styleElements.push(styleObj);
                 }
-
-                this.styleElements[this.styleElements.length] = styleObj;
-
             } else {
                 throw new Error('Weird css line expression!');
             }

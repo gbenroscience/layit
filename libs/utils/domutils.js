@@ -6,12 +6,11 @@
 
 
 function addClass(element, className) {
-
-    var arr = element.className.split(" ");
-    if (arr.indexOf(className) === -1) {
-        if (element.className.length === 0) {
-            element.className = className;
-        } else {
+    if (element.className.length === 0) {
+        element.className = className;
+    } else {
+        let arr = element.className.split(" ");
+        if (arr.indexOf(className) === -1) {
             element.className += " " + className;
         }
     }
@@ -21,6 +20,6 @@ function removeClass(element, className) {
     element.classList.remove(className);
 }
 
-function isDomEntity(entity){
-return typeof entity === 'object' && entity.nodeType !== undefined;
+function isDomEntity(entity) {
+    return typeof entity === 'object' && entity.nodeType !== undefined;
 }

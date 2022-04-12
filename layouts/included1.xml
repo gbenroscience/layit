@@ -11,6 +11,7 @@ and open the template in the editor.
     height="match_parent"
     maxWidth="90%"
     border="1px dashed brown"
+    cx_align="parent"
 >
     
     <Label

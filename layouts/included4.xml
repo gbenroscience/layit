@@ -9,6 +9,7 @@ and open the template in the editor.
 <ConstraintLayout
     width="90%"
     height="match_parent"
+    cx_align="parent"
 >
     
     <Label
