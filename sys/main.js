@@ -1306,11 +1306,13 @@ CheckBox.prototype.createElement = function (node) {
         this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
-
+this.calculateWrapContentSizes(node);
 };
 CheckBox.prototype.calculateWrapContentSizes = function (node) {
-    this.wrapWidth = 32;
-    this.wrapHeight = 32;
+    document.body.appendChild(this.htmlElement);
+    this.wrapWidth = window.getComputedStyle(this.htmlElement).width;
+    this.wrapHeight = window.getComputedStyle(this.htmlElement).height;
+    this.htmlElement.remove();
 };
 /**
  * @param {Workspace} wkspc
@@ -1351,7 +1353,7 @@ Button.prototype.createElement = function (node) {
 };
 Button.prototype.calculateWrapContentSizes = function (node) {
     //bold 12pt arial;
-    this.getWrapSize(this.htmlElement.value);
+    this.htmlElement.style = this.style.getCss
 };
 /**
  * @param {Workspace} wkspc

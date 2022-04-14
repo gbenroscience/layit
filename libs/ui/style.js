@@ -367,6 +367,25 @@ Style.prototype.rawCss = function () {
     styleBuffer.append(" ");
     return styleBuffer.toString();
 };
+/**
+ * Applies this style as an inline style to the supplied element
+ * @param {HTMLElement} elem 
+ */
+Style.prototype.applyInline = function(elem){
+    if(elem){
+        if(isDomEntity(elem)){
+            for(let i=0;i<this.styleElements.length; i++){
+                let stl = this.styleElements[i];
+                 elem.style[stl.attr] = stl.value;
+            }
+        }else{
+           throw new Error("Invalid html element: "+elem);
+        }
+    }else{
+        throw new Error("Please specify an html element.");
+    }
+
+};
 
 
 /**
