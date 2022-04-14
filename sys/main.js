@@ -1213,13 +1213,19 @@ View.prototype.createElement = function (node) {
     this.calculateWrapContentSizes(node);
 };
 View.prototype.calculateWrapContentSizes = function (node) {
- //bold 12pt arial;
+    //bold 12pt arial;
+    let w = node.getAttribute(attrKeys.layout_width);
+    let h = node.getAttribute(attrKeys.layout_height);
+    if(w === sizes.WRAP_CONTENT || h === sizes.WRAP_CONTENT){
     let elem = this.htmlElement.cloneNode(true);
+    elem.style.visibility = 'hidden';
     this.style.applyInline(elem);
     document.body.appendChild(elem);
     this.wrapWidth = window.getComputedStyle(elem).width;
     this.wrapHeight = window.getComputedStyle(elem).height;
+    //console.log('wrapWidth: '+this.wrapWidth, 'wrapHeight: '+this.wrapHeight+"...", this.constructor.name,"[",this.id,"]");
     elem.remove();
+    }
 };
 CheckBox.prototype = Object.create(View.prototype);
 CheckBox.prototype.constructor = CheckBox;
@@ -1311,7 +1317,7 @@ CheckBox.prototype.createElement = function (node) {
         this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
-this.calculateWrapContentSizes(node);
+    this.calculateWrapContentSizes(node);
 };
 
 /**
@@ -1389,10 +1395,7 @@ ImageButton.prototype.createElement = function (node) {
 
     this.calculateWrapContentSizes(node);
 };
-ImageButton.prototype.calculateWrapContentSizes = function (node) {
-    //bold 12pt arial;
-    this.getWrapSize(this.htmlElement.value);
-};
+
 /**
  * @param {Workspace} wkspc
  * @param {type} node key-value object
@@ -1489,10 +1492,7 @@ NativeTable.prototype.createElement = function (node) {
     }
 
 };
-NativeTable.prototype.calculateWrapContentSizes = function (node) {
-    this.wrapWidth = 200;
-    this.wrapHeight = 250;
-};
+
 /**
  * @param {Workspace} wkspc
  * @param {type} node
@@ -1670,11 +1670,17 @@ CustomTableView.prototype.createElement = function (node) {
     this.exoticView = new Table(this.options);
     //this.exoticView.build(this.htmlElement);
 
-
+    this.calculateWrapContentSizes(node);
 };
 CustomTableView.prototype.calculateWrapContentSizes = function (node) {
-    this.wrapWidth = 350;
-    this.wrapHeight = 300;
+    let container = this.htmlElement;
+    this.style.applyInline(container);
+    document.body.appendChild(container);
+    this.exoticView.loadTable(this.options.bodyData);
+    let sz = this.exoticView.getCurrentSize();
+    this.wrapWidth = sz.width;
+    this.wrapHeight = sz.height;
+    container.remove();
 };
 CustomTableView.prototype.runView = function () {
     this.exoticView.loadTable(this.options.bodyData);
@@ -1887,6 +1893,17 @@ InputTableView.prototype.createElement = function (node) {
     this.exoticView = new InputTable(this.options);
     //this.exoticView.build(this.htmlElement);
 
+    this.calculateWrapContentSizes(node);
+};
+InputTableView.prototype.calculateWrapContentSizes = function (node) {
+    let container = this.htmlElement;
+    this.style.applyInline(container);
+    document.body.appendChild(container);
+    this.exoticView.loadTable(this.options.bodyData);
+    let sz = this.exoticView.getCurrentSize();
+    this.wrapWidth = sz.width;
+    this.wrapHeight = sz.height;
+    container.remove();
 };
 /**
  *
@@ -2102,7 +2119,17 @@ GrowableTableView.prototype.createElement = function (node) {
     this.exoticView = new GrowableTable(this.options);
     // this.exoticView.build(this.htmlElement);
 
-
+    this.calculateWrapContentSizes(node);
+};
+GrowableTableView.prototype.calculateWrapContentSizes = function (node) {
+    let container = this.htmlElement;
+    this.style.applyInline(container);
+    document.body.appendChild(container);
+    this.exoticView.loadTable(this.options.bodyData);
+    let sz = this.exoticView.getCurrentSize();
+    this.wrapWidth = sz.width;
+    this.wrapHeight = sz.height;
+    container.remove();
 };
 /**
  *
@@ -2329,11 +2356,21 @@ SearchableTableView.prototype.createElement = function (node) {
 
     this.exoticView = new SearchableTable(this.options);
     // this.exoticView.build(this.htmlElement);
+
+
+    this.calculateWrapContentSizes(node);
 };
 SearchableTableView.prototype.calculateWrapContentSizes = function (node) {
-    this.wrapWidth = 350;
-    this.wrapHeight = 300;
+    let container = this.htmlElement;
+    this.style.applyInline(container);
+    document.body.appendChild(container);
+    this.exoticView.loadTable(this.options.bodyData);
+    let sz = this.exoticView.getCurrentSize();
+    this.wrapWidth = sz.width;
+    this.wrapHeight = sz.height;
+    container.remove();
 };
+
 /**
  * @param {Workspace} wkspc
  * @param {type} node key-value object
@@ -3107,18 +3144,27 @@ MultiLineLabel.prototype.createElement = function (node) {
     };
     this.assignId();
     let font = new Font(fontStyle, parseFontSize.number, fontName, parseFontSize.units);
-    let size = getTextSize(text, font.string());
-
-    setWrapSize:{
-        this.wrapWidth = size.width;
-        this.wrapHeight = size.height;
-    }
+   
+this.calculateWrapContentSizes(node);
 
 
 
 };
 
 MultiLineLabel.prototype.calculateWrapContentSizes = function (node) {
+    let elem = document.createElement('canvas');
+    elem.setAttribute(attrKeys.id, this.htmlElement.id);
+    this.style.applyInline(elem);
+    document.body.appendChild(elem);
+
+    this.exoticView = new TextElement(this.options);
+
+    this.wrapWidth = node.getAttribute(attrKeys.layout_width);
+    if (this.wrapWidth === sizes.WRAP_CONTENT) {
+        throw new Error("This widget cannot have its width set to wrap_content, only its height can be set to wrap_content. View[" + this.id + "]");
+    }
+    this.wrapHeight = this.exoticView.getWrapHeight() + 'px';
+    elem.remove();
 
 };
 
@@ -3326,10 +3372,10 @@ CanvasView.prototype.createElement = function (node) {
     let width = node.getAttribute(attrKeys.width);
     let height = node.getAttribute(attrKeys.height);
     if (!attributeNotEmpty(width)) {
-        width = this.refIds.get(attrKeys.layout_width);
+        throw new Error("Canvas width attribute not supplied on View[" + this.id + "]");
     }
     if (!attributeNotEmpty(height)) {
-        height = this.refIds.get(attrKeys.layout_height);
+        throw new Error("Canvas width attribute not supplied on View[" + this.id + "]");
     }
 
 
@@ -3346,8 +3392,8 @@ CanvasView.prototype.createElement = function (node) {
     this.calculateWrapContentSizes(node);
 };
 CanvasView.prototype.calculateWrapContentSizes = function (node) {
-    this.wrapWidth = this.htmlElement.getAttribute('width');
-    this.wrapHeight = this.htmlElement.getAttribute('height');
+    this.wrapWidth = 120;
+    this.wrapHeight = 120;
 };
 /**
  *

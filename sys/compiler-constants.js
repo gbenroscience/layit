@@ -86,8 +86,8 @@ const attrKeys = {
     layout_minWidth: "minWidth",
     layout_minHeight: "minHeight",
 
-    width: "width", //on canvas element
-    height: "height", //on canvas element
+    width: "cWidth", //on canvas element
+    height: "cHeight", //on canvas element
     translationZ: "translationZ", //the z index
     layout_margin: "margin",
     layout_marginStart: "marginStart",

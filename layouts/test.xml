@@ -267,6 +267,7 @@
             height="wrap_content"
             cx_align='included_details'
             bottom_top="included_details"
+            border="1px solid brown"
             marginStart="0"
             marginBottom="16"
             textColor="darkred"
@@ -569,7 +570,7 @@
             cy_align='custom_grid_label'
             marginEnd='16'
             text="Another way to label things!"
-            gravity="end"
+            gravity="center"
             fontStyle='bold'
             textColor="white"
             textColorHover="#ccc"

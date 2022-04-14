@@ -145,6 +145,7 @@ function TextElement(options) {
 
         this.pressed = false;
         this.hovering = false;
+        this.wrapHeight = 0;
 
 
 
@@ -295,8 +296,8 @@ function TextElement(options) {
     }
 }
 
-TextElement.prototype.size = function () {
-    return this.g.getTextSize(this.text);
+TextElement.prototype.getWrapHeight = function () {
+    return this.wrapHeight;
 };
 
 TextElement.prototype.getMousePos = function (e) {
@@ -341,14 +342,15 @@ TextElement.prototype.render = function () {
 
     let lines = g.getLinesByMaxWidthAlgorithm(txt, availableWidth);
 
-    if (lines.length > 0) {
+let lineCount = lines.length;
+    if (lineCount > 0) {
         let textHeight = g.textHeight(txt);
         let maxDistMovableByScrollBar = h - this.scrollBar.barHeight;
-        let maxDistMovedByText = ((textHeight + lineSpacing) * lines.length + lineSpacing) - h - 2 * padding;
+        let maxDistMovedByText = ((textHeight + lineSpacing) * lineCount + lineSpacing) - h - 2 * padding;
         let scale = (maxDistMovedByText / maxDistMovableByScrollBar);
         let y = padding + textHeight - scale * this.scrollBar.scrollY;
 
-        for (let i = 0; i < lines.length; i++) {
+        for (let i = 0; i < lineCount; i++) {
             let l = lines[i];
             switch (gravity) {
                 case Gravity.LEFT:
@@ -373,8 +375,8 @@ TextElement.prototype.render = function () {
         if (maxDistMovedByText > 0) {
             this.scrollBar.drawScrollBar(g);
         }
-
-
+        
+        this.wrapHeight = (2 * padding) + (textHeight * lineCount) + (lineSpacing * lineCount);
     }
 
 

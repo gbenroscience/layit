@@ -1366,6 +1366,12 @@ Table.prototype.getCurrentHeight = function () {
     return parseInt(window.getComputedStyle(container).height);
 };
 
+Table.prototype.getCurrentSize = function () {
+    let container = document.getElementById(this.getTableContainerId());
+    let w = parseInt(window.getComputedStyle(container).width);
+    let h = parseInt(window.getComputedStyle(container).height);
+    return {width: w, height: h};
+};
 /**
  *
  * @param {type} arr Is this object a 2D array.
