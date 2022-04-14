@@ -368,9 +368,34 @@ Also, if you are loading the `Workspace` from the html page's script tag, you ca
 
 Note how we apply the json string to the `data-template` attribute.
 
-So, from your backend you may encode your template data as a json string and apply it to the `data-template` attribute of the script tag.
+So, from your backend you may encode your template data as a json string and apply it to the `data-template` attribute of the script tag. 
+Since json may look a bit awkward in that tag, you could specify the `data-type` attribute and set its value as `json-b64`(i.e. json encoded as `base64`.)
+Then of course, set base64 coded json in the `data-template` field. 
+<b>NOTE:</b> when unspecified, this library assumes a raw json input in the `data-template` field
+Currently, the `data-type` attribute can be any of the following:
 
-Or if you are applying the data from your front end, do something like:
+1. json-raw
+2. json-b64
+
+So, when the `data-type` field is applied, the code above may look like:
+
+
+```html
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type="text/javascript" src="correct/path/to/layit.js" data-launcher="test.xml" data-template='eyJuYW1lIjoiRGV2ZWxvcGVyIEFmcmljYW51cyJ9'           data-type='json-b64'></script>
+
+        
+    </head>
+    <body></body>
+</html>
+```
+Once the library sees the `data-type` specified as `json-b64`, it first decodes the value in the `data-template` field into a json string, before using it.
+
+If you are generating the data from your front end, do something like:
 
 
 ```html
