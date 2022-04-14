@@ -386,7 +386,7 @@ So, when the `data-type` field is applied, the code above may look like:
         <title>TODO supply a title</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script type="text/javascript" src="correct/path/to/layit.js" data-launcher="test.xml" data-template='eyJuYW1lIjoiRGV2ZWxvcGVyIEFmcmljYW51cyJ9'           data-type='json-b64'></script>
+        <script type="text/javascript" src="correct/path/to/layit.js" data-launcher="test.xml" data-template='eyJuYW1lIjoiRGV2ZWxvcGVyIEFmcmljYW51cyJ9' data-type='json-b64'></script>
 
         
     </head>
