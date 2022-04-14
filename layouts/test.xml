@@ -117,7 +117,7 @@
     <Button
             id="login_btn"
             width="wrap_content"
-            height="36px"
+            height="wrap_content"
             end_end="section_top"
             cy_align="login_input"
             marginEnd="80"
@@ -194,8 +194,8 @@
 
     <Button
             id="check_btn"
-            width="120px"
-            height="36px"
+            width="wrap_content"
+            height="wrap_content"
             start_end="notes_area"
             cy_align="notes_area"
             marginStart="8"

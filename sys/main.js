@@ -1213,8 +1213,13 @@ View.prototype.createElement = function (node) {
     this.calculateWrapContentSizes(node);
 };
 View.prototype.calculateWrapContentSizes = function (node) {
-    this.wrapWidth = 180;
-    this.wrapHeight = 75;
+ //bold 12pt arial;
+    let elem = this.htmlElement.cloneNode(true);
+    this.style.applyInline(elem);
+    document.body.appendChild(elem);
+    this.wrapWidth = window.getComputedStyle(elem).width;
+    this.wrapHeight = window.getComputedStyle(elem).height;
+    elem.remove();
 };
 CheckBox.prototype = Object.create(View.prototype);
 CheckBox.prototype.constructor = CheckBox;
@@ -1308,12 +1313,7 @@ CheckBox.prototype.createElement = function (node) {
 
 this.calculateWrapContentSizes(node);
 };
-CheckBox.prototype.calculateWrapContentSizes = function (node) {
-    document.body.appendChild(this.htmlElement);
-    this.wrapWidth = window.getComputedStyle(this.htmlElement).width;
-    this.wrapHeight = window.getComputedStyle(this.htmlElement).height;
-    this.htmlElement.remove();
-};
+
 /**
  * @param {Workspace} wkspc
  * @param {type} node key-value object
@@ -1351,10 +1351,7 @@ Button.prototype.createElement = function (node) {
 
     this.calculateWrapContentSizes(node);
 };
-Button.prototype.calculateWrapContentSizes = function (node) {
-    //bold 12pt arial;
-    this.htmlElement.style = this.style.getCss
-};
+
 /**
  * @param {Workspace} wkspc
  * @param {type} node key-value object
@@ -2386,10 +2383,7 @@ TextField.prototype.createElement = function (node) {
 
     this.calculateWrapContentSizes(node);
 };
-TextField.prototype.calculateWrapContentSizes = function (node) {
-    this.getWrapSize(this.htmlElement.value);
-    this.wrapWidth *= 1.25;
-};
+
 /**
  * @param {Workspace} wkspc
  * @param {type} node key-value object
@@ -2499,10 +2493,7 @@ TextArea.prototype.createElement = function (node) {
     });
     this.calculateWrapContentSizes(node);
 };
-TextArea.prototype.calculateWrapContentSizes = function (node) {
-    this.getWrapSize(this.htmlElement.value);
-    this.wrapWidth *= 1.25;
-};
+
 /**
  * @param {Workspace} wkspc
  * @param {type} node key-value object
@@ -2535,9 +2526,7 @@ DropDown.prototype.createElement = function (node) {
 
     this.assignId();
 };
-DropDown.prototype.calculateWrapContentSizes = function (node) {
 
-};
 DropDown.prototype.editCurrentElement = function (value) {
     this.htmlElement.options[this.htmlElement.selectedIndex].innerText = value;
 };
@@ -3288,9 +3277,7 @@ Label.prototype.createElement = function (node) {
     this.assignId();
     this.calculateWrapContentSizes(node);
 };
-Label.prototype.calculateWrapContentSizes = function (node) {
-    this.getWrapSize(this.htmlElement.textContent);
-};
+
 /**
  * @param {Workspace} wkspc
  * @param {type} node key-value object
@@ -3324,9 +3311,7 @@ Paragraph.prototype.createElement = function (node) {
     this.assignId();
     this.calculateWrapContentSizes(node);
 };
-Paragraph.prototype.calculateWrapContentSizes = function (node) {
-    this.getWrapSize(this.htmlElement.textContent);
-};
+
 /**
  *
  * @param {Workspace} wkspc
@@ -3498,9 +3483,7 @@ Radio.prototype.createElement = function (node) {
     }
     this.assignId();
 };
-Radio.prototype.calculateWrapContentSizes = function (node) {
 
-};
 /**
  *
  * @param {Workspace} wkspc

@@ -42,6 +42,7 @@ TestController.prototype.onViewsAttached = function (wid) {
 
     let customList = this.findViewById('custom_list');
     let customGrid =  this.findViewById('custom_grid');
+
     customList.data.push({
         name: "Emmanuel Phanuel",
         phone: "08168990132",
