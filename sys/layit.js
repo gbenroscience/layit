@@ -1203,6 +1203,16 @@ function isScriptLoaded(scriptURL) {
 function baseLauncher() {
     let templateJson = document.currentScript.getAttribute('data-template');
     let fileName = document.currentScript.getAttribute('data-launcher');
+    let dataType = document.currentScript.getAttribute('data-type');//json-raw | json-b64
+
+    if(dataType){
+        if(dataType === 'json-b64'){
+            templateJson = window.atob(templateJson);
+        }else{
+            throw new Error("Unsupported format: `"+dataType+"`");
+        }
+    }
+
     if (fileName && typeof fileName === 'string' && fileName.length > 0)
         launcher(fileName, BODY_ID, templateJson);
 }
