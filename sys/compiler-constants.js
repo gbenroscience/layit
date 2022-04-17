@@ -29,6 +29,14 @@ const orientations = {
     GRID: 'grid'// Not available to all views
 };
 
+const Alignments = {
+    LEFT: 'left',
+    RIGHT: 'right',
+    CENTER: 'center',
+    TOP: 'top',
+    BOTTOM: 'bottom'
+};
+
 const DRAG_STATE = {
     NO_DRAG: 0,
     READY: 1,
@@ -275,7 +283,11 @@ const attrKeys = {
     //Properties used for the MultiLineLabel
     scrollBarTheme: 'scrollBarTheme',
     scrollBarWidth: 'scrollBarWidth',
-    scrollBarHeight: 'scrollBarHeight'
+    scrollBarHeight: 'scrollBarHeight',
+    //Align text in span
+    horAlign: 'horAlign',//left|center|right
+    verAlign: 'verAlign'//top|center|bottom
+    
     
 
 };

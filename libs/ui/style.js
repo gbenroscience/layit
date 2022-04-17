@@ -112,13 +112,13 @@ Style.prototype.injectStyleSheet = function () {
  * Converts a Style object to a generic Javascript/JSON object
  * @returns {Object}
  */
-Style.prototype.toOptions = function(){
-  let o = {};
-  for(let i=0;i<this.styleElements.length;i++){
-      let el = this.styleElements[i];
-      let values = Object.values(el);
-      o[values[0]] = values[1];
-  }
+Style.prototype.toOptions = function () {
+    let o = {};
+    for (let i = 0; i < this.styleElements.length; i++) {
+        let el = this.styleElements[i];
+        let values = Object.values(el);
+        o[values[0]] = values[1];
+    }
     return o;
 };
 
@@ -213,6 +213,52 @@ function getAllStyles(htmlStyleElement) {
     return styles;
 }
 
+/**
+ * Looks through a css style sheet and returns a Style object that models the given selector if it exists in the
+ * style sheet. Else it returns null;
+ * @param htmlStyleElement  An html style element <<<htmlStyleElement = document.createElement('style');>>>
+ * @param selector A given style to fetch.
+ */
+function getStyle(htmlStyleElement, selector) {
+    if (selector) {
+        selector = selector.trim();
+    } else {
+        throw new Error('No selector supplied!');
+    }
+    let css = htmlStyleElement.innerHTML;
+    let scanner = new Scanner(css, true, [selector, '{', '}', ';']);
+    let tokens = scanner.scan();
+    let buildingStyle = false;
+    let currentStyle;
+    for (let i = 0; i < tokens.length; i++) {
+        if (tokens[i].trim() === selector) {
+            if (i + 1 < tokens.length) {
+                let  j = i + 1;
+                //check between selector and opening curly brace to be sure no strange non-whitespace token is there
+                while (tokens[j] !== '{' && j < tokens.length) {
+                    if (tokens[j].trim() !== '') {
+                        throw new Error('Invalid token found in browser style sheet! File a bug report with browser manufacturer!! Description:\n\
+                  No token like: ``' + tokens[j] + "`` should exist between ``" + selector + "`` and a ``{``");
+                    }
+                    j++;
+                }
+                currentStyle = new Style(selector, []);
+                buildingStyle = true;
+                i = j;
+            }
+        }
+        if (buildingStyle === true) {
+            if (tokens[i] === ';') {
+                currentStyle.addStyleElementCss(tokens[i - 1] + ";");
+            } else if (tokens[i] === '}') {
+                return currentStyle;
+            }
+        }
+
+    }
+
+    return null;
+}
 
 /**
  * Edits the individual style-elements of a selector existing in a stylesheet already.
@@ -233,9 +279,9 @@ function editSelectorInStyleSheet(htmlStyleElement, newStyle) {
             let style = styles[i];
             if (style.name.trim() === selector) {
                 found = true;
-                for(let k=0; k < newStyle.styleElements.length; k++){
+                for (let k = 0; k < newStyle.styleElements.length; k++) {
                     let elem = newStyle.styleElements[k];
-                    style.addStyleElement(elem.attr , elem.value, false);
+                    style.addStyleElement(elem.attr, elem.value, false);
                 }
                 break;
             }
@@ -371,17 +417,17 @@ Style.prototype.rawCss = function () {
  * Applies this style as an inline style to the supplied element
  * @param {HTMLElement} elem 
  */
-Style.prototype.applyInline = function(elem){
-    if(elem){
-        if(isDomEntity(elem)){
-            for(let i=0;i<this.styleElements.length; i++){
+Style.prototype.applyInline = function (elem) {
+    if (elem) {
+        if (isDomEntity(elem)) {
+            for (let i = 0; i < this.styleElements.length; i++) {
                 let stl = this.styleElements[i];
-                 elem.style[stl.attr] = stl.value;
+                elem.style[stl.attr] = stl.value;
             }
-        }else{
-           throw new Error("Invalid html element: "+elem);
+        } else {
+            throw new Error("Invalid html element: " + elem);
         }
-    }else{
+    } else {
         throw new Error("Please specify an html element.");
     }
 
@@ -516,18 +562,18 @@ Style.prototype.addStyleElementObj = function (style, duplicateAllowed) {
  */
 Style.prototype.clone = function (newName) {
     let arr = [];
-    
-    for(let i=0; i<this.styleElements.length; i++){
+
+    for (let i = 0; i < this.styleElements.length; i++) {
         let elem = this.styleElements[i];
         arr.push(new StyleElement(elem.attr, elem.value));
     }
     /**
      * if no name|selector was supplied, the user wants to clone the name also.
      */
-    if(!newName){
+    if (!newName) {
         newName = this.name;
     }
- return new Style(newName, arr);
+    return new Style(newName, arr);
 };
 /**
  * The library handles all the details for you. The string MUST describe only 1 style element..e.g. width:10px;
@@ -561,10 +607,10 @@ Style.prototype.addStyleElementCss = function (style, duplicateAllowed) {
                 } else {
                     for (let index = 0; index < this.styleElements.length; index++) {
                         let styl = this.styleElements[index];
-                            if (styl.getAttr() === attr) {//attribute exists already..update and exit
-                                this.styleElements[index] = styleObj;
-                                return;
-                            }
+                        if (styl.getAttr() === attr) {//attribute exists already..update and exit
+                            this.styleElements[index] = styleObj;
+                            return;
+                        }
                     }
                     this.styleElements.push(styleObj);
                 }

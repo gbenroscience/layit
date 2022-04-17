@@ -29,6 +29,7 @@ GridAdapter.prototype.fetchPrototypeCells = function (list, callback) {
         self.protoRect = protoLi.getBoundingClientRect();
 
         protoLi.style.width = self.protoRect.width;
+        self.protoLi = protoLi;
 
 
         getWorkspace({
@@ -39,7 +40,7 @@ GridAdapter.prototype.fetchPrototypeCells = function (list, callback) {
 
             },
             onComplete: function (rootView) {
-                self.viewTemplates.push(rootView.htmlElement);
+                self.viewTemplates.push(rootView);
                 let style = rootView.style.clone('.' + rootView.id);
                 self.protoClassName = rootView.id;
                 updateOrCreateSelectorInStyleSheet(styleSheet, style);
@@ -79,20 +80,20 @@ GridAdapter.prototype.makeCell = function (adapterView, viewType) {
     let htmlElement = adapterView;
 
     let childrenCount = adapterView.getElementsByTagName("li").length;
-    let viewTemplate = self.viewTemplates[viewType];
+    let rootView = self.viewTemplates[viewType];
     let li = document.createElement('li');
     li.style.width = self.protoRect.width+'px';
     li.style.height =  self.protoRect.height+'px';
     //li.style.transform = 'translate3d(0, 0, 0)';
     li.setAttribute('id', this.adapterViewId + "_li_" + childrenCount);
 
-    let clone = viewTemplate.cloneNode(true);
+    let clone = rootView.htmlElement.cloneNode(true);
     addClass(clone, self.protoClassName);
 
 
     let cloneId = clone.id + "_" + childrenCount;
     clone.setAttribute(attrKeys.id, cloneId);
-    renameIds(clone, childrenCount, cloneId);
+    renameIds(clone, childrenCount, cloneId, this.protoStylesMap, this.cellRegistry);
     li.appendChild(clone);
     htmlElement.appendChild(li);
 

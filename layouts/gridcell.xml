@@ -34,10 +34,12 @@ and open the template in the editor.
             cx_align="parent"
             marginTop="4px"
             textColor="white"
-            value="la-la-la"
+            horAlign="center"
+            value="la-la-la-name"
             textSize="0.75em"
             textStyle="bold italic"
             fontFamily="Arial"
+        border="1px solid brown"
             cssClass="list_cell_class"
     />
     <Label
@@ -48,10 +50,11 @@ and open the template in the editor.
             cx_align="parent"
             marginTop="14px"
             textColor="white"
-            value="la-la-la"
+            value="la-la-la-phone"
             textSize="0.75em"
             textStyle="bold italic"
             fontFamily="Arial"
+        border="1px dashed brown"
             cssClass="list_cell_class"
     />
 

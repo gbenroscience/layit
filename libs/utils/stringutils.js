@@ -74,6 +74,13 @@ StringBuffer.prototype.length = function () {
 };
 
 
+let cloneText = function(originalText){
+  if(originalText && typeof originalText === 'string'){
+        return (' ' + originalText).slice(1);
+  }
+  throw new Error('Invalid text supplied.');
+};
+
 /**
  * @param str The string in consideration
  * @param startItem The string to check for at the start of <code>str</code>

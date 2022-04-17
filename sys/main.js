@@ -74,7 +74,7 @@ function setAbsoluteSizeAndPosition(elm, left, top, width, height) {
 }
 
 
-/* global AutoLayout, attrKeys, xmlKeys, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits, CssSizeUnitsValues, PATH_TO_IMAGES, FontStyle, Gravity, styleSheet, ListAdapter */
+/* global AutoLayout, attrKeys, xmlKeys, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits, CssSizeUnitsValues, PATH_TO_IMAGES, FontStyle, Gravity, styleSheet, ListAdapter, Alignments */
 
 /**
  *
@@ -101,6 +101,13 @@ function View(wkspc, node) {
     let nodeName = node.nodeName;
     this.nodeName = nodeName;
     this.root = nodeName === xmlKeys.root || nodeName === xmlKeys.include;
+    
+    if(this.root){
+        /**
+         * Only a root layout must have this field!
+         */
+        this.constraints = [];
+    }
     //The main ConstraintLayout tag in the original layout file
     this.topLevelRoot = this.root === true && wkspc.viewMap.size === 0;
     this.id = zaId;
@@ -590,33 +597,7 @@ View.prototype.getTextSize = function (txt) {
     document.body.removeChild(span);
     return size;
 };
-View.prototype.getWrapSize = function (text) {
-    let padTop = this.style.getValue('padding-top');
-    let padBot = this.style.getValue('padding-bottom');
-    let padStart = this.style.getValue('padding-left');
-    let padEnd = this.style.getValue('padding-right');
-    let paddingTop = 0;
-    let paddingBottom = 0;
-    let paddingLeft = 0;
-    let paddingRight = 0;
-    if (padTop !== null) {
-        paddingTop = parseInt(padTop);
-    }
-    if (padBot !== null) {
-        paddingBottom = parseInt(padBot);
-    }
-    if (padStart !== null) {
-        paddingLeft = parseInt(padStart);
-    }
-    if (padEnd !== null) {
-        paddingRight = parseInt(padEnd);
-    }
 
-    let sz = this.getTextSize(text);
-    this.wrapWidth = sz.width + paddingLeft + paddingRight;
-    this.wrapHeight = sz.height + paddingTop + paddingBottom;
-    return {width: this.wrapWidth, height: this.wrapHeight};
-};
 function isDimensionRatio(val) {
     if (!isNaN(val)) {
         val = val + ':1';
@@ -1216,15 +1197,15 @@ View.prototype.calculateWrapContentSizes = function (node) {
     //bold 12pt arial;
     let w = node.getAttribute(attrKeys.layout_width);
     let h = node.getAttribute(attrKeys.layout_height);
-    if(w === sizes.WRAP_CONTENT || h === sizes.WRAP_CONTENT){
-    let elem = this.htmlElement.cloneNode(true);
-    elem.style.visibility = 'hidden';
-    this.style.applyInline(elem);
-    document.body.appendChild(elem);
-    this.wrapWidth = window.getComputedStyle(elem).width;
-    this.wrapHeight = window.getComputedStyle(elem).height;
-    //console.log('wrapWidth: '+this.wrapWidth, 'wrapHeight: '+this.wrapHeight+"...", this.constructor.name,"[",this.id,"]");
-    elem.remove();
+    if (w === sizes.WRAP_CONTENT || h === sizes.WRAP_CONTENT) {
+        let elem = this.htmlElement.cloneNode(true);
+        //elem.style.visibility = 'hidden';
+        this.style.applyInline(elem);
+        document.body.appendChild(elem);
+        this.wrapWidth = (0.813 * parseFloat(window.getComputedStyle(elem).width)) + 'px';
+        this.wrapHeight = (0.825 * parseFloat(window.getComputedStyle(elem).height)) + 'px';
+        //console.log('wrapWidth: '+this.wrapWidth, 'wrapHeight: '+this.wrapHeight+"...", this.constructor.name,"[",this.id,"]");
+        elem.remove();
     }
 };
 CheckBox.prototype = Object.create(View.prototype);
@@ -2626,24 +2607,7 @@ NativeList.prototype.createElement = function (node) {
     this.assignId();
     this.calculateWrapContentSizes(node);
 };
-NativeList.prototype.calculateWrapContentSizes = function (node) {
 
-    let elems = this.htmlElement.getElementsByTagName("li");
-    let elemCount = elems.length;
-    let minWidth = 0;
-    let netHeight = 0;
-    for (let i = 0; i < elemCount; i++) {
-        let li = elems[i];
-        View.prototype.getWrapSize.call(this, li.textContent);
-        if (minWidth < this.wrapWidth) {
-            minWidth = this.wrapWidth;
-        }
-        netHeight += this.wrapHeight;
-    }
-
-    this.wrapWidth = minWidth;
-    this.wrapHeight = netHeight;
-};
 
 /**
  * @param {Workspace} wkspc
@@ -3144,8 +3108,8 @@ MultiLineLabel.prototype.createElement = function (node) {
     };
     this.assignId();
     let font = new Font(fontStyle, parseFontSize.number, fontName, parseFontSize.units);
-   
-this.calculateWrapContentSizes(node);
+
+    this.calculateWrapContentSizes(node);
 
 
 
@@ -3281,9 +3245,7 @@ IconLabelView.prototype.createElement = function (node) {
 
 };
 
-IconLabelView.prototype.calculateWrapContentSizes = function (node) {
-    this.getWrapSize(this.text);
-};
+
 
 IconLabelView.prototype.runView = function () {
     this.exoticView = new IconLabel(this.options);
@@ -3304,16 +3266,45 @@ Label.prototype.createElement = function (node) {
     let value = node.getAttribute(attrKeys.value);
     let fontSz = node.getAttribute(attrKeys.fontSize);
     let name = node.getAttribute(attrKeys.name);
+    let horAlign = node.getAttribute(attrKeys.horAlign);
+    let verAlign = node.getAttribute(attrKeys.verAlign);
     if (attributeNotEmpty(name)) {
         this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
+    if (!horAlign) {
+        horAlign = 'center';
+    }
+    if (!verAlign) {
+        verAlign = 'center';
+    }
 
-    this.style.addStyleElementCss('display: -webkit-inline-box;');
-    this.style.addStyleElementCss('display: -ms-inline-flexbox;');
-    this.style.addStyleElementCss('display: inline-flex;');
-    this.style.addStyleElementCss('align-items: center;');
-    this.style.addStyleElementCss('white-space: nowrap;');
+    this.style.addStyleElementCss('display: -webkit-inline-box;', true);
+    this.style.addStyleElementCss('display: -ms-inline-flexbox;', true);
+    this.style.addStyleElementCss('display: inline-flex;',true);
+    this.style.addFromOptions({
+     overflow: 'hidden !important',
+    'text-overflow': 'ellipsis'
+    });
+
+    if (horAlign === Alignments.LEFT) {
+        this.style.addStyleElementCss('justify-content: flex-start;');
+    } else if (horAlign === Alignments.CENTER) {
+        this.style.addStyleElementCss('justify-content: center;');
+    } else if (horAlign === Alignments.RIGHT) {
+        this.style.addStyleElementCss('justify-content: flex-end;');
+    }
+
+    if (verAlign === Alignments.TOP) {
+        this.style.addStyleElementCss('align-items: flex-start;');
+        this.style.addStyleElementCss('white-space: nowrap;');
+    } else if (verAlign === Alignments.CENTER) {
+        this.style.addStyleElementCss('align-items: center;');
+        this.style.addStyleElementCss('white-space: nowrap;');
+    } else if (verAlign === Alignments.BOTTOM) {
+        this.style.addStyleElementCss('align-items: flex-end;');
+        this.style.addStyleElementCss('white-space: nowrap;');
+    }
     if (attributeNotEmpty(text)) {
         this.htmlElement.textContent = text; // label
     }
@@ -3371,10 +3362,10 @@ function CanvasView(wkspc, node) {
 CanvasView.prototype.createElement = function (node) {
     let width = node.getAttribute(attrKeys.width);
     let height = node.getAttribute(attrKeys.height);
-    if (!attributeNotEmpty(width)) {
+    if (attributeEmpty(width)) {
         throw new Error("Canvas width attribute not supplied on View[" + this.id + "]");
     }
-    if (!attributeNotEmpty(height)) {
+    if (attributeEmpty(height)) {
         throw new Error("Canvas width attribute not supplied on View[" + this.id + "]");
     }
 

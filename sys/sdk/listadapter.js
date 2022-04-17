@@ -1,6 +1,7 @@
-/* global attrKeys, ListView */
+/* global attrKeys, ListView, styleSheet */
 
 const PROTO_LI_ID = "proto_item";
+let cachedDiv;
 /**
  *
  * @param list The layit List which encapsulates an html list
@@ -14,7 +15,14 @@ function ListAdapter(list, callback) {
         this.data = null;
         this.adapterViewId = null;
         this.viewTypeCount = 0;
+        this.protoLi = null;
         this.adapterViewInstanceName = list.constructor.name;
+        this.protoStylesMap = new Map();
+        /**
+         * view cell ids are mapped to a particular prototype cell id
+         * The view cell id is the key, the prototype cell id is the value
+         */
+        this.cellRegistry = new Map();
         /**
          * Necessary for styling the cells generated from the prototype
          */
@@ -39,6 +47,13 @@ ListAdapter.prototype.bind = function (list, callback) {
     this.adapterViewInstanceName = list.constructor.name;
     this.adapterViewId = list.htmlElement.id;
     this.viewTypeCount = list.itemViews.length;
+    this.protoLi = null;
+    /**
+     * view cell ids are mapped to a particular prototype cell id
+     * The view cell id is the key, the prototype cell id is the value
+     */
+    this.cellRegistry = new Map();
+    this.protoStylesMap = new Map();
     this.viewTemplates = [];// the key is the viewtype , the value is the template to use for that view type
     this.fetchPrototypeCells(list, function () {
         self.notifyDataSetChanged(list.htmlElement);
@@ -94,6 +109,7 @@ ListAdapter.prototype.fetchPrototypeCells = function (list, callback) {
         let protoLi = document.createElement('li');
         protoLi.setAttribute(attrKeys.id, self.protoListItemId());
         list.htmlElement.appendChild(protoLi);
+        self.protoLi = protoLi;
 
         getWorkspace({
             layoutName: template,
@@ -103,7 +119,7 @@ ListAdapter.prototype.fetchPrototypeCells = function (list, callback) {
 
             },
             onComplete: function (rootView) {
-                self.viewTemplates.push(rootView.htmlElement);
+                self.viewTemplates.push(rootView);
                 index++;
                 if (index < itemViews.length) {
                     load(index);
@@ -137,20 +153,21 @@ ListAdapter.prototype.makeCell = function (adapterView, viewType) {
     let htmlElement = adapterView;
 
     let childrenCount = adapterView.getElementsByTagName("li").length;
-    let viewTemplate = self.viewTemplates[viewType];
+    let rootView = self.viewTemplates[viewType];
     let li = document.createElement('li');
     li.setAttribute('id', this.adapterViewId + "_li_" + childrenCount);
 
-    let clone = viewTemplate.cloneNode(true);
+    let clone = rootView.htmlElement.cloneNode(true);
 
-        let cellWidth = clone.style.width;
-        let cellHeight = clone.style.height;
-        li.style.width = cellWidth;
-        li.style.height = cellHeight;
+    let cellWidth = clone.style.width;
+    let cellHeight = clone.style.height;
+    li.style.width = cellWidth;
+    li.style.height = cellHeight;
 
     let cloneId = clone.id + "_" + childrenCount;
     clone.setAttribute(attrKeys.id, cloneId);
-    renameIds(clone, childrenCount, cloneId);
+
+    renameIds(clone, childrenCount, cloneId, this.protoStylesMap, this.cellRegistry);
     li.appendChild(clone);
     htmlElement.appendChild(li);
 
@@ -236,6 +253,70 @@ ListAdapter.prototype.getChildView = function (li, viewId) {
     let id = rootView.getAttribute(attrKeys.id);
     return document.getElementById(id + "_" + viewId);
 };
+/**
+ * Takes an array of html elements whose data were changed in a cell and runs some quick
+ * recalculations on them to be sure the UI still looks okay
+ * @param {HtmlLIElement} li 
+ * @param {number} pos The index of the li 
+ * @param {Array} updatedViews
+ * @returns {undefined}
+ */
+ListAdapter.prototype.repaint = function (li, pos, updatedViews) {
+    if (isOneDimArray(updatedViews)) {
+        for (let i = 0; i < updatedViews.length; i++) {
+            let v = updatedViews[i];
+            let sz = computeTextSize(v.textContent, getComputedStyle(v).font);
+            v.style.width = sz.width + 'px';
+            v.style.height = sz.height + 'px';
+        }
+        let viewType = this.getItemViewType(pos);
+
+        let rootView = this.viewTemplates[viewType];
+
+        rephraseCellVFL(rootView, updatedViews, this.cellRegistry);
+        let adapterView = li.parentElement;
+        adapterView.appendChild(this.protoLi);
+        autoLayout(this.protoLi, rootView.templateConstraints);
+        autoLayout(rootView.htmlElement, rootView.constraints);
+
+
+        let babyRootView = li.firstChild;
+
+        let applyStyle = function (dest, src) {
+            if (isDomEntity(dest)) {
+                if (isDomEntity(src)) {
+                    dest.style.width = src.style.width;
+                    dest.style.height = src.style.height;
+                    dest.style.transform = src.style.transform;
+                    dest.style.webkitTransform = src.style.webkitTransform;
+                    dest.style.cssText = src.style.cssText;
+                } else {
+                    throw new Error("The `src` must be a valid html element");
+                }
+            } else {
+                throw new Error("The `dest` must be a valid html element");
+            }
+        };
+
+        applyStyle(babyRootView, rootView.htmlElement);
+
+        for (let i = 0; i < updatedViews.length; i++) {
+            let v = updatedViews[i];
+            let id = this.cellRegistry.get(v.getAttribute(attrKeys.id));
+            let orig = document.getElementById(id);
+            applyStyle(v , orig);
+        }
+
+
+
+
+
+
+        this.protoLi.remove();
+    } else {
+        throw new Error("The input array must be a one dimensional array..." + updatedViews);
+    }
+};
 
 /**
  *
@@ -244,18 +325,325 @@ ListAdapter.prototype.getChildView = function (li, viewId) {
  * @param {Node} htmlNode
  * @param {Number} index
  * @param {string} rootNodeId The id of the root node that is the root parent of all the children
+ * @param {Map} stylesMap 
+ * @param {Map} cellRegistry 
  * @returns {undefined}
  */
-let renameIds = function (htmlNode, index, rootNodeId) {
+let renameIds = function (htmlNode, index, rootNodeId, stylesMap, cellRegistry) {
     if (htmlNode.hasChildNodes()) {
         let childNodes = htmlNode.childNodes;
         for (let j = 0; j < childNodes.length; j++) {
             let childNode = childNodes[j];
             if (childNode.nodeName !== '#text' && childNode.nodeName !== '#comment') {
                 let childId = childNode.getAttribute(attrKeys.id);
-                childNode.setAttribute(attrKeys.id, rootNodeId + "_" + childId);
-                renameIds(childNode, index + 1);
+                let newId = rootNodeId + "_" + childId;
+                cellRegistry.set(newId, childId);
+                childNode.setAttribute(attrKeys.id, newId);
+                let checkStyle = stylesMap.get(childId);
+                if (!checkStyle) {
+                    let style = getStyle(styleSheet, '#' + childId);
+                    let clonedStyle = style.clone('.' + childId);
+                    stylesMap.set(childId, clonedStyle);
+                    updateOrCreateSelectorInStyleSheet(styleSheet, clonedStyle);
+                }
+                addClass(childNode, childId);
+                renameIds(childNode, index + 1, rootNodeId, stylesMap);
             }
         }//end for loop
     }
+};
+
+
+/**
+ * 
+ * @param {View} rootView
+ * @param {Array} changedViews An array of updated cells in a li's root view
+ * @param {Map} cellRegistry key is generated id for cell items, value is the layit id of the original component in xml
+ * @returns {undefined}
+ */
+let rephraseCellVFL = function (rootView, changedViews, cellRegistry) {
+    let vfl = rootView.constraints;
+    // console.log('rootView: ', rootView);
+    // console.log('rootView.constraints: ', rootView.constraints);
+
+    for (let i = 0; i < vfl.length; i++) {
+        let comd = vfl[i];
+        if (!comd || comd.length === 0) {
+            continue;
+        }
+        comd = cloneText(vfl[i]);
+
+        let array = comd.split('\n');
+        //  console.log('raw command: ', comd, ' , command-array: ', array);
+        let newArr = [];
+        for (let k = 0; k < array.length; k++) {
+            let cmd = array[k].trim();
+
+            if (startsWith(cmd, 'H:')) {//use horizontal params
+                let ind = cmd.indexOf("(==", k);
+                if (ind !== -1) {
+                    let commaInd = cmd.indexOf(",", ind);
+                    if (commaInd === -1) {//id(==widVal)
+                        let closeBracInd = cmd.indexOf(")", ind);
+                        if (closeBracInd === -1) {
+                            throw new Error('Invalid vfl: `' + cmd + '`');
+                        }
+
+                        let idx = cmd.indexOf("[");
+                        if (idx === -1) {
+                            throw new Error("Couldn't parse vfl");
+                        }
+                        let id = cmd.substring(idx + 1, ind);
+
+
+                        for (let j = 0; j < changedViews.length; j++) {
+                            if (id === cellRegistry.get(changedViews[j].getAttribute(attrKeys.id))) {
+                                let view = changedViews[j];
+                                let w = view.style.width;
+                                if (endsWith(w, "px")) {
+                                    w = parseInt(w);
+                                }
+                                cmd = cmd.substring(0, ind + 3) + w + cmd.substring(closeBracInd);
+                                break;
+                            }
+                        }
+                        //updated or not, store the cmd             
+                        newArr.push(cmd);
+
+                    } else {//id(==widVal,<=....)
+
+                        let idx = cmd.indexOf("[");
+                        if (idx === -1) {
+                            throw new Error("Couldn't parse vfl");
+                        }
+                        let id = cmd.substring(idx + 1, ind);
+                        let j = 0;
+                        for (; j < changedViews.length; j++) {
+                            if (id === cellRegistry.get(changedViews[j].getAttribute(attrKeys.id))) {
+                                let view = changedViews[j];
+                                let w = view.style.width;
+                                if (endsWith(w, "px")) {
+                                    w = parseInt(w);
+                                }
+                                cmd = cmd.substring(0, ind + 3) + w + cmd.substring(commaInd);
+                                break;
+                            }
+                        }
+                        //updated or not, store the cmd
+                        newArr.push(cmd);
+
+                    }
+                } else {
+                    ind = cmd.indexOf("(", k);
+
+                    if (ind === -1) {//No (== and (... the production must be like: H:|-margin-[id]
+                        newArr.push(cmd);
+                        continue;
+                    }
+                    let commaInd = cmd.indexOf(",", ind);// search for H:...id(wid,<=...)
+                    if (commaInd === -1) {//id(widVal)
+                        let closeBracInd = cmd.indexOf(")", ind);
+                        if (closeBracInd === -1) {
+                            throw new Error('Invalid vfl found here!...' + cmd);
+                        }
+                        let idx = cmd.indexOf("[");
+                        if (idx === -1) {
+                            throw new Error("Couldn't parse vfl..." + cmd + ", no `[` found");
+                        }
+                        let id = cmd.substring(idx + 1, ind);
+
+                        for (let j = 0; j < changedViews.length; j++) {
+                            if (id === cellRegistry.get(changedViews[j].getAttribute(attrKeys.id))) {
+                                let view = changedViews[j];
+                                let w = view.style.width;
+                                if (endsWith(w, "px")) {
+                                    w = parseInt(w);
+                                }
+                                cmd = cmd.substring(0, ind + 1) + w + cmd.substring(closeBracInd);
+                                break;
+                            }
+                        }
+                        //updated or not, store the cmd           
+                        newArr.push(cmd);
+                    } else {//id(widVal,<=....)
+
+                        let idx = cmd.indexOf("[");
+                        if (idx === -1) {
+                            throw new Error("Couldn't parse vfl...");
+                        }
+                        let id = cmd.substring(idx + 1, ind);
+                        let j = 0;
+                        for (; j < changedViews.length; j++) {
+                            if (id === cellRegistry.get(changedViews[j].getAttribute(attrKeys.id))) {
+                                let view = changedViews[j];
+                                let w = view.style.width;
+                                if (endsWith(w, "px")) {
+                                    w = parseInt(w);
+                                }
+                                cmd = cmd.substring(0, ind + 1) + w + cmd.substring(commaInd);
+                                break;
+                            }
+                        }
+                        //updated or not, store the cmd
+                        newArr.push(cmd);
+                    }
+                }
+            }//end if
+            else if (startsWith(cmd, 'V:')) {//use horizontal params
+                let ind = cmd.indexOf("(==", k);
+                if (ind !== -1) {
+                    let commaInd = cmd.indexOf(",", ind);
+                    if (commaInd === -1) {//id(==widVal)
+                        let closeBracInd = cmd.indexOf(")", ind);
+                        if (closeBracInd === -1) {
+                            throw new Error('Invalid vfl: `' + cmd + '`');
+                        }
+
+                        let idx = cmd.indexOf("[");
+                        if (idx === -1) {
+                            throw new Error("Couldn't parse vfl");
+                        }
+                        let id = cmd.substring(idx + 1, ind);
+
+                        for (let j = 0; j < changedViews.length; j++) {
+                            if (id === cellRegistry.get(changedViews[j].getAttribute(attrKeys.id))) {
+                                let view = changedViews[j];
+                                let h = view.style.height;
+                                if (endsWith(h, "px")) {
+                                    h = parseInt(h);
+                                }
+                                cmd = cmd.substring(0, ind + 3) + h + cmd.substring(closeBracInd);
+                                break;
+                            }
+                        }
+
+                        newArr.push(cmd);
+
+                    } else {//id(==widVal,<=....)
+
+                        let idx = cmd.indexOf("[");
+                        if (idx === -1) {
+                            throw new Error("Couldn't parse vfl");
+                        }
+                        let id = cmd.substring(idx + 1, ind);
+                        let j = 0;
+                        for (; j < changedViews.length; j++) {
+                            if (id === cellRegistry.get(changedViews[j].getAttribute(attrKeys.id))) {
+                                let view = changedViews[j];
+                                let h = view.style.height;
+                                if (endsWith(h, "px")) {
+                                    h = parseInt(h);
+                                }
+                                cmd = cmd.substring(0, ind + 3) + h + cmd.substring(commaInd);
+                                break;
+                            }
+                        }
+//updated or not, store the cmd
+                        newArr.push(cmd);
+
+                    }
+                } else {
+                    ind = cmd.indexOf("(", k);
+
+                    if (ind === -1) {//No (== and (... the production must be like: V:|-margin-[id]
+                        newArr.push(cmd);
+                        continue;
+                    }
+                    let commaInd = cmd.indexOf(",", ind);// search for H:...id(wid,<=...)
+                    if (commaInd === -1) {//id(widVal)
+                        let closeBracInd = cmd.indexOf(")", ind);
+                        if (closeBracInd === -1) {
+                            throw new Error('Invalid vfl found here!...' + cmd);
+                        }
+                        let idx = cmd.indexOf("[");
+                        if (idx === -1) {
+                            throw new Error("Couldn't parse vfl..." + cmd + ", no `[` found");
+                        }
+                        let id = cmd.substring(idx + 1, ind);
+
+                        for (let j = 0; j < changedViews.length; j++) {
+                            if (id === cellRegistry.get(changedViews[j].getAttribute(attrKeys.id))) {
+                                let view = changedViews[j];
+                                let h = view.style.height;
+                                if (endsWith(h, "px")) {
+                                    h = parseInt(h);
+                                }
+                                cmd = cmd.substring(0, ind + 1) + h + cmd.substring(closeBracInd);
+                                break;
+                            }
+                        }
+                        //The id might be present in a vfl that is not being updated! do not discard, re-store it!             
+                        newArr.push(cmd);
+                    } else {//id(widVal,<=....)
+
+                        let idx = cmd.indexOf("[");
+                        if (idx === -1) {
+                            throw new Error("Couldn't parse vfl...");
+                        }
+                        let id = cmd.substring(idx + 1, ind);
+                        let j = 0;
+                        for (; j < changedViews.length; j++) {
+                            if (id === cellRegistry.get(changedViews[j].getAttribute(attrKeys.id))) {
+                                let view = changedViews[j];
+                                let h = view.style.height;
+                                if (endsWith(h, "px")) {
+                                    h = parseInt(h);
+                                }
+                                cmd = cmd.substring(0, ind + 1) + h + cmd.substring(commaInd);
+                                //vfl[i] = cmd;
+                                newArr.push(cmd);
+                                break;
+                            }
+                        }
+                        //updated or not, store the cmd
+                        newArr.push(cmd);
+                    }
+                }
+            }//end else if
+            else if (startsWith(cmd, 'C:')) {
+                newArr.push(cmd);
+            }
+        }
+        vfl[i] = newArr.join('\n');
+        //console.log('<<<<<<input-command: ', comd, ' , output-command: ', vfl[i], ">>>>>>");
+        newArr = null;
+
+    }//end for loop
+    rootView.constraints = vfl;
+
+};
+
+/**
+ * Calculates the size of the text.
+ * @param {string} text The text
+ * @param {string} font The font of the text
+ * @returns {Object}
+ */
+let computeTextSize = function (text, font) {
+    if (!cachedDiv) {
+        cachedDiv = document.createElement('span');
+        document.body.appendChild(cachedDiv);
+        let style = new Style('span#caching_div_for_314159_271828_1828', []);
+        style.addFromOptions({
+            position: 'absolute',
+            visibility: 'hidden',
+            height: 'auto',
+            width: 'auto',
+            font: font,
+            'white-space': 'nowrap'
+        });
+        style.applyInline(cachedDiv);
+    }
+    if (cachedDiv.style.font !== font) {
+        cachedDiv.style.font = font;
+    }
+    cachedDiv.textContent = text;
+
+    let w = (cachedDiv.clientWidth + 1);
+    let h = (cachedDiv.clientHeight + 1);
+
+    return {
+        width: w, height: h
+    };
+
 };

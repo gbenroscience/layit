@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-/* global PATH_TO_UI_SCRIPTS, xmlKeys, attrKeys, DISABLE_INPUT_SHADOW, PATH_TO_COMPILER_SCRIPTS, ViewController, HTMLCanvasElement, CharacterData, DocumentType, Element, IncludedView */
+/* global PATH_TO_UI_SCRIPTS, xmlKeys, attrKeys, DISABLE_INPUT_SHADOW, PATH_TO_COMPILER_SCRIPTS, ViewController, HTMLCanvasElement, CharacterData, DocumentType, Element, IncludedView, Mustache */
 
 
 
@@ -984,9 +984,6 @@ Parser.prototype.buildUI = function (wkspc) {
             baseRoot = document.getElementById(wkspc.systemRootId);
         }
 
-        if (!baseRoot) {
-            console.log(baseRoot, this.rootView);
-        }
         baseRoot.appendChild(this.rootView.htmlElement);
 
 
@@ -1009,7 +1006,10 @@ Parser.prototype.buildUI = function (wkspc) {
         }
 
 
-
+/**
+ * Save the parser constraints here in case they are needed later
+ */
+this.rootView.constraints = this.constraints;
         // layout the xml layout with respect to its rootview
         autoLayout(this.rootView.htmlElement, this.constraints);
 

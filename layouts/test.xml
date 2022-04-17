@@ -273,7 +273,7 @@
             textColor="darkred"
             paddingStart="0"
             value="An included layout with other levels of includes below!"
-            textSize="1.2em"
+            textSize="1.99em"
             textStyle="bold"
             fontFamily="Arial"
     />
@@ -517,7 +517,7 @@
             marginTop="32px"
             cx_align="form"
             top_bottom="form"
-            selectedFg='purple'
+            selectedFg='white'
             deselectedFg='darkred'
             iconSize="64px"
             fontStyle="bold"

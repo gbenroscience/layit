@@ -79,6 +79,7 @@ TestController.prototype.onViewsAttached = function (wid) {
         personImageView.src = getImagePath(item.src);
         personNameView.textContent = item.name;
         personPhoneView.textContent = item.phone;
+        this.repaint(li, pos, [personNameView, personPhoneView]);
     };
     
     customList.setAdapter(adapter, function () {
@@ -120,6 +121,8 @@ TestController.prototype.onViewsAttached = function (wid) {
         personImageView.src = getImagePath(item.src);
         personNameView.textContent = item.name;
         personPhoneView.textContent = item.phone;
+        
+        this.repaint(li, pos, [personNameView, personPhoneView]);
     };
     
     customGrid.setAdapter(gridAdapter, function () {

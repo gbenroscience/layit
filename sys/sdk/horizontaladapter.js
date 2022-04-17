@@ -48,7 +48,7 @@ HorizontalListAdapter.prototype.fetchPrototypeCells = function (list, callback) 
 
             },
             onComplete: function (rootView) {
-                self.viewTemplates.push(rootView.htmlElement);
+                self.viewTemplates.push(rootView);
                 index++;
                 if (index < itemViews.length) {
                     load(index);
@@ -100,7 +100,7 @@ HorizontalListAdapter.prototype.makeCell = function (adapterView , viewType) {
 
     let cloneId = clone.id + "_" + childrenCount;
     clone.setAttribute(attrKeys.id, cloneId);
-    renameIds(clone, childrenCount, cloneId);
+    renameIds(clone, childrenCount, cloneId, this.protoStylesMap, this.cellRegistry);
     li.appendChild(clone);
     htmlElement.appendChild(li);
 
