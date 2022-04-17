@@ -5,6 +5,7 @@ Layouts on steroids with android-style xml constraint-layouts on the web, backed
 **Integrates seamlessly with Electron, thereby allowing you to use android style ConstraintLayout for designing desktop UI!**<br>
 **Added support for listadapters and forms**<br>
 **Added support for TabViews**
+**Added Canvas based text-labels, MultiLineLabel and IconLabelView**
 
 This project already works, but is currently under development and new ui widgets are been added to it.
 
@@ -440,6 +441,154 @@ The library can be used to style your elements but it is not designed for this. 
 There are lots of attributes that can be used to specify text color, background color etc directly from the xml layout. But using the `cssClass` attribute is of course more powerful since of course, stylesheets.
 
 
+
+## ListViews, HorizontalListViews and GridView
+
+These 3 views are all based on the html ul element, with appropriate styling.
+These views support customized layouts in their cells.
+They work with ListAdapter, HorizontalListAdapter and GridAdapter, respectively.
+As of now, they do not yet support included layouts in their cell layouts.
+So the cell design must be a layout defined in a single layout file with no include statements.
+
+Say you have this layout file, called `listcell.xml` describing what a cell should look like:
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<ConstraintLayout
+        width="120px"
+        height="100%"
+        backgroundColor="#999"
+        border="1px dashed white"
+        cx_align='parent'
+        cy_align='parent'
+>
+
+    <ImageView
+            id="p_img"
+            width="90%"
+            height="80px"
+            src="phone.png"
+            cx_align='parent'
+            top_top='parent'
+            marginTop="4px"
+            border='2px solid red'
+            backgroundColor="yellow"
+    />
+    <Label
+            id="p_name"
+            width="wrap_content"
+            height="wrap_content"
+            top_bottom='p_img'
+            cx_align="parent"
+            marginTop="4px"
+            textColor="white"
+            horAlign="center"
+            value="la-la-la-name"
+            textSize="0.75em"
+            textStyle="bold italic"
+            fontFamily="Arial"
+        border="1px solid brown"
+            cssClass="list_cell_class"
+    />
+    <Label
+            id="p_phone"
+            width="wrap_content"
+            height="wrap_content"
+            top_bottom='p_name'
+            cx_align="parent"
+            marginTop="14px"
+            textColor="white"
+            value="la-la-la-phone"
+            textSize="0.75em"
+            textStyle="bold italic"
+            fontFamily="Arial"
+        border="1px dashed brown"
+            cssClass="list_cell_class"
+    />
+
+</ConstraintLayout>
+```
+
+In another layout file, you may have a `ListView` defined alongside other views:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<ConstraintLayout
+        width="120px"
+        height="100%"
+        backgroundColor="#999"
+        border="1px dashed white"
+        cx_align='parent'
+        cy_align='parent'>
+    <ListView
+            id='custom_list'
+            width='400px'
+            height='600px'
+            marginTop="32px"
+            top_bottom='yes'
+            cx_align='parent'
+            marginEnd='16'
+            items='[{"name": "Mayowa Oloruntobi","phone": "08165779034","src":"one.png"},{"name": "George Phinehas","phone": "07039347746","src":"faces/two.png"},{"name": "Floyd Lloyd","phone": "08038009643","src":"faces/three.png"},{"name": "Marcus Davis","phone": "08032162798","src":"faces/four.jpg"}]'
+            itemViews='["listcell.xml"]'
+            border='1px solid midnightblue'
+            backgroundColor='transparent'
+            cellSpacing="4px"
+    />
+    
+</ConstraintLayout>
+```
+
+In your controller's `onViewsAttached`, you can do:
+
+```Javascript
+
+    let customList = this.findViewById('custom_list');
+    
+    customList.data.push({
+        name: "Emmanuel Phanuel",
+        phone: "08168990132",
+        src: "faces/five.jpg"
+    });
+    customList.data.push({
+        name: "Abike Omodunni",
+        phone: "08098226543",
+        src: "faces/six.jpg"
+    });
+
+    customList.data.push({
+        name: "Phil Simmons",
+        phone: "07063645578",
+        src: "faces/seven.jpg"
+    });
+
+    customList.data.push({
+        name: "Lex Mannings",
+        phone: "08024798567",
+        src: "faces/nine.png"
+    });
+
+    let adapter = new ListAdapter();
+    adapter.bindData = function (pos, li) {
+        li.style.backgroundColor = 'midnightblue';
+        li.style.border = '1px solid white';
+       // ListAdapter.prototype.bindData.call(this, pos, li);
+        let item = this.getItem(pos);
+        let personImageView = this.getChildView(li,"person_img");
+        let personNameView = this.getChildView(li,"person_name");
+        let personPhoneView = this.getChildView(li,"person_phone");
+
+        personImageView.src = getImagePath(item.src);
+        personNameView.textContent = item.name;
+        personPhoneView.textContent = item.phone;
+        this.repaint(li, pos, [personNameView, personPhoneView]);
+    };
+    
+    customList.setAdapter(adapter, function () {
+        
+    });
+```
+
+This code looks pretty same for `GridView` and `GridAdapter`, and for `HorizontalListView` and `HorizontalListAdapter`.
 
 
 
