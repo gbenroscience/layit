@@ -26,15 +26,7 @@
 })([Element.prototype, CharacterData.prototype, DocumentType.prototype].filter(Boolean));
 
 
-if(!Object.values){
-    Object.values = function (obj) {
-//    ^ no .prototype
-    return Object.keys(obj).map(function (e) {
-        return obj[e];
-    });
-};
 
-}
 /**
  * All workspaces loaded for this page.
  * Each workspace has the ability to parse a root xml layout which may have several included layouts.
@@ -61,9 +53,10 @@ const styleSheet = document.createElement('style');
 styleSheet.setAttribute('type', 'text/css');
 
 const nativeScripts = [
-    SCRIPTS_BASE + 'sys/mustache420.js',
-    SCRIPTS_BASE + 'sys/resizesensor.js',
-    SCRIPTS_BASE + 'sys/autolayout.js',
+    SCRIPTS_BASE + 'sys/ext/mustache420.js',
+    SCRIPTS_BASE + 'sys/ext/resizesensor.js',
+    SCRIPTS_BASE + 'sys/ext/autolayout.js',
+    SCRIPTS_BASE + 'sys/ext/map-poly.js',
     SCRIPTS_BASE + 'sys/main.js',
     SCRIPTS_BASE + 'sys/compiler-constants.js',
     SCRIPTS_BASE + 'libs/utils/parserutils.js',
@@ -1024,7 +1017,7 @@ Parser.prototype.buildUI = function (wkspc) {
 
 
 //layout the includes
-        includes.forEach(function(include){//Each view is an include
+        includes.forEach(function(include) {//Each view is an include
             let rootChild = wkspc.viewMap.get(include.childrenIds[0]);
             //layout the root of an included layout with respect to its include parent element(which is just a div)
             autoLayout(include.htmlElement, include.directChildConstraints);
