@@ -26,7 +26,15 @@
 })([Element.prototype, CharacterData.prototype, DocumentType.prototype].filter(Boolean));
 
 
+if(!Object.values){
+    Object.values = function (obj) {
+//    ^ no .prototype
+    return Object.keys(obj).map(function (e) {
+        return obj[e];
+    });
+};
 
+}
 /**
  * All workspaces loaded for this page.
  * Each workspace has the ability to parse a root xml layout which may have several included layouts.

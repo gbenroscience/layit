@@ -116,7 +116,7 @@ Style.prototype.toOptions = function () {
     let o = {};
     for (let i = 0; i < this.styleElements.length; i++) {
         let el = this.styleElements[i];
-        let values = Object.values(el);
+        let values = getObjectValues(el); //Object.values(el);
         o[values[0]] = values[1];
     }
     return o;

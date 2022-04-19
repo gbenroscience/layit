@@ -3623,7 +3623,7 @@ TabView.prototype.createElement = function (node) {
     if (endsWith(fontSize, 'em')) {
         sizeUnits = CssSizeUnits.EM;
     }
-    let styles = Object.values(FontStyle);
+    let styles = getObjectValues(FontStyle);//Object.values(FontStyle);
     if (styles.indexOf(fontStyle) === -1) {
         throw new Error("Invalid font style specified on view: " + this.id);
     }

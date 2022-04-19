@@ -49,7 +49,7 @@ const CssSizeUnits = {
     Q: "q"
 
 };
-const CssSizeUnitsValues = Object.values(CssSizeUnits).sort(function (a, b) {
+const CssSizeUnitsValues = getObjectValues(CssSizeUnits).sort(function (a, b) {
     return b.length - a.length;
 });
 

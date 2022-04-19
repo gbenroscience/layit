@@ -325,7 +325,7 @@ function InputTable(options) {
                  */
                 for (var j = 0; j < this.selectcolumns.length; j++) {
                     let obj = this.selectcolumns[j];
-                    let values = Object.values(obj);
+                    let values = getObjectValues(obj);//Object.values(obj);
 
 
                     if (i === 0) {
@@ -686,7 +686,7 @@ InputTable.prototype.addRows = function (data) {
             var len = row.tableCells.length;
             for (var j = 0; j < this.selectcolumns.length; j++) {
                 let obj = this.selectcolumns[j];
-                let values = Object.values(obj);
+                let values = getObjectValues(obj);//Object.values(obj);
                 if (i === 0) {
                     var cell = new TableCell(Object.keys(obj)[0], row.header, row.footer);
                     cell.setId(row.getCellIdAt(len + j));

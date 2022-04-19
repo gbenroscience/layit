@@ -143,3 +143,18 @@ function ResizeSensor(element, callback)
 };
 
 
+
+/**
+ * A replacement for Object.values
+ * @param obj An object
+ * @return {*[]}
+ */
+function getObjectValues(obj) {
+    var res = [];
+    for (var i in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, i)) {
+            res.push(obj[i]);
+        }
+    }
+    return res;
+}
