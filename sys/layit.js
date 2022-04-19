@@ -6,8 +6,16 @@
 
 /* global PATH_TO_UI_SCRIPTS, xmlKeys, attrKeys, DISABLE_INPUT_SHADOW, PATH_TO_COMPILER_SCRIPTS, ViewController, HTMLCanvasElement, CharacterData, DocumentType, Element, IncludedView, Mustache */
 
-
-
+//Polyfill for constructor.name()
+(function () {
+	if (!Object.constructor.prototype.hasOwnProperty('name')) {
+        Object.defineProperty(Object.constructor.prototype, 'name', {
+            get: function () {
+                return this.toString().trim().replace(/^\S+\s+(\w+)[\S\s]+$/, '$1');
+            }
+        });
+	}
+})();
 //Polyfill for Node.remove()
 (function (arr) {
     arr.forEach(function (item) {
@@ -57,6 +65,8 @@ const nativeScripts = [
     SCRIPTS_BASE + 'sys/ext/resizesensor.js',
     SCRIPTS_BASE + 'sys/ext/autolayout.js',
     SCRIPTS_BASE + 'sys/ext/map-poly.js',
+    SCRIPTS_BASE + 'sys/ext/fetch-poly.js',
+    SCRIPTS_BASE + 'sys/ext/promise-poly.js',
     SCRIPTS_BASE + 'sys/main.js',
     SCRIPTS_BASE + 'sys/compiler-constants.js',
     SCRIPTS_BASE + 'libs/utils/parserutils.js',

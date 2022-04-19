@@ -323,6 +323,7 @@ function updateOrCreateSelectorInStyleSheet(htmlStyleElement, newStyle) {
         injectStyleSheets(htmlStyleElement, styles);
         return true;
     } else {
+        console.log('newStyle: '+newStyle);
         throw new Error('Invalid style object supplied');
     }
 }
