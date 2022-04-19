@@ -1140,7 +1140,7 @@ Graphics.prototype.save = function () {
  * @param callbackFn A function to run with the arraybuffer as parameter
  */
 Graphics.prototype.getBlobFromCanvas = function (canvas, mimeType, callbackFn) {
-    canvas.toBlob((blob) => {
+    canvas.toBlob(function(blob) {
         callbackFn(blob);
     }, mimeType);
 };

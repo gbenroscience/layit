@@ -10,13 +10,17 @@ const PATH_TO_LAYOUTS_FOLDER = '../layouts/';
 
 
 
-
-
-onmessage = e => {
-    const message = e.data;
+onmessage = function (e) {
+        const message = e.data;
     loadFile(message.layout);
 };
 
+/**
+ onmessage = e => {
+    const message = e.data;
+    loadFile(message.layout);
+};
+*/
 function makeRequest() {
 
 }

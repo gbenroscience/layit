@@ -297,7 +297,6 @@ ListAdapter.prototype.repaint = function (li, pos, updatedViews) {
                 throw new Error("The `dest` must be a valid html element");
             }
         };
-
         applyStyle(babyRootView, rootView.htmlElement);
 
         for (let i = 0; i < updatedViews.length; i++) {
@@ -306,12 +305,6 @@ ListAdapter.prototype.repaint = function (li, pos, updatedViews) {
             let orig = document.getElementById(id);
             applyStyle(v , orig);
         }
-
-
-
-
-
-
         this.protoLi.remove();
     } else {
         throw new Error("The input array must be a one dimensional array..." + updatedViews);

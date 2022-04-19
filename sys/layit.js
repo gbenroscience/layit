@@ -609,7 +609,8 @@ Workspace.prototype.prefetchAllLayouts = function (rootLayoutName, xmlContent, o
         let check = attrKeys.layout + '=';
 
         //change layout[space....]=[space.....] to layout=
-        let regex = /(layout)(^|\s*)((?<!=)=(?!=))(^|\s*)/;
+        //let regex = /(layout)(^|\s*)((?<!=)=(?!=))(^|\s*)/;
+        let regex = /layout\s*=(?!=)\s*/g;
         xml = xml.replace(regex, check);
         let open = 0, close = 0, layouts = [];
         if (self.rootXml === null) {
@@ -961,9 +962,9 @@ Parser.prototype.buildUI = function (wkspc) {
             view.htmlElement.appendChild(child.htmlElement);
 
             if (child.runView/*child.constructor.name === 'ClockView' || child.constructor.name === 'LabelView'
-                    || child.constructor.name === 'ProgressBar' || child instanceof CustomTableView
-                    || child.constructor.name === 'TabView' || child.constructor.name === 'IconLabelView' 
-                    || child.constructor.name === 'MultiLineLabel'*/) {
+             || child.constructor.name === 'ProgressBar' || child instanceof CustomTableView
+             || child.constructor.name === 'TabView' || child.constructor.name === 'IconLabelView' 
+             || child.constructor.name === 'MultiLineLabel'*/) {
                 compounds.push(child);
             }
 
@@ -1006,16 +1007,16 @@ Parser.prototype.buildUI = function (wkspc) {
         }
 
 
-/**
- * Save the parser constraints here in case they are needed later
- */
-this.rootView.constraints = this.constraints;
+        /**
+         * Save the parser constraints here in case they are needed later
+         */
+        this.rootView.constraints = this.constraints;
         // layout the xml layout with respect to its rootview
         autoLayout(this.rootView.htmlElement, this.constraints);
 
 
 //layout the includes
-        includes.forEach((include) => {//Each view is an include
+        includes.forEach(function(include){//Each view is an include
             let rootChild = wkspc.viewMap.get(include.childrenIds[0]);
             //layout the root of an included layout with respect to its include parent element(which is just a div)
             autoLayout(include.htmlElement, include.directChildConstraints);
@@ -1027,7 +1028,8 @@ this.rootView.constraints = this.constraints;
 
 //layout generated views on their lis        
 
-        compounds.forEach((child) => {
+
+        compounds.forEach(function (child) {
             child.runView();
         });
 
@@ -1205,11 +1207,11 @@ function baseLauncher() {
     let fileName = document.currentScript.getAttribute('data-launcher');
     let dataType = document.currentScript.getAttribute('data-type');//json-raw | json-b64
 
-    if(dataType){
-        if(dataType === 'json-b64'){
+    if (dataType) {
+        if (dataType === 'json-b64') {
             templateJson = window.atob(templateJson);
-        }else{
-            throw new Error("Unsupported format: `"+dataType+"`");
+        } else {
+            throw new Error("Unsupported format: `" + dataType + "`");
         }
     }
 

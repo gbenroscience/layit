@@ -1712,7 +1712,7 @@ Clock.prototype.fireAlarm = function () {
 //
 //    }
 
-    this.alarms.forEach((alarm) => {
+    this.alarms.forEach(function(alarm) {
 
         if (!alarm.isUserDisabled()) {
 
