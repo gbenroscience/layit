@@ -886,10 +886,11 @@ View.prototype.makeVFL = function (wkspc) {
                 maxWid, minWid, maxHei, minHei, maxWidth, minWidth, maxHeight, minHeight);
     }
 
-    ms = !ms ? '0' : ms;
-    me = !me ? '0' : me;
-    mt = !mt ? '0' : mt;
-    mb = !mb ? '0' : mb;
+    ms = !ms ? '0' : ( endsWith(this.margins.start, '%') ? this.margins.start : ms );
+    me = !me ? '0' : ( endsWith(this.margins.end, '%') ? this.margins.end : me );
+    mt = !mt ? '0' : ( endsWith(this.margins.top, '%') ? this.margins.top : mt );
+    mb = !mb ? '0' :  ( endsWith(this.margins.bottom, '%') ? this.margins.bottom : mb );
+
 
 
     let ss = this.refIds.get(attrKeys.layout_constraintStart_toStartOf);
