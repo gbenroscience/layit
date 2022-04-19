@@ -229,7 +229,7 @@ SideMenuX.prototype.build = function () {
         closeBtn = document.createElement("input");
         closeBtn.setAttribute("id", this.closeBtnId());
         addClass(closeBtn, this.closeBtnClass());
-        closeBtn.type = "button";
+        closeBtn.setAttribute('type' , 'button');
         closeBtn.value = "\u02DF";
         overlay.appendChild(closeBtn);
     }

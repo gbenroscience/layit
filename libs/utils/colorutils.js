@@ -26,7 +26,7 @@ function rgbToHex(rgb) {
         throw new Error("Please supply a color in the format: `rgb(redVal , greenVal , blueVal)`. input: rgb = " + rgb);
     }
 
-    if (!rgb.startsWith("rgb(")) {
+    if (!startsWith(rgb, "rgb(")) {
         throw new Error("Invalid format supplied. Allowed format is: `rgb(redVal , greenVal , blueVal)`. input: rgb = " + rgb);
     }
 
@@ -106,11 +106,11 @@ function darkenColor(color, percent) {
     }
     color = color.trim();
     var isRGB = false;
-    if (color.startsWith("rgb(")) {
+    if (startsWith(color, "rgb(")) {
         color = rgbToHex(color);
         isRGB = true;
     }
-    if (!color.startsWith("#")) {
+    if (!startsWith(color, "#")) {
         color = standardizeColor(color);
     }
 
@@ -209,11 +209,11 @@ function brightenColor(color, percent) {
     color = color.trim();
 
     var isRGB = false;
-    if (color.startsWith("rgb(")) {
+    if (startsWith(color, "rgb(")) {
         color = rgbToHex(color);
         isRGB = true;
     }
-    if (!color.startsWith("#")) {
+    if (!startsWith(color, "#")) {
         color = standardizeColor(color);
     }
 

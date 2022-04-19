@@ -169,30 +169,30 @@ function View(wkspc, node) {
         }
 
 
-        if (this.margins.top && this.margins.top.startsWith("+")) {
+        if (this.margins.top && startsWith(this.margins.top, "+")) {
             this.margins.top = this.margins.top.substr(1);
         }
-        if (this.margins.bottom && this.margins.bottom.startsWith("+")) {
+        if (this.margins.bottom && startsWith(this.margins.bottom, "+")) {
             this.margins.bottom = this.margins.bottom.substr(1);
         }
-        if (this.margins.start && this.margins.start.startsWith("+")) {
+        if (this.margins.start && startsWith(this.margins.start, "+")) {
             this.margins.start = this.margins.start.substr(1);
         }
-        if (this.margins.end && this.margins.end.startsWith("+")) {
+        if (this.margins.end && startsWith(this.margins.end, "+")) {
             this.margins.end = this.margins.end.substr(1);
         }
 
 
-        if (this.margins.top && this.margins.top.startsWith("-")) {
+        if (this.margins.top && startsWith(this.margins.top, "-")) {
             throw new Error('Negative margins (margin-top) on view(' + this.id + ') not supported by layout engine');
         }
-        if (this.margins.bottom && this.margins.bottom.startsWith("-")) {
+        if (this.margins.bottom && startsWith(this.margins.bottom, "-")) {
             throw new Error('Negative margins (margin-bottom) on view(' + this.id + ') not supported by layout engine');
         }
-        if (this.margins.start && this.margins.start.startsWith("-")) {
+        if (this.margins.start && startsWith(this.margins.start, "-")) {
             throw new Error('Negative margins (margin-start) on view(' + this.id + ') not supported by layout engine');
         }
-        if (this.margins.end && this.margins.end.startsWith("-")) {
+        if (this.margins.end && startsWith(this.margins.end, "-")) {
             throw new Error('Negative margins (margin-end) on view(' + this.id + ') not supported by layout engine');
         }
 
@@ -2389,7 +2389,7 @@ TextField.prototype.createElement = function (node) {
     }
 
     if (attributeNotEmpty(type)) {
-        this.htmlElement.type = type;
+        this.htmlElement.setAttribute('type' ,type);
     }
 
 

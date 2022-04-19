@@ -6,6 +6,12 @@
 
 /* global PATH_TO_UI_SCRIPTS, xmlKeys, attrKeys, DISABLE_INPUT_SHADOW, PATH_TO_COMPILER_SCRIPTS, ViewController, HTMLCanvasElement, CharacterData, DocumentType, Element, IncludedView, Mustache */
 
+if(!Number.isNaN){
+Number.isNaN = Number.isNaN || function isNaN(input) {
+    return typeof input === 'number' && input !== input;
+};
+}
+
 //Polyfill for constructor.name()
 (function () {
 	if (!Object.constructor.prototype.hasOwnProperty('name')) {
@@ -67,6 +73,7 @@ const nativeScripts = [
     SCRIPTS_BASE + 'sys/ext/map-poly.js',
     SCRIPTS_BASE + 'sys/ext/fetch-poly.js',
     SCRIPTS_BASE + 'sys/ext/promise-poly.js',
+    SCRIPTS_BASE + 'sys/ext/canvas-poly.js',
     SCRIPTS_BASE + 'sys/main.js',
     SCRIPTS_BASE + 'sys/compiler-constants.js',
     SCRIPTS_BASE + 'libs/utils/parserutils.js',
@@ -596,7 +603,16 @@ Workspace.prototype.prefetchAllLayouts = function (rootLayoutName, xmlContent, o
                 //console.log("DONE! , layout: " + rootLayoutName + ", layoutCount: " + self.layoutCount + ", loadedCount: " + self.loadedCount, ", deadEnds: ", self.deadEnds);
                 onload(self.rootXml);
                 self.resetLoaderIndices();
+/////
 
+self.workersMap.forEach(function (worker, name) {
+                        let workerName = worker.name;
+                        self.stopFetchWorker(workerName);
+                        console.log('closed: ' + workerName);
+    });
+/////////
+/**
+ * Remove due to IE non-support
                 for (let m in self.workersMap) {
                     for (let i = 0; i < self.workersMap[m].length; i++) {
                         let worker = self.workersMap[m][i];
@@ -605,6 +621,7 @@ Workspace.prototype.prefetchAllLayouts = function (rootLayoutName, xmlContent, o
                         console.log('closed: ' + workerName);
                     }
                 }
+                */
             }
         } else {
             for (let i = 0; i < layouts.length; i++) {
