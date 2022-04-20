@@ -137,7 +137,7 @@ let workspaces = new Map();
  
  
  * 
- * 1. The layout name...e.g test.xml, may be a dummy name! 
+ * 1. The layout name...e.g anon.xml, may be a dummy name!
  * 2. The html id of the DOM element that the generated html layout will be attached to
  * 3. The xml content of the specified layout, and lastly. If this field is specified, the function will not load the xml from
  * the path, but will instead use the specified xml.
@@ -1099,11 +1099,14 @@ function autoLayout(parentElm, visualFormat) {
     view.addConstraints(AutoLayout.VisualFormat.parse(visualFormat, {extended: true}));
     let elements = {};
 
+    let scw = getScrollBarWidth();
+
 
     for (let key in view.subViews) {
         let elm = document.getElementById(key);
         if (elm) {
-            elm.className += elm.className ? ' abs' : 'abs';
+            //elm.className += elm.className ? ' abs' : 'abs';
+            addClass(elm , 'abs');
             elements[key] = elm;
             /* new ResizeSensor(elm, function () {
              console.log('Changed to ' + elm.clientWidth);
@@ -1112,8 +1115,8 @@ function autoLayout(parentElm, visualFormat) {
         }
     }
     var updateLayout = function () {
-        view.setSize(parentElm ? parentElm.clientWidth : window.innerWidth, parentElm ? parentElm.clientHeight : window.innerHeight);
-        for (key in view.subViews) {
+        view.setSize(parentElm ? parentElm.clientWidth : window.innerWidth - scw, parentElm ? parentElm.clientHeight : window.innerHeight - scw);
+        for (let key in view.subViews) {
             var subView = view.subViews[key];
             let elm = elements[key];
             if (elm) {
