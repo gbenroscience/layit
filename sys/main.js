@@ -3799,7 +3799,6 @@ Guideline.prototype.makeVFL = function () {
     } else if (orientation === orientations.HORIZONTAL) {
         vfl.append('H:|[' + this.id + ']|\nV:|-' + val + '-[' + this.id + '(1)]');
     }
-alert(this.id+": " +vfl);
     return vfl.toString();
 };
 /**
