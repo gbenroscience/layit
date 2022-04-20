@@ -5,12 +5,25 @@
  */
 
 
+/*
 function addClass(element, className) {
     if (element.className.length === 0) {
         element.className = className;
     } else {
         let arr = element.className.split(" ");
         if (arr.indexOf(className) === -1) {
+            element.className += " " + className;
+        }
+    }
+}
+*/
+
+
+function addClass(element, className) {
+    if (element.className.length === 0) {
+        element.className = className;
+    } else {
+        if(element.className.indexOf(className) === -1){
             element.className += " " + className;
         }
     }
