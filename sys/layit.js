@@ -1115,7 +1115,7 @@ function autoLayout(parentElm, visualFormat) {
         }
     }
     var updateLayout = function () {
-        view.setSize(parentElm ? parentElm.clientWidth : window.innerWidth - scw, parentElm ? parentElm.clientHeight : window.innerHeight);
+        view.setSize(parentElm ? parentElm.clientWidth : window.innerWidth - 0.5, parentElm ? parentElm.clientHeight : window.innerHeight);
         for (let key in view.subViews) {
             var subView = view.subViews[key];
             let elm = elements[key];
