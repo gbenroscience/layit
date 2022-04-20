@@ -1099,9 +1099,6 @@ function autoLayout(parentElm, visualFormat) {
     view.addConstraints(AutoLayout.VisualFormat.parse(visualFormat, {extended: true}));
     let elements = {};
 
-    let scw = getScrollBarWidth();
-
-
     for (let key in view.subViews) {
         let elm = document.getElementById(key);
         if (elm) {

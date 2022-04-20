@@ -19,28 +19,28 @@ function ViewController(wid) {
  * Don't try to access your views here please.
  * The views may not be ready yet! 
  * This only signifies that your ViewController has been created.
- * @param {string} wid The workspace id
+ * @param {WorkSpace} wkspc The workspace
  * @returns {undefined}
  */
-ViewController.prototype.onCreate = function(wid){
+ViewController.prototype.onCreate = function(wkspc){
 
 };
 
 /**
  * You may now begin to use your views.
- * @param {string} wid The workspace id
+ * @param {WorkSpace} wkspc The workspace
  * @returns {undefined}
  */
-ViewController.prototype.onViewsAttached = function(wid){
+ViewController.prototype.onViewsAttached = function(wkspc){
     
 };
 
 /**
  * Not yet implemented
- * @param {string} wid The workspace id
+ * @param {WorkSpace} wkspc The workspace
  * @returns {undefined}
  */
-ViewController.prototype.onDestroy = function(wid){
+ViewController.prototype.onDestroy = function(wkspc){
     
 };
 /**
