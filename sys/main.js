@@ -891,7 +891,33 @@ View.prototype.makeVFL = function (wkspc) {
     mt = !mt ? '0' : ( endsWith(this.margins.top, '%') ? this.margins.top : mt );
     mb = !mb ? '0' :  ( endsWith(this.margins.bottom, '%') ? this.margins.bottom : mb );
 
-
+    /**
+     * EVFL seems not to support support percentage margins,
+     * so here we try to convert percentage margins to actual margins.
+     * This will obviously fail if the parent's width(which is our reference(as per css specs)
+     * is a percentage. But let us do what we can for the developers that will use this library.
+     */
+    if(parent){
+        let parentWidth = parent.width;
+        function converter(margin, parWid){
+          let val = ((parseFloat(margin) / 100.0) * parseFloat(parWid))+'';
+          return parseInt(val);
+        }
+        if(endsWith(parentWidth, "%")){
+            if(endsWith(ms, '%')){
+                ms = converter(ms, parentWidth);
+            }
+            if(endsWith(me, '%')){
+                me = converter(me, parentWidth);
+            }
+            if(endsWith(mt, '%')){
+                mt = converter(mt, parentWidth);
+            }
+            if(endsWith(mb, '%')){
+                mb = converter(mb, parentWidth);
+            }
+        }
+    }
 
     let ss = this.refIds.get(attrKeys.layout_constraintStart_toStartOf);
     let se = this.refIds.get(attrKeys.layout_constraintStart_toEndOf);
