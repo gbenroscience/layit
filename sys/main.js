@@ -3766,12 +3766,12 @@ Guideline.prototype.calculateWrapContentSizes = function (node) {
 };
 Guideline.prototype.makeVFL = function () {
     const orientation = this.refIds.get(attrKeys.orientation);
-    if (typeof orientation === 'undefined' || orientation === null || orientation === '') {
+    if (!orientation || orientation === '') {
         throw 'Please specify the orientation of the Guideline whose id is `' + this.id + '`';
     }
 
     let guidePct = this.refIds.get(attrKeys.layout_constraintGuide_percent);
-    if (typeof guidePct === 'undefined' || guidePct === null || guidePct === '') {
+    if (!guidePct || guidePct === '') {
         throw 'Please specify the constraint-guide-percentage of the Guideline whose id is `' + this.id + '`';
     }
 
@@ -3795,11 +3795,11 @@ Guideline.prototype.makeVFL = function () {
 
     let vfl = new StringBuffer();
     if (orientation === orientations.VERTICAL) {
-        vfl.append('V:|-0-[' + this.id + ']-0-|\nH:|-(' + val + ')-[' + this.id + '(<=1)]-|');
+        vfl.append('H:|-' + val + '-[' + this.id + '(1)]\nV:|[' + this.id + ']-|');
     } else if (orientation === orientations.HORIZONTAL) {
-        vfl.append('H:|-0-[' + this.id + ']-0-|\nV:|-(' + val + ')-[' + this.id + '(<=1)]-|');
+        vfl.append('H:|[' + this.id + ']|\nV:|-' + val + '-[' + this.id + '(1)]');
     }
-
+alert(this.id+": " +vfl);
     return vfl.toString();
 };
 /**
