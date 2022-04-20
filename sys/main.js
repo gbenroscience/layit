@@ -903,7 +903,7 @@ View.prototype.makeVFL = function (wkspc) {
           let val = ((parseFloat(margin) / 100.0) * parseFloat(parWid))+'';
           return parseInt(val);
         }
-        if(endsWith(parentWidth, "%")){
+        if(!endsWith(parentWidth, "%")){
             if(endsWith(ms, '%')){
                 ms = converter(ms, parentWidth);
             }
