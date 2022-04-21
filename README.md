@@ -341,6 +341,9 @@ let options =  {
 
 If you have a `div` or some other html element that you wish to load the parsed xml layout into, then set the html element's id into the `options` object and the view should load on the element just fine.<br><br>
 
+### NOTE: We have changed the default root element from `document.body` to a root div on `document.body`, since we learnt the hard way that libs like SweetAlert will display at the back of the layout if we make `document.body` the default parent element.
+The `BODY_ID` field still exists however and will still be the id of the root div.
+
 
 ### XML Templates
 
