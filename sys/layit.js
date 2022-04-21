@@ -1284,7 +1284,7 @@ function launcher(fileName, elemId, templateData) {
                     } else if (typeof templateData === 'object') {
                         workspace = new Workspace({layoutName: fileName, bindingElemId: elemId, templateData: templateData});
                     } else {
-                        throw new Error('Template data specified but its typeis invalid');
+                        throw new Error('Template data specified but its type is invalid');
                     }
                 } else {
                     workspace = new Workspace({layoutName: fileName, bindingElemId: elemId});
