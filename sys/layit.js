@@ -56,7 +56,7 @@ Number.isNaN = Number.isNaN || function isNaN(input) {
 
 /**
  * When this is specified as the Workspace's system_root_id field,
- * the library will attach the parsed layout to document.body
+ * the library will attach the parsed layout to a root div on document.body
  * @type String
  */
 const BODY_ID = 'html_main';
@@ -1006,9 +1006,12 @@ Parser.prototype.buildUI = function (wkspc) {
     makeDefaultPositioningDivs:{
 
         let baseRoot = null;
+        let rootDiv = null;
         if (wkspc.systemRootId === BODY_ID) {
-            baseRoot = document.body;
-            baseRoot.id = wkspc.systemRootId;
+            rootDiv = document.createElement('div');
+            rootDiv.setAttribute(attrKeys.id , wkspc.systemRootId);
+            document.body.appendChild(rootDiv);
+            baseRoot = rootDiv;
         } else {
             baseRoot = document.getElementById(wkspc.systemRootId);
         }
@@ -1017,7 +1020,7 @@ Parser.prototype.buildUI = function (wkspc) {
 
 
         //If the baseRoot is the document.body, then specify its own constraints on the page
-        if (baseRoot === document.body) {
+        if (wkspc.systemRootId === BODY_ID) {
             // main layout
             autoLayout(undefined, [
                 'HV:|-0-[' + wkspc.systemRootId + ']-0-|'
