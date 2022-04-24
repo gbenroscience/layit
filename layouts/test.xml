@@ -41,79 +41,21 @@
             orientation="vertical"
             guide_percent="0.5"
     />
-    <Label
-            id="home"
-            width="wrap_content"
-            height="wrap_content"
-            end_start='people'
-            bottom_bottom="section_top"
-            marginStart="6"
-            marginBottom="16"
-            textColor="white"
-            value="Home"
-            textSize="1.2em"
-            textStyle="bold"
-            fontFamily="Arial"
+        <HorizontalListView
+            id='hor_list'
+            width='632px'
+            height='50px'
+            bottom_bottom='section_top'
+            marginBottom='8px'
+            cx_align='parent'
+            items='[{"name": "Home"},{"name": "People and Positions"},{"name": "Lifestyle"},{"name": "About Us"},{"name": "Help"}]'
+            itemViews='["textcell.xml"]'
+            border='1px solid pink'
+            backgroundColor='transparent'
+            cellSpacing="0px"
+            minCellWidth="105px"
+            minCellHeight="40px"
     />
-    <Label
-            id="people"
-            width="wrap_content"
-            height="wrap_content"
-            end_start='lifestyle'
-            bottom_bottom="section_top"
-            marginStart="6"
-            marginBottom="16"
-            textColor="white"
-            value="People and Positions"
-            textSize="1.2em"
-            textStyle="bold"
-            fontFamily="Arial"
-    />
-    <Label
-            id="lifestyle"
-            width="wrap_content"
-            height="wrap_content"
-            cx_align='guide_menu'
-            bottom_bottom="section_top"
-            marginStart="6"
-            marginBottom="16"
-            textColor="white"
-            value="Lifestyle"
-            textSize="1.2em"
-            textStyle="bold"
-            fontFamily="Arial"
-    />
-    <Label
-            id="about_us"
-            width="wrap_content"
-            height="wrap_content"
-            start_end='lifestyle'
-            bottom_bottom="section_top"
-            marginStart="6"
-            marginBottom="16"
-            textColor="white"
-            value="About Us"
-            textSize="1.2em"
-            textStyle="bold"
-            fontFamily="Arial"
-
-    />
-
-    <Label
-            id="help"
-            width="wrap_content"
-            height="wrap_content"
-            start_end='about_us'
-            bottom_bottom="section_top"
-            marginStart="6"
-            marginBottom="16"
-            textColor="white"
-            value="Help"
-            textSize="1.2em"
-            textStyle="bold"
-            fontFamily="Arial"
-    />
-
     <Button
             id="login_btn"
             width="wrap_content"

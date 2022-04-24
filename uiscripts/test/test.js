@@ -41,7 +41,12 @@ TestController.prototype.onViewsAttached = function (wid) {
 
 
     let customList = this.findViewById('custom_list');
-    let customGrid =  this.findViewById('custom_grid');
+    let customGrid = this.findViewById('custom_grid');
+    let horList = this.findViewById('hor_list');
+
+    horList.data.push({
+        name: "Goodness Flexy"
+    });
 
     customList.data.push({
         name: "Emmanuel Phanuel",
@@ -70,23 +75,23 @@ TestController.prototype.onViewsAttached = function (wid) {
     adapter.bindData = function (pos, li) {
         li.style.backgroundColor = 'midnightblue';
         li.style.border = '1px solid white';
-       // ListAdapter.prototype.bindData.call(this, pos, li);
+        // ListAdapter.prototype.bindData.call(this, pos, li);
         let item = this.getItem(pos);
-        let personImageView = this.getChildView(li,"person_img");
-        let personNameView = this.getChildView(li,"person_name");
-        let personPhoneView = this.getChildView(li,"person_phone");
+        let personImageView = this.getChildView(li, "person_img");
+        let personNameView = this.getChildView(li, "person_name");
+        let personPhoneView = this.getChildView(li, "person_phone");
 
         personImageView.src = getImagePath(item.src);
         personNameView.textContent = item.name;
         personPhoneView.textContent = item.phone;
         this.repaint(li, pos, [personNameView, personPhoneView]);
     };
-    
+
     customList.setAdapter(adapter, function () {
-        
+
     });
-    
-    
+
+
     customGrid.data.push({
         name: "Emmanuel Phanuel",
         phone: "08168990132",
@@ -109,24 +114,35 @@ TestController.prototype.onViewsAttached = function (wid) {
         src: "faces/nine.png"
     });
 
-    
-        let gridAdapter = new GridAdapter();
+
+    let gridAdapter = new GridAdapter();
     gridAdapter.bindData = function (pos, li) {
-       // ListAdapter.prototype.bindData.call(this, pos, li);
+        // ListAdapter.prototype.bindData.call(this, pos, li);
         let item = this.getItem(pos);
-        let personImageView = this.getChildView(li,"p_img");
-        let personNameView = this.getChildView(li,"p_name");
-        let personPhoneView = this.getChildView(li,"p_phone");
+        let personImageView = this.getChildView(li, "p_img");
+        let personNameView = this.getChildView(li, "p_name");
+        let personPhoneView = this.getChildView(li, "p_phone");
 
         personImageView.src = getImagePath(item.src);
         personNameView.textContent = item.name;
         personPhoneView.textContent = item.phone;
-        
+
         this.repaint(li, pos, [personNameView, personPhoneView]);
     };
-    
+
     customGrid.setAdapter(gridAdapter, function () {
-        
+
+    });
+
+    let horAdapter = new HorizontalListAdapter();
+    horAdapter.bindData = function (pos, li) {
+        let item = this.getItem(pos);
+        let personNameView = this.getChildView(li, "full_name");
+        personNameView.textContent = item.name;
+        this.repaint(li, pos, [personNameView]);
+    };
+        horList.setAdapter(horAdapter, function () {
+
     });
 
 
@@ -144,7 +160,7 @@ TestController.prototype.onViewsAttached = function (wid) {
         width: '550px',
         background: 'pink'
     });
-    
+
     let sideMenu = new SideMenu({id: 'menu_mi', width: '20%', menuType: 'overlay', hPadding: '24px', vPadding: '10px', fontSize: '17px', fontName: 'Arial', iconSpacing: '32px',
         sections: '[{"title": "Media Queries","items": [{"text": "Phone screens 320 x 280 ","src":  "logo_small.png"},{"text": "TV Screens 4320 x 2160","src":  "splash.png"}]},{"title": "CSS Support","items": [{"text": "CSS 2.0 stuff","src":  "logo_small.png"},{"text": "CSS 3.1 stuff", "src":  "splash.png"}]}]'});
     checkBtn.onclick = function () {

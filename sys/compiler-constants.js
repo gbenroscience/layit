@@ -265,7 +265,7 @@ const attrKeys = {
     //HorizontalListView property
     minCellWidth: "minCellWidth",
 
-    //ListView property
+    //ListView AND HorizontalListView property
     minCellHeight: "minCellHeight",
 
     //ListView and HorizontalListView and GridView's property... The gap between consecutive cells

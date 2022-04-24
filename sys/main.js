@@ -2822,12 +2822,20 @@ HorizontalListView.prototype.createElement = function (node) {
 
 
     let minCellWidth = node.getAttribute(attrKeys.minCellWidth);
+    let minCellHeight = node.getAttribute(attrKeys.minCellHeight);
     let parseMinCellWidth = null;
+    let parseMinCellHeight = null;
     if (attributeEmpty(minCellWidth)) {
-        minCellWidth = 'auto';
+        minCellWidth = '32px';
     } else {
         parseMinCellWidth = parseNumberAndUnits(minCellWidth, true);
     }
+    if (attributeEmpty(minCellHeight)) {
+        minCellHeight = '21px';
+    } else {
+        parseMinCellHeight = parseNumberAndUnits(minCellHeight, true);
+    }
+    
 
     this.htmlElement = document.createElement('ul');
     this.style.addStyleElementCss('list-style-position: inside;');
@@ -2867,6 +2875,7 @@ HorizontalListView.prototype.createElement = function (node) {
 
     liStyle.addFromOptions({
         'min-width': minCellWidth,
+        'min-height': minCellHeight,
         'display': 'inline-block',
         'margin-left': cellSpacing,
         'padding': cellPadding,
@@ -2896,7 +2905,6 @@ HorizontalListView.prototype.createElement = function (node) {
         try {
             this.data = JSON.parse(items);
         } catch (e) {
-            console.log('JSON error: ' + items);
             throw new Error('error: ' + e + ', Error in `items` array while expanding view: ' + this.id);
         }
 

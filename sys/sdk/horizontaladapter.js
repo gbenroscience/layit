@@ -10,7 +10,7 @@ HorizontalListAdapter.prototype.constructor = HorizontalListAdapter;
  */
 function HorizontalListAdapter(list, callback) {
     ListAdapter.call(this, list, callback);
-    this.protoWidth = '0px';
+    this.protoRect = {};
 }
 
 /**
@@ -19,36 +19,35 @@ function HorizontalListAdapter(list, callback) {
  * @param callback Call this function once all template cells have been loaded.
  */
 HorizontalListAdapter.prototype.fetchPrototypeCells = function (list, callback) {
-    let self = this;
+  let self = this;
     let itemViews = list.itemViews;
     let load = function (index) {
         let template = itemViews[index];
         let protoLi = document.createElement('li');
-        protoLi.setAttribute(attrKeys.id, self.protoListItemId());
+        let protoId = self.protoListItemId();
+        protoLi.setAttribute(attrKeys.id, protoId);
         list.htmlElement.appendChild(protoLi);
+        self.protoRect = protoLi.getBoundingClientRect();
+        console.log(self.protoRect);
+
+        protoLi.style.width = self.protoRect.width;
+        self.protoLi = protoLi;
+
 
         getWorkspace({
             layoutName: template,
-            bindingElemId: self.protoListItemId(),
+            bindingElemId: protoId,
             isTemplate: true,
             onLayoutLoaded: function (fileName, xml) {
-                const dim = getRootDimensions(xml);
-                let w = dim.width;
-                let h = dim.height;
-                if (self.adapterViewInstanceName === 'GridView') {
-                    if (!endsWith(w, "%")) {
-                        protoLi.style.width = w;
-                    }
-                    let liStyle = new Style('ul#' + list.id + " > li", []);
-                    liStyle.addFromOptions({
-                        width: w
-                    });
-                    editSelectorInStyleSheet(styleSheet, liStyle);
-                }
 
             },
             onComplete: function (rootView) {
                 self.viewTemplates.push(rootView);
+                let style = rootView.style.clone('.' + rootView.id);
+                self.protoClassName = rootView.id;
+                updateOrCreateSelectorInStyleSheet(styleSheet, style);
+
+
                 index++;
                 if (index < itemViews.length) {
                     load(index);
@@ -68,11 +67,11 @@ HorizontalListAdapter.prototype.fetchPrototypeCells = function (list, callback) 
             }
         });
     };
-    load(0);
+    load(0); 
 };
 
 HorizontalListAdapter.prototype.makeCell = function (adapterView , viewType) {
-    if (typeof viewType === "undefined") {
+     if (typeof viewType === "undefined") {
         throw new Error('Please specify a view type...');
     }
     if (typeof viewType !== "number") {
@@ -83,20 +82,16 @@ HorizontalListAdapter.prototype.makeCell = function (adapterView , viewType) {
     let htmlElement = adapterView;
 
     let childrenCount = adapterView.getElementsByTagName("li").length;
-    let viewTemplate = self.viewTemplates[viewType];
+    let rootView = self.viewTemplates[viewType];
     let li = document.createElement('li');
+    li.style.width = self.protoRect.width+'px';
+    li.style.height =  self.protoRect.height+'px';
+
     li.setAttribute('id', this.adapterViewId + "_li_" + childrenCount);
 
-    let clone = viewTemplate.cloneNode(true);
+    let clone = rootView.htmlElement.cloneNode(true);
+    addClass(clone, self.protoClassName);
 
-
-
-    if (this.adapterViewInstanceName === 'ListView') {
-        let cellWidth = clone.style.width;
-        let cellHeight = clone.style.height;
-        li.style.width = cellWidth;
-        li.style.height = cellHeight;
-    }
 
     let cloneId = clone.id + "_" + childrenCount;
     clone.setAttribute(attrKeys.id, cloneId);
