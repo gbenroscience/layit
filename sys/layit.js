@@ -1078,8 +1078,6 @@ Parser.prototype.buildUI = function (wkspc) {
 
 };
 
-
-
 /**
  * Lays out the child elements of a parent element absolutely
  * using the visual format language.
@@ -1102,20 +1100,29 @@ function autoLayout(parentElm, visualFormat) {
     view.addConstraints(AutoLayout.VisualFormat.parse(visualFormat, {extended: true}));
     let elements = {};
 
+
+
+
     for (let key in view.subViews) {
         let elm = document.getElementById(key);
         if (elm) {
             //elm.className += elm.className ? ' abs' : 'abs';
             addClass(elm , 'abs');
             elements[key] = elm;
-            /* new ResizeSensor(elm, function () {
-             console.log('Changed to ' + elm.clientWidth);
-             updateLayout();
-             });*/
         }
     }
     var updateLayout = function () {
-        view.setSize(parentElm ? parentElm.clientWidth : window.innerWidth - getScrollBarWidth(), parentElm ? parentElm.clientHeight : window.innerHeight - 1);
+        if(parentElm){
+            let horScrollBarShowing = parentElm.scrollWidth > parentElm.clientWidth;
+            let vertScrollBarShowing = parentElm.scrollHeight > parentElm.clientHeight;
+            let windowWidth = (vertScrollBarShowing ? window.innerWidth-getScrollBarWidth() : window.innerWidth);
+            let windowHeight = (horScrollBarShowing ? window.innerHeight-getScrollBarWidth() : window.innerHeight);
+
+            view.setSize(parentElm ? parentElm.clientWidth : windowWidth, parentElm ? parentElm.clientHeight : windowHeight - 1);
+        }else{
+            view.setSize(parentElm ? parentElm.clientWidth : window.innerWidth, parentElm ? parentElm.clientHeight : window.innerHeight - 1);
+        }
+
         for (let key in view.subViews) {
             var subView = view.subViews[key];
             let elm = elements[key];
@@ -1126,6 +1133,18 @@ function autoLayout(parentElm, visualFormat) {
     };
 
     window.addEventListener('resize', updateLayout);
+if(parentElm && parentElm.getAttribute(attrKeys.id) === BODY_ID){
+    let rs  = new ResizeSensor(parentElm, function () {
+//is scroll visible
+        if(parentElm){
+            if(parentElm.scrollHeight > parentElm.clientHeight || parentElm.scrollWidth > parentElm.clientWidth){
+                updateLayout();
+            }
+        }
+    });
+}
+
+
     updateLayout();
     return updateLayout;
 }
