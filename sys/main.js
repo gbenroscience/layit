@@ -1220,7 +1220,8 @@ View.prototype.createElement = function (node) {
 
     this.calculateWrapContentSizes(node);
 };
-View.prototype.calculateWrapContentSizes = function (node) {
+
+/*View.prototype.calculateWrapContentSizes = function (node) {
     //bold 12pt arial;
     let w = node.getAttribute(attrKeys.layout_width);
     let h = node.getAttribute(attrKeys.layout_height);
@@ -1232,6 +1233,42 @@ View.prototype.calculateWrapContentSizes = function (node) {
         this.wrapWidth = (0.813 * parseFloat(window.getComputedStyle(elem).width)) + 'px';
         this.wrapHeight = (0.825 * parseFloat(window.getComputedStyle(elem).height)) + 'px';
         //console.log('wrapWidth: '+this.wrapWidth, 'wrapHeight: '+this.wrapHeight+"...", this.constructor.name,"[",this.id,"]");
+        elem.remove();
+    }
+};*/
+
+View.prototype.calculateWrapContentSizes = function (node) {
+    //bold 12pt arial;
+    let w = node.getAttribute(attrKeys.layout_width);
+    let h = node.getAttribute(attrKeys.layout_height);
+    let elem = this.htmlElement.cloneNode(true);
+    //elem.style.visibility = 'hidden';
+    if (w === sizes.WRAP_CONTENT && h === sizes.WRAP_CONTENT) {
+        this.style.applyInline(elem);
+        document.body.appendChild(elem);
+        this.wrapWidth = (0.813 * parseFloat(window.getComputedStyle(elem).width)) + 'px';
+        this.wrapHeight = (0.825 * parseFloat(window.getComputedStyle(elem).height)) + 'px';
+        //console.log('wrapWidth: '+this.wrapWidth, 'wrapHeight: '+this.wrapHeight+"...", this.constructor.name,"[",this.id,"]");
+        elem.remove();
+    }else if( w !== sizes.WRAP_CONTENT && h === sizes.WRAP_CONTENT){
+        let stl = this.style.clone('.quick_clone_'+this.id);
+        stl.addFromOptions({
+            width: w
+        });
+        stl.applyInline(elem);
+        document.body.appendChild(elem);
+        this.wrapHeight = (0.825 * parseFloat(window.getComputedStyle(elem).height)) + 'px';
+
+        elem.remove();
+
+    }else if( w === sizes.WRAP_CONTENT && h !== sizes.WRAP_CONTENT){
+        let stl = this.style.clone('.quick_clone_'+this.id);
+        stl.addFromOptions({
+            height: h
+        });
+        stl.applyInline(elem);
+        document.body.appendChild(elem);
+        this.wrapWidth = (0.813 * parseFloat(window.getComputedStyle(elem).width)) + 'px';
         elem.remove();
     }
 };
