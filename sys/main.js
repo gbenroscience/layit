@@ -101,8 +101,8 @@ function View(wkspc, node) {
     let nodeName = node.nodeName;
     this.nodeName = nodeName;
     this.root = nodeName === xmlKeys.root || nodeName === xmlKeys.include;
-    
-    if(this.root){
+
+    if (this.root) {
         /**
          * Only a root layout must have this field!
          */
@@ -886,10 +886,10 @@ View.prototype.makeVFL = function (wkspc) {
                 maxWid, minWid, maxHei, minHei, maxWidth, minWidth, maxHeight, minHeight);
     }
 
-    ms = !ms ? '0' : ( endsWith(this.margins.start, '%') ? this.margins.start : ms );
-    me = !me ? '0' : ( endsWith(this.margins.end, '%') ? this.margins.end : me );
-    mt = !mt ? '0' : ( endsWith(this.margins.top, '%') ? this.margins.top : mt );
-    mb = !mb ? '0' :  ( endsWith(this.margins.bottom, '%') ? this.margins.bottom : mb );
+    ms = !ms ? '0' : (endsWith(this.margins.start, '%') ? this.margins.start : ms);
+    me = !me ? '0' : (endsWith(this.margins.end, '%') ? this.margins.end : me);
+    mt = !mt ? '0' : (endsWith(this.margins.top, '%') ? this.margins.top : mt);
+    mb = !mb ? '0' : (endsWith(this.margins.bottom, '%') ? this.margins.bottom : mb);
 
     /**
      * EVFL seems not to support support percentage margins,
@@ -897,23 +897,23 @@ View.prototype.makeVFL = function (wkspc) {
      * This will obviously fail if the parent's width(which is our reference(as per css specs)
      * is a percentage. But let us do what we can for the developers that will use this library.
      */
-    if(parent){
+    if (parent) {
         let parentWidth = parent.width;
-        function converter(margin, parWid){
-          let val = ((parseFloat(margin) / 100.0) * parseFloat(parWid))+'';
-          return parseInt(val);
+        function converter(margin, parWid) {
+            let val = ((parseFloat(margin) / 100.0) * parseFloat(parWid)) + '';
+            return parseInt(val);
         }
-        if(!endsWith(parentWidth, "%")){
-            if(endsWith(ms, '%')){
+        if (!endsWith(parentWidth, "%")) {
+            if (endsWith(ms, '%')) {
                 ms = converter(ms, parentWidth);
             }
-            if(endsWith(me, '%')){
+            if (endsWith(me, '%')) {
                 me = converter(me, parentWidth);
             }
-            if(endsWith(mt, '%')){
+            if (endsWith(mt, '%')) {
                 mt = converter(mt, parentWidth);
             }
-            if(endsWith(mb, '%')){
+            if (endsWith(mb, '%')) {
                 mb = converter(mb, parentWidth);
             }
         }
@@ -1218,24 +1218,115 @@ View.prototype.createElement = function (node) {
         this.htmlElement.setAttribute(attrKeys.name, name);
     }
 
+
+    useAutomaticBackgrounds(this, node);
+
     this.calculateWrapContentSizes(node);
 };
 
-/*View.prototype.calculateWrapContentSizes = function (node) {
-    //bold 12pt arial;
-    let w = node.getAttribute(attrKeys.layout_width);
-    let h = node.getAttribute(attrKeys.layout_height);
-    if (w === sizes.WRAP_CONTENT || h === sizes.WRAP_CONTENT) {
-        let elem = this.htmlElement.cloneNode(true);
-        //elem.style.visibility = 'hidden';
-        this.style.applyInline(elem);
-        document.body.appendChild(elem);
-        this.wrapWidth = (0.813 * parseFloat(window.getComputedStyle(elem).width)) + 'px';
-        this.wrapHeight = (0.825 * parseFloat(window.getComputedStyle(elem).height)) + 'px';
-        //console.log('wrapWidth: '+this.wrapWidth, 'wrapHeight: '+this.wrapHeight+"...", this.constructor.name,"[",this.id,"]");
-        elem.remove();
+let useAutomaticBackgrounds = function (view, node) {
+    if(!(view instanceof View)){
+        throw 'Invalid View found';
     }
-};*/
+    let useAutoBg = node.getAttribute(attrKeys.useMiBackground);
+
+    if (useAutoBg) {
+        view.bgImage = null;
+        let fgColor = node.getAttribute(attrKeys.miFgColor);
+        let bgColor = node.getAttribute(attrKeys.miBgColor);
+        let strokeWidth = node.getAttribute(attrKeys.miStrokeWidth);
+        let minSize = node.getAttribute(attrKeys.miMinSize);
+        let textArray = node.getAttribute(attrKeys.miTextArray);
+        let fontName = node.getAttribute(attrKeys.miFontName);
+        let fontWeight = node.getAttribute(attrKeys.miFontWeight);//bold
+        let fontStyle = node.getAttribute(attrKeys.miFontStyle);//italic
+        let fontSize = node.getAttribute(attrKeys.miFontSize);
+        let numShapes = node.getAttribute(attrKeys.miNumShapes);
+        let shapesDensity = node.getAttribute(attrKeys.miShapesDensity);
+        let opacityValue = node.getAttribute(attrKeys.miOpacity);
+        let cacheAfterDraw = node.getAttribute(attrKeys.miCacheAfterDraw);
+        let bgOpacityEnabled = node.getAttribute(attrKeys.miBgOpacityEnabled);//allow the opacity to affect the background color also.
+
+
+        let textOnly = node.getAttribute(attrKeys.miTextOnly);
+
+        let style = null;
+        if (fontStyle) {
+            style = fontStyle;
+            if (fontWeight) {
+                style += (" " + fontWeight);
+            }
+        } else if (fontWeight) {
+            style = fontWeight;
+        }
+
+
+        if (textArray) {
+            try {
+                textArray = JSON.parse(textArray);
+            } catch (e) {
+                throw e;
+            }
+        }
+
+        cacheAfterDraw = cacheAfterDraw === true || cacheAfterDraw === 'true';
+        textOnly = textOnly === true || textOnly === 'true';
+        bgOpacityEnabled = bgOpacityEnabled === true || bgOpacityEnabled === 'true';
+
+
+
+        let options = {
+            width: view.width,
+            height: view.height,
+            fontName: fontName,
+            fontSize: fontSize,
+            fontStyle: style,
+            fgColor: fgColor,
+            bgColor: bgColor,
+            numShapes: numShapes, // Total number of shapes to generate
+            shapesDensity: shapesDensity, //Total number of shapes per unit area
+            strokeWidth: strokeWidth,
+            minSize: minSize, //The minimum size of the shapes drawn
+            opacity: opacityValue,
+            bgOpacityEnabled: bgOpacityEnabled,
+            textArray: textArray, //An array of words that can be rendered randomly on the view.
+            textOnly: textOnly, //Forces the view to render only text from the textArray attribute
+            cacheAfterDraw: cacheAfterDraw //Renders the image once for a view and uses it subsequently.If false, this view will always have a new set of patterns whenever it is refreshed.
+        };
+
+        view.runView = function () {
+            let cStyle= getComputedStyle(this.htmlElement);
+            options.width = cStyle.width;
+            options.height = cStyle.height;
+            let background = new MysteryImage(options);
+            background.draw();
+            let style = new Style('#'+this.htmlElement.id,[]);
+            style.addFromOptions({
+                "background-image": "url('" + background.getImage() + "')",
+                "background-position": "0% 0%"
+            });
+            updateOrCreateSelectorInStyleSheet(styleSheet, style);
+            console.log("image-cache: ", background.imageCache);
+            background.cleanup();
+        };
+    }
+};
+
+/*View.prototype.calculateWrapContentSizes = function (node) {
+ //bold 12pt arial;
+ let w = node.getAttribute(attrKeys.layout_width);
+ let h = node.getAttribute(attrKeys.layout_height);
+ if (w === sizes.WRAP_CONTENT || h === sizes.WRAP_CONTENT) {
+ let elem = this.htmlElement.cloneNode(true);
+ //elem.style.visibility = 'hidden';
+ this.style.applyInline(elem);
+ document.body.appendChild(elem);
+ this.wrapWidth = (0.813 * parseFloat(window.getComputedStyle(elem).width)) + 'px';
+ this.wrapHeight = (0.825 * parseFloat(window.getComputedStyle(elem).height)) + 'px';
+ //console.log('wrapWidth: '+this.wrapWidth, 'wrapHeight: '+this.wrapHeight+"...", this.constructor.name,"[",this.id,"]");
+ elem.remove();
+ }
+ };*/
 
 View.prototype.calculateWrapContentSizes = function (node) {
     //bold 12pt arial;
@@ -1250,8 +1341,8 @@ View.prototype.calculateWrapContentSizes = function (node) {
         this.wrapHeight = (0.825 * parseFloat(window.getComputedStyle(elem).height)) + 'px';
         //console.log('wrapWidth: '+this.wrapWidth, 'wrapHeight: '+this.wrapHeight+"...", this.constructor.name,"[",this.id,"]");
         elem.remove();
-    }else if( w !== sizes.WRAP_CONTENT && h === sizes.WRAP_CONTENT){
-        let stl = this.style.clone('.quick_clone_'+this.id);
+    } else if (w !== sizes.WRAP_CONTENT && h === sizes.WRAP_CONTENT) {
+        let stl = this.style.clone('.quick_clone_' + this.id);
         stl.addFromOptions({
             width: w
         });
@@ -1261,8 +1352,8 @@ View.prototype.calculateWrapContentSizes = function (node) {
 
         elem.remove();
 
-    }else if( w === sizes.WRAP_CONTENT && h !== sizes.WRAP_CONTENT){
-        let stl = this.style.clone('.quick_clone_'+this.id);
+    } else if (w === sizes.WRAP_CONTENT && h !== sizes.WRAP_CONTENT) {
+        let stl = this.style.clone('.quick_clone_' + this.id);
         stl.addFromOptions({
             height: h
         });
@@ -2453,7 +2544,7 @@ TextField.prototype.createElement = function (node) {
     }
 
     if (attributeNotEmpty(type)) {
-        this.htmlElement.setAttribute('type' ,type);
+        this.htmlElement.setAttribute('type', type);
     }
 
 
@@ -2835,7 +2926,7 @@ HorizontalListView.prototype.createElement = function (node) {
     } else {
         parseMinCellHeight = parseNumberAndUnits(minCellHeight, true);
     }
-    
+
 
     this.htmlElement = document.createElement('ul');
     this.style.addStyleElementCss('list-style-position: inside;');
@@ -3353,10 +3444,10 @@ Label.prototype.createElement = function (node) {
 
     this.style.addStyleElementCss('display: -webkit-inline-box;', true);
     this.style.addStyleElementCss('display: -ms-inline-flexbox;', true);
-    this.style.addStyleElementCss('display: inline-flex;',true);
+    this.style.addStyleElementCss('display: inline-flex;', true);
     this.style.addFromOptions({
-     overflow: 'hidden !important',
-    'text-overflow': 'ellipsis'
+        overflow: 'hidden !important',
+        'text-overflow': 'ellipsis'
     });
 
     if (horAlign === Alignments.LEFT) {
@@ -3875,6 +3966,7 @@ function IncludedView(wkspc, node) {
 
 
 IncludedView.prototype.createElement = function (node) {
+
     this.htmlElement = document.createElement('div');
     let id = node.getAttribute(attrKeys.id);
     this.htmlElement.id = id;
@@ -3882,6 +3974,7 @@ IncludedView.prototype.createElement = function (node) {
     if (attributeNotEmpty(name)) {
         this.htmlElement.setAttribute(attrKeys.name, name);
     }
+     useAutomaticBackgrounds(this, node);
     this.calculateWrapContentSizes(node);
 };
 IncludedView.prototype.calculateWrapContentSizes = function (node) {
@@ -3910,8 +4003,6 @@ function FormView(wkspc, node) {
  */
 FormView.prototype.createElement = function (node) {
     let form = document.createElement('form');
-    form.setAttribute("method", "post");
-    form.setAttribute("action", "submit.php");
     let id = node.getAttribute(attrKeys.id);
     let action = node.getAttribute(attrKeys.action);
     let method = node.getAttribute(attrKeys.method);

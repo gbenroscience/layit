@@ -94,6 +94,7 @@ const nativeScripts = [
     SCRIPTS_BASE + 'libs/ui/iconlabel.js',
     SCRIPTS_BASE + 'libs/ui/textelement.js',
     SCRIPTS_BASE + 'libs/ui/tabbedbar.js',
+    SCRIPTS_BASE + 'libs/ui/mysteryimages.js',
     SCRIPTS_BASE + 'libs/ui/imagebox.js',
     SCRIPTS_BASE + 'libs/ui/list.js',
     SCRIPTS_BASE + 'libs/ui/pager.js',
@@ -989,10 +990,7 @@ Parser.prototype.buildUI = function (wkspc) {
 
             view.htmlElement.appendChild(child.htmlElement);
 
-            if (child.runView/*child.constructor.name === 'ClockView' || child.constructor.name === 'LabelView'
-             || child.constructor.name === 'ProgressBar' || child instanceof CustomTableView
-             || child.constructor.name === 'TabView' || child.constructor.name === 'IconLabelView' 
-             || child.constructor.name === 'MultiLineLabel'*/) {
+            if (child.runView) {
                 compounds.push(child);
             }
 

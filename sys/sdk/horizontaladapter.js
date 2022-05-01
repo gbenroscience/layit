@@ -28,7 +28,6 @@ HorizontalListAdapter.prototype.fetchPrototypeCells = function (list, callback) 
         protoLi.setAttribute(attrKeys.id, protoId);
         list.htmlElement.appendChild(protoLi);
         self.protoRect = protoLi.getBoundingClientRect();
-        console.log(self.protoRect);
 
         protoLi.style.width = self.protoRect.width;
         self.protoLi = protoLi;

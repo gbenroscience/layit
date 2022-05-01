@@ -109,8 +109,8 @@ const attrKeys = {
     layout_paddingEnd: "paddingEnd",
     layout_paddingTop: "paddingTop",
     layout_paddingBottom: "paddingBottom",
-    layout_paddingHorizontal: "paddingHorizontal",
-    layout_paddingVertical: "paddingVertical",
+    layout_paddingHorizontal: "paddingHorizontal",//Not yet implemented
+    layout_paddingVertical: "paddingVertical",//Not yet implemented
     layout_constraintTop_toTopOf: "top_top",
     layout_constraintBottom_toBottomOf: "bottom_bottom",
     layout_constraintStart_toStartOf: "start_start",
@@ -286,8 +286,25 @@ const attrKeys = {
     scrollBarHeight: 'scrollBarHeight',
     //Align text in span
     horAlign: 'horAlign',//left|center|right
-    verAlign: 'verAlign'//top|center|bottom
-    
-    
+    verAlign: 'verAlign',//top|center|bottom
+
+    //If true, a configurable background with patterns of shapes and text will be added to the View
+    useMiBackground: "useMiBackground",//
+    //use these tags when you want to configure an auto-generated background image for a View... they begin with `mi`.. for MysteryImage
+    miFgColor: "miFgColor",
+    miBgColor: "miBgColor",
+    miStrokeWidth: "miStrokeWidth",
+    miMinSize: "miMinSize",
+    miTextArray: "miTextArray",
+    miFontName: "miFontName", // font name... Arial
+    miFontWeight: "miFontWeight", // font name... 100|200|bold...etc.
+    miFontStyle: "miFontStyle", // font style... normal|italic
+    miFontSize: "miFontSize", //font size... 20px, 2em, etc.
+    miNumShapes: "miNumShapes",//integer value
+    miShapesDensity: "miShapesDensity", //floating point value
+    miOpacity: "miOpacity", //integer value
+    miBgOpacityEnabled: "miBgOpacityEnabled", //boolean. If true, the opacity will affect the miBgColor field also
+    miCacheAfterDraw: "miCacheAfterDraw",// boolean
+    miTextOnly: "miTextOnly" //boolean
 
 };

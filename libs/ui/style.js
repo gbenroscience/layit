@@ -195,6 +195,33 @@ function getAllStyles(htmlStyleElement) {
     let scanner = new Scanner(css, true, ['{', '}', ';']);
     let tokens = scanner.scan();
 
+    /**
+     * normalize data for input such as background-image: url(data:image/png;base64,iVBO...); which would have been split on the
+     * ;base64 area which we do not intend, as our targets are the `;` that end each line of css style...e.g: width: 12px;
+     * 
+     * The scanner would have split the `url(data:image/png;base64,iVBO...)` pattern into:
+     *  [,..,'url(data:image/png' ,';', 'base64,iVBO',...), so 'weld' the disjoint together again, lol
+     *  
+     *  NOTE:
+     *  This occurs around the background-image property:
+     *  background-image: url(data:[<mime type>][;charset=<charset>][;base64],<encoded data>)
+     *  
+     */
+    for (let i = 0; i < tokens.length; i++) {
+        if (tokens[i] === ';') {
+            if (i + 1 < tokens.length) {
+                if (startsWith(tokens[i + 1], '\n') === false) {
+                    //invalid split occurred. Please weld!
+                    tokens[i-1] = tokens[i-1]+tokens[i]+tokens[i+1];
+                    //console.log('WELD-POINT:',tokens[i-1]);
+                    tokens.splice(i, 1);
+                    tokens.splice(i, 1);
+                }
+            }
+        }
+    }
+
+
     let styles = [];
     for (let i = 0; i < tokens.length; i++) {
         if (tokens[i] === '{') {
@@ -323,7 +350,6 @@ function updateOrCreateSelectorInStyleSheet(htmlStyleElement, newStyle) {
         injectStyleSheets(htmlStyleElement, styles);
         return true;
     } else {
-        console.log('newStyle: '+newStyle);
         throw new Error('Invalid style object supplied');
     }
 }
@@ -591,9 +617,10 @@ Style.prototype.clone = function (newName) {
 Style.prototype.addStyleElementCss = function (style, duplicateAllowed) {
 
     if (style) {
+        style = style.trim();
+   let styleHasUrl = contain(style, 'url') === true;
         let indexOfColon = style.indexOf(":");
-        let indexOfSemiColon = style.indexOf(";");
-
+        let indexOfSemiColon = styleHasUrl ? style.lastIndexOf(";") : style.indexOf(";");
         if (indexOfSemiColon !== -1 && indexOfSemiColon === style.length - 1 && indexOfColon !== -1) {
 
             let attr = style.substring(0, indexOfColon);
@@ -601,7 +628,7 @@ Style.prototype.addStyleElementCss = function (style, duplicateAllowed) {
 
             if (attr.indexOf(":") === -1 && attr.indexOf(";") === -1 &&
                     ((val.indexOf('url') === -1 && val.indexOf(":") === -1 && val.indexOf(";") === -1) ||
-                            val.indexOf('url') !== '-1' && val.indexOf(";") === -1)) {
+                            val.indexOf('url') !== '-1'/**Give more freedom, lol*/)) {
                 let styleObj = new StyleElement(attr, val);
                 if (duplicateAllowed) {
                     this.styleElements.push(styleObj);
@@ -616,10 +643,10 @@ Style.prototype.addStyleElementCss = function (style, duplicateAllowed) {
                     this.styleElements.push(styleObj);
                 }
             } else {
-                throw new Error('Weird css line expression!');
+                throw new Error('Weird css line expression____!'+style);
             }
         } else {
-            throw new Error('Invalid css line expression!');
+            throw new Error('Invalid css line expression!...' + style);
         }
 
     } else {

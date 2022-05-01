@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ConstraintLayout
         width="match_parent"
-        height="match_parent">
+        height="match_parent"
+>
 
     <imports
             files="test/test.js;test/aaa.js;adapters/persons-adapter.js;" controller="TestController"
@@ -10,10 +11,11 @@
             id="section_top"
             width="match_parent"
             height="128px"
-            backgroundColor="#000044"
             top_top='parent'
             start_start='parent'
             end_end='parent'
+            backgroundColor="midnightblue"
+
 
     />
     <Paragraph
@@ -230,6 +232,17 @@
             top_bottom="table_two"
             border="1px solid lightgray"
             borderRadius="1em"
+            useMiBackground="true"
+            miFgColor="white"
+            miBgColor="midnightblue"
+            miOpacity="0.6"
+            miBgOpacityEnabled="false"
+            miStrokeWidth="1"
+            miMinSize="8"
+            miNumShapes="20"
+            miTextOnly="false"
+            miTextArray='["NGN","GBP","USD","EUR"]'
+            miCacheAfterDraw="false"
     />
 
 

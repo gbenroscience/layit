@@ -515,7 +515,14 @@ Quadratic.prototype.solutionArray = function () {
     return arr;
 };
 
-
+/**
+ * 
+ * @param {type} left The x coordinate of the left side of the rectangle
+ * @param {type} top The y coordinate of the upper side of the rectangle
+ * @param {type} right The x coordinate of the right side of the rectangle
+ * @param {type} bottom The y coordinate of the lower side of the rectangle
+ * @returns {Rectangle}
+ */
 function Rectangle(left, top, right, bottom) {
     this.width = this.height = this.left = this.top = 0;
     if (typeof left === 'number' && typeof top === 'number' && typeof right === 'number' && typeof bottom === 'number') {
@@ -533,6 +540,14 @@ Rectangle.prototype.right = function () {
 
 Rectangle.prototype.bottom = function () {
     return this.top + this.height;
+};
+
+Rectangle.prototype.centerX = function () {
+    return this.left + this.width/2;
+};
+
+Rectangle.prototype.centerY = function () {
+    return this.top + this.height/2;
 };
 
 Rectangle.prototype.setLocation = function (x, y) {
@@ -736,26 +751,15 @@ Rectangle.prototype.contains = function (rect) {
  */
 Rectangle.prototype.intersects = function (r) {
     if (r.constructor.name === 'Rectangle') {
-        var tw = this.width;
-        var th = this.height;
-        var rw = r.width;
-        var rh = r.height;
-        if (rw <= 0 || rh <= 0 || tw <= 0 || th <= 0) {
-            return false;
+        let left = r.left; let right = r.right(); let top = r.top; let bottom = r.bottom();
+        if (this.left < right && left < this.right && this.top < bottom && top < this.bottom) {
+            if (this.left < left) this.left = left;
+            if (this.top < top) this.top = top;
+            if (this.right > right) this.right = right;
+            if (this.bottom > bottom) this.bottom = bottom;
+            return true;
         }
-        var tx = this.left;
-        var ty = this.top;
-        var rx = r.left;
-        var ry = r.top;
-        rw += rx;
-        rh += ry;
-        tw += tx;
-        th += ty;
-        //      overflow || intersect
-        return ((rw < rx || rw > tx) &&
-                (rh < ry || rh > ty) &&
-                (tw < tx || tw > rx) &&
-                (th < ty || th > ry));
+        return false;
     }
     return false;
 };
@@ -1422,7 +1426,11 @@ function Random() {
 }
 
 Random.prototype.nextInt = function (max) {
-    return randomInt(0, max);
+    return randomInt(0, max - 1);
+};
+
+Random.prototype.nextBool = function () {
+    return randomInt(0, 1) === 1;
 };
 
 Random.prototype.generateUUID = function () { // Public Domain/MIT

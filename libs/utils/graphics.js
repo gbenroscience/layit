@@ -24,7 +24,7 @@ const Gravity = {
 };
 /**
  * Always sort the entries according to length, please!
- * @type type
+ * @type {MM: string, PCT: string, VW: string, PT: string, IN: string, CH: string, VMAX: string, EM: string, PX: string, CM: string, Q: string, VH: string, PC: string, EX: string, VMIN: string, VM: string, REM: string, GD: string}
  */
 const CssSizeUnits = {
     VMAX: "vmax",
@@ -94,6 +94,10 @@ const FontStyle = {
     BOLDER_OBLIQUE: "oblique bolder",
     LIGHTER_OBLIQUE: "oblique lighter"
 };
+
+const FontStyleValues = getObjectValues(FontStyle).sort(function (a, b) {
+    return b.length - a.length;
+});
 
 /**
  * 
@@ -479,6 +483,103 @@ Graphics.prototype.setFont = function (font) {
 };
 
 /**
+ * Rotates the current drawing context in radians
+ * @param {number} angleRads The angle in radians
+ * @returns {undefined}
+ */
+Graphics.prototype.rotate = function (angleRads) {
+    if (angleRads) {
+        if (typeof angleRads === "number") {
+            this.ctx.rotate(angleRads);//angRad = angleDeg * Math.PI / 180;
+        } else {
+            throw "Invalid angle specified!";
+        }
+    } else {
+        throw "No angle specified!";
+    }
+};
+
+/**
+ * Rotates the current drawing context in degrees
+ * @param {number} angleDegs The angle in degrees
+ * @returns {undefined}
+ */
+Graphics.prototype.rotateDegs = function (angleDegs) {
+    this.rotate(angleDegs * Math.PI / 180.0);
+};
+
+
+/**
+ * Rotates the current drawing context in radians about a certain point(x,y)
+ * Helps the developer restore the canvas after rotating at some point other than
+ * the normal center of rotation.
+ * The developer only needs specify what they wish to perform after rotation.
+ * This code will:
+ * 1. rotate the canvas about the new origin specified
+ * 2. run the task the developer wishes to perform
+ * 3. Restore the original center of rotation
+ * 
+ * In Andfroid rotate(angle, x, y) is implemented like this:
+ *      
+ *      translate(x, y);
+ rotate(degrees);
+ translate(-x, -y);
+ *
+ * If no task is specified, the rotation will be performed, but the developer has to restore the default center of rotation(0,0)
+ * later on in their own code. If not, the drawings will always be rotated henceforth.
+ * @param {number} angleRads The angle in radians
+ * @param {number} x The x location of the center of rotation
+ * @param {number} y The y location of the center of rotation
+ * @param {function} task A task to run after rotation, so the canvas can be restored to its original center of rotation
+ * @returns {undefined}
+ */
+Graphics.prototype.rotateAt = function (angleRads, x, y, task) {
+    if (typeof angleRads === "number") {
+        this.ctx.save();
+        // move the origin to a new point
+        this.ctx.translate(x, y);
+        this.ctx.rotate(angleRads);//angRad = angleDeg * Math.PI / 180;
+        if (typeof task === "function") {
+            task();
+        }
+       // this.ctx.rotate(-angleRads);
+        //this.ctx.translate(-x, -y);
+        this.ctx.restore();
+        if (typeof task !== "function") {
+            throw "`task` should be a function!";
+        }
+    } else {
+        throw "Invalid angle specified!";
+    }
+};
+
+/**
+ *  Rotates the current drawing context in degrees about a certain point(x,y)
+ * Helps the developer restore the canvas after rotating at some point other than
+ * the normal center of rotation.
+ * The developer only needs specify what they wish to perform after rotation.
+ * This code will:
+ * 1. rotate the canvas about the new origin specified
+ * 2. run the task the developer wishes to perform
+ * 3. Restore the original center of rotation
+ *
+ * If no task is specified, the rotation will be performed, but the developer has to restore the default center of rotation(0,0)
+ * later on in their own code. If not, the drawings will always be rotated henceforth.
+ * @param {number} angleDegs The angle in degrees
+ * @param {number} x The x location of the center of rotation
+ * @param {number} y The y location of the center of rotation
+ * @param {function} task A task to run after rotation, so the canvas can be restored to its original center of rotation
+ * @returns {undefined}
+ */
+Graphics.prototype.rotateDegsAt = function (angleDegs, x, y, task) {
+    if(angleDegs === 0){
+        task();
+        return;
+    }
+    this.rotateAt(angleDegs * Math.PI / 180.0, x, y, task);
+};
+
+/**
  * 
  * @param {string} color
  * @returns {undefined}
@@ -527,6 +628,14 @@ Graphics.prototype.setStrokeWidth = function (strokeWidth) {
 Graphics.prototype.getStrokeWidth = function () {
     return this.ctx.lineWidth;
 };
+
+Graphics.prototype.getStrokeColor = function () {
+    return this.ctx.strokeStyle;
+};
+Graphics.prototype.getFillColor = function () {
+    return this.ctx.fillStyle;
+};
+
 /**
  * 
  * @param {Number} alpha A number between 0 and 1
@@ -536,6 +645,10 @@ Graphics.prototype.setAlpha = function (alpha) {
     if (typeof alpha === 'number') {
         this.ctx.globalAlpha = alpha;
     }
+};
+
+Graphics.prototype.getAlpha = function () {
+        return this.ctx.globalAlpha;
 };
 
 /**
@@ -737,7 +850,6 @@ Graphics.prototype.fillRoundRect = function (x, y, width, height, radius) {
         this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
         this.ctx.lineTo(x, y + radius.tl);
         this.ctx.quadraticCurveTo(x, y, x + radius.tl, y);
-        this.ctx.closePath();
         this.ctx.fill();
 
 
@@ -782,7 +894,6 @@ Graphics.prototype.fillRoundRectLeftSide = function (x, y, width, height, radius
         this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
         this.ctx.lineTo(x, y + radius.tl);
         this.ctx.quadraticCurveTo(x, y, x + radius.tl, y);
-        this.ctx.closePath();
         this.ctx.fill();
     }
 };
@@ -824,7 +935,6 @@ Graphics.prototype.fillRoundRectRightSide = function (x, y, width, height, radiu
         this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
         this.ctx.lineTo(x, y + radius.tl);
         this.ctx.quadraticCurveTo(x, y, x + radius.tl, y);
-        this.ctx.closePath();
         this.ctx.fill();
     }
 };
@@ -866,7 +976,6 @@ Graphics.prototype.fillRoundRectTopSide = function (x, y, width, height, radius)
         this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
         this.ctx.lineTo(x, y + radius.tl);
         this.ctx.quadraticCurveTo(x, y, x + radius.tl, y);
-        this.ctx.closePath();
         this.ctx.fill();
     }
 };
@@ -909,7 +1018,6 @@ Graphics.prototype.fillRoundRectBottomSide = function (x, y, width, height, radi
         this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
         this.ctx.lineTo(x, y + radius.tl);
         this.ctx.quadraticCurveTo(x, y, x + radius.tl, y);
-        this.ctx.closePath();
         this.ctx.fill();
     }
 };
@@ -954,7 +1062,6 @@ Graphics.prototype.fillEllipse = function (cenX, cenY, radX, radY, rotation, sta
 
         this.ctx.beginPath();
         this.ctx.ellipse(cenX, cenY, radX, radY, rotation, startAngle, endAngle, counterclockwise);
-        this.ctx.closePath();
         this.ctx.fill();
     }
 };
@@ -992,7 +1099,6 @@ Graphics.prototype.fillOval = function (cenX, cenY, radX, radY) {
 
         this.ctx.beginPath();
         this.ctx.ellipse(cenX, cenY, radX, radY, 0, 0, 2 * Math.PI, false);
-        this.ctx.closePath();
         this.ctx.fill();
 
     }
@@ -1046,8 +1152,6 @@ Graphics.prototype.drawArc = function (cenX, cenY, radius, startAngle, endAngle,
  */
 Graphics.prototype.drawLine = function (x1, y1, x2, y2) {
     if (typeof x1 === 'number' && typeof y1 === 'number' && typeof x2 === 'number' && typeof y2 === 'number') {
-
-
         this.ctx.beginPath();
         this.ctx.moveTo(x1, y1);
         this.ctx.lineTo(x2, y2);
@@ -1081,25 +1185,6 @@ Graphics.prototype.drawPolygon = function (polygon) {
 };
 
 
-Graphics.prototype.drawPolygon = function (polygon) {
-    if (polygon.constructor.name === 'Polygon') {
-        var x = 0;
-        var y = 0;
-        this.ctx.beginPath();
-        for (var i = 0; i < polygon.xpoints.length; i++) {
-            x = polygon.xpoints[i];
-            y = polygon.ypoints[i];
-            if (i === 0) {
-                this.ctx.moveTo(x, y);
-            } else {
-                this.ctx.lineTo(x, y);
-            }
-        }
-        this.ctx.lineTo(x, y);
-        this.ctx.stroke();
-    }
-};
-
 /**
  * Fills a polygon
  * @param {Polygon} polygon
@@ -1126,6 +1211,91 @@ Graphics.prototype.fillPolygon = function (polygon) {
 
 
 /**
+ * Draws a polygon given its vertices and its vertex count
+ * @param {[]} xpoints An array of x coordinates in the polygon
+ * @param {[]} ypoints An array of y coordinates in the polygon
+ * @param {number} npoints The number of items in x and y: must be same
+ * @returns {undefined}
+ */
+Graphics.prototype.drawPolygonFromVertices = function (xpoints, ypoints, npoints) {
+    if (Object.prototype.toString.call(xpoints) !== '[object Array]') {
+        logger('xpoints must be an array of integer numbers');
+        return;
+    }
+    if (Object.prototype.toString.call(ypoints) !== '[object Array]') {
+        logger('ypoints must be an array of integer numbers');
+        return;
+    }
+    if (typeof npoints !== 'number') {
+        logger('npoints must be an integer number');
+        return;
+    }
+    if (xpoints.length !== ypoints.length) {
+        logger('xpoints and ypoints must have the same size.');
+        return;
+    }
+    var x = 0;
+    var y = 0;
+    this.ctx.beginPath();
+    for (var i = 0; i < xpoints.length; i++) {
+        var x = xpoints[i];
+        var y = ypoints[i];
+        if (i === 0) {
+            this.ctx.moveTo(x, y);
+        } else {
+            this.ctx.lineTo(x, y);
+        }
+    }
+    this.ctx.lineTo(x, y);
+    this.ctx.closePath();
+    this.ctx.stroke();
+
+};
+
+
+/**
+ * Fills a polygon given its vertices and its vertex count
+ * @param {[]} xpoints An array of x coordinates in the polygon
+ * @param {[]} ypoints An array of y coordinates in the polygon
+ * @param {number} npoints The number of items in x and y: must be same
+ * @returns {undefined}
+ */
+Graphics.prototype.fillPolygonFromVertices = function (xpoints, ypoints, npoints) {
+    if (Object.prototype.toString.call(xpoints) !== '[object Array]') {
+        logger('xpoints must be an array of integer numbers');
+        return;
+    }
+    if (Object.prototype.toString.call(ypoints) !== '[object Array]') {
+        logger('ypoints must be an array of integer numbers');
+        return;
+    }
+    if (typeof npoints !== 'number') {
+        logger('npoints must be an integer number');
+        return;
+    }
+    if (xpoints.length !== ypoints.length) {
+        logger('xpoints and ypoints must have the same size.');
+        return;
+    }
+    var x = 0;
+    var y = 0;
+    this.ctx.beginPath();
+    for (var i = 0; i < xpoints.length; i++) {
+        var x = xpoints[i];
+        var y = ypoints[i];
+        if (i === 0) {
+            this.ctx.moveTo(x, y);
+        } else {
+            this.ctx.lineTo(x, y);
+        }
+    }
+    this.ctx.lineTo(x, y);
+    this.fill();
+
+};
+
+
+/**
  * Fills a polygon
  * @returns {undefined}
  */
@@ -1140,7 +1310,7 @@ Graphics.prototype.save = function () {
  * @param callbackFn A function to run with the arraybuffer as parameter
  */
 Graphics.prototype.getBlobFromCanvas = function (canvas, mimeType, callbackFn) {
-    canvas.toBlob(function(blob) {
+    canvas.toBlob(function (blob) {
         callbackFn(blob);
     }, mimeType);
 };
@@ -1404,89 +1574,6 @@ Graphics.prototype.getFittedPNG = function (padding, callbackFn) {
     return this.getBlobFromCanvas(cv, 'image/png', callbackFn);
 };
 
-
-/**
- * Draws a polygon given its vertices and its vertex count
- * @param {type} xpoints An array of x coordinates in the polygon
- * @param {type} ypoints An array of y coordinates in the polygon
- * @param {type} npoints The number of items in x and y: must be same
- * @returns {undefined}
- */
-Graphics.prototype.drawPolygonFromVertices = function (xpoints, ypoints, npoints) {
-    if (Object.prototype.toString.call(xpoints) !== '[object Array]') {
-        logger('xpoints must be an array of integer numbers');
-        return;
-    }
-    if (Object.prototype.toString.call(ypoints) !== '[object Array]') {
-        logger('ypoints must be an array of integer numbers');
-        return;
-    }
-    if (typeof npoints !== 'number') {
-        logger('npoints must be an integer number');
-        return;
-    }
-    if (xpoints.length !== ypoints.length) {
-        logger('xpoints and ypoints must have the same size.');
-        return;
-    }
-    var x = 0;
-    var y = 0;
-    this.ctx.beginPath();
-    for (var i = 0; i < xpoints.length; i++) {
-        var x = xpoints[i];
-        var y = ypoints[i];
-        if (i === 0) {
-            this.ctx.moveTo(x, y);
-        } else {
-            this.ctx.lineTo(x, y);
-        }
-    }
-    this.ctx.lineTo(x, y);
-    this.ctx.stroke();
-
-};
-
-
-/**
- * Fills a polygon given its vertices and its vertex count
- * @param {type} xpoints An array of x coordinates in the polygon
- * @param {type} ypoints An array of y coordinates in the polygon
- * @param {type} npoints The number of items in x and y: must be same
- * @returns {undefined}
- */
-Graphics.prototype.fillPolygonFromVertices = function (xpoints, ypoints, npoints) {
-    if (Object.prototype.toString.call(xpoints) !== '[object Array]') {
-        logger('xpoints must be an array of integer numbers');
-        return;
-    }
-    if (Object.prototype.toString.call(ypoints) !== '[object Array]') {
-        logger('ypoints must be an array of integer numbers');
-        return;
-    }
-    if (typeof npoints !== 'number') {
-        logger('npoints must be an integer number');
-        return;
-    }
-    if (xpoints.length !== ypoints.length) {
-        logger('xpoints and ypoints must have the same size.');
-        return;
-    }
-    var x = 0;
-    var y = 0;
-    this.ctx.beginPath();
-    for (var i = 0; i < xpoints.length; i++) {
-        var x = xpoints[i];
-        var y = ypoints[i];
-        if (i === 0) {
-            this.ctx.moveTo(x, y);
-        } else {
-            this.ctx.lineTo(x, y);
-        }
-    }
-    this.ctx.lineTo(x, y);
-    this.fill();
-
-};
 
 /**
  *
@@ -1798,7 +1885,7 @@ Graphics.prototype.getLinesByMaxWidthAlgorithm = function (text, lineWidth) {
     let lines = [];
     let ctx = this.ctx;
 
-    let cs = new Scanner(text, true, [ "\r\n", "\t","\r"," ", "\n"]);
+    let cs = new Scanner(text, true, ["\r\n", "\t", "\r", " ", "\n"]);
     let list = cs.scan();
     let sz = list.length;
 
@@ -1809,7 +1896,7 @@ Graphics.prototype.getLinesByMaxWidthAlgorithm = function (text, lineWidth) {
         let wid = ctx.measureText(line.toString() + entry).width;
         if (wid < lineWidth) {
             line.append(entry);
-        } else if (wid === lineWidth || entry === "\r\n" || entry === "\r" || entry === "\n" ) {
+        } else if (wid === lineWidth || entry === "\r\n" || entry === "\r" || entry === "\n") {
             line.append(entry);
             lines.push(new LineAndWidth(line.toString(), wid));
             line = new StringBuffer();
@@ -1820,7 +1907,7 @@ Graphics.prototype.getLinesByMaxWidthAlgorithm = function (text, lineWidth) {
         }
         oldWidth = wid;
     }//end for loop
-  let ln = line.toString();
+    let ln = line.toString();
     if (ln.length > 0) {
         lines.push(new LineAndWidth(ln, oldWidth));
     }
