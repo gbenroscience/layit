@@ -6,21 +6,28 @@
 
 /* global PATH_TO_UI_SCRIPTS, xmlKeys, attrKeys, DISABLE_INPUT_SHADOW, PATH_TO_COMPILER_SCRIPTS, ViewController, HTMLCanvasElement, CharacterData, DocumentType, Element, IncludedView, Mustache */
 
-if(!Number.isNaN){
-Number.isNaN = Number.isNaN || function isNaN(input) {
-    return typeof input === 'number' && input !== input;
-};
+if (!Number.isNaN) {
+    Number.isNaN = Number.isNaN || function isNaN(input) {
+        return typeof input === 'number' && input !== input;
+    };
+}
+
+if (!Number.isInteger) {
+    Number.isInteger = function (x) {
+       // return (x ^ 0) === +x;
+         return +x === (+x - (+x % 1));
+    };
 }
 
 //Polyfill for constructor.name()
 (function () {
-	if (!Object.constructor.prototype.hasOwnProperty('name')) {
+    if (!Object.constructor.prototype.hasOwnProperty('name')) {
         Object.defineProperty(Object.constructor.prototype, 'name', {
             get: function () {
                 return this.toString().trim().replace(/^\S+\s+(\w+)[\S\s]+$/, '$1');
             }
         });
-	}
+    }
 })();
 //Polyfill for Node.remove()
 (function (arr) {
@@ -74,6 +81,7 @@ const nativeScripts = [
     SCRIPTS_BASE + 'sys/ext/fetch-poly.js',
     SCRIPTS_BASE + 'sys/ext/promise-poly.js',
     SCRIPTS_BASE + 'sys/ext/canvas-poly.js',
+    SCRIPTS_BASE + 'sys/ext/ulid.js',
     SCRIPTS_BASE + 'sys/main.js',
     SCRIPTS_BASE + 'sys/compiler-constants.js',
     SCRIPTS_BASE + 'libs/utils/parserutils.js',
@@ -606,23 +614,23 @@ Workspace.prototype.prefetchAllLayouts = function (rootLayoutName, xmlContent, o
                 self.resetLoaderIndices();
 /////
 
-self.workersMap.forEach(function (worker, name) {
-                        let workerName = worker.name;
-                        self.stopFetchWorker(workerName);
-                        console.log('closed: ' + workerName);
-    });
+                self.workersMap.forEach(function (worker, name) {
+                    let workerName = worker.name;
+                    self.stopFetchWorker(workerName);
+                    console.log('closed: ' + workerName);
+                });
 /////////
-/**
- * Remove due to IE non-support
-                for (let m in self.workersMap) {
-                    for (let i = 0; i < self.workersMap[m].length; i++) {
-                        let worker = self.workersMap[m][i];
-                        let workerName = worker.name;
-                        self.stopFetchWorker(workerName);
-                        console.log('closed: ' + workerName);
-                    }
-                }
-                */
+                /**
+                 * Remove due to IE non-support
+                 for (let m in self.workersMap) {
+                 for (let i = 0; i < self.workersMap[m].length; i++) {
+                 let worker = self.workersMap[m][i];
+                 let workerName = worker.name;
+                 self.stopFetchWorker(workerName);
+                 console.log('closed: ' + workerName);
+                 }
+                 }
+                 */
             }
         } else {
             for (let i = 0; i < layouts.length; i++) {
@@ -1007,7 +1015,7 @@ Parser.prototype.buildUI = function (wkspc) {
         let rootDiv = null;
         if (wkspc.systemRootId === BODY_ID) {
             rootDiv = document.createElement('div');
-            rootDiv.setAttribute(attrKeys.id , wkspc.systemRootId);
+            rootDiv.setAttribute(attrKeys.id, wkspc.systemRootId);
             document.body.appendChild(rootDiv);
             baseRoot = rootDiv;
         } else {
@@ -1045,7 +1053,7 @@ Parser.prototype.buildUI = function (wkspc) {
 
 
 //layout the includes
-        includes.forEach(function(include) {//Each view is an include
+        includes.forEach(function (include) {//Each view is an include
             let rootChild = wkspc.viewMap.get(include.childrenIds[0]);
             //layout the root of an included layout with respect to its include parent element(which is just a div)
             autoLayout(include.htmlElement, include.directChildConstraints);
@@ -1105,19 +1113,19 @@ function autoLayout(parentElm, visualFormat) {
         let elm = document.getElementById(key);
         if (elm) {
             //elm.className += elm.className ? ' abs' : 'abs';
-            addClass(elm , 'abs');
+            addClass(elm, 'abs');
             elements[key] = elm;
         }
     }
     var updateLayout = function () {
-        if(parentElm){
+        if (parentElm) {
             let horScrollBarShowing = parentElm.scrollWidth > parentElm.clientWidth;
             let vertScrollBarShowing = parentElm.scrollHeight > parentElm.clientHeight;
-            let windowWidth = (vertScrollBarShowing ? window.innerWidth-getScrollBarWidth() : window.innerWidth);
-            let windowHeight = (horScrollBarShowing ? window.innerHeight-getScrollBarWidth() : window.innerHeight);
+            let windowWidth = (vertScrollBarShowing ? window.innerWidth - getScrollBarWidth() : window.innerWidth);
+            let windowHeight = (horScrollBarShowing ? window.innerHeight - getScrollBarWidth() : window.innerHeight);
 
             view.setSize(parentElm ? parentElm.clientWidth : windowWidth, parentElm ? parentElm.clientHeight : windowHeight - 1);
-        }else{
+        } else {
             view.setSize(parentElm ? parentElm.clientWidth : window.innerWidth, parentElm ? parentElm.clientHeight : window.innerHeight - 1);
         }
 
@@ -1131,16 +1139,16 @@ function autoLayout(parentElm, visualFormat) {
     };
 
     window.addEventListener('resize', updateLayout);
-if(parentElm && parentElm.getAttribute(attrKeys.id) === BODY_ID){
-    let rs  = new ResizeSensor(parentElm, function () {
+    if (parentElm && parentElm.getAttribute(attrKeys.id) === BODY_ID) {
+        let rs = new ResizeSensor(parentElm, function () {
 //is scroll visible
-        if(parentElm){
-            if(parentElm.scrollHeight > parentElm.clientHeight || parentElm.scrollWidth > parentElm.clientWidth){
-                updateLayout();
+            if (parentElm) {
+                if (parentElm.scrollHeight > parentElm.clientHeight || parentElm.scrollWidth > parentElm.clientWidth) {
+                    updateLayout();
+                }
             }
-        }
-    });
-}
+        });
+    }
 
 
     updateLayout();
