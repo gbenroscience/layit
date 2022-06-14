@@ -610,7 +610,7 @@ MysteryImage.prototype.baseDraw = function (w, h) {
 
     let maxIters = this.maxIterations();
 
-    calibrate(g, w, h, this.font);
+    //calibrate(g, w, h, this.font);
     g.setAlpha(this.opacity);
 
     if (this.shapesDensity > 0) {
