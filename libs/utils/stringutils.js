@@ -271,6 +271,19 @@ function isWhiteSpacesOnly(input) {
     return true;
 }
 
+/**
+ *
+ * @param {string} input The input string to check
+ * @returns {Boolean} true if the input contains only
+ * white spaces or is null or is undefined.
+ */
+ function isEmpty(input) {
+    if (!input) {
+        return true;
+    }
+    return !/\S/.test(input);
+}
+
 function validateEmail(email) {
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);

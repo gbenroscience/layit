@@ -122,6 +122,8 @@ const attrKeys = {
     layout_constraintCenterXAlign: "cx_align",
     layout_constraintCenterYAlign: "cy_align",
     layout_constraintGuide_percent: "guide_percent",
+    layout_constraintGuide_begin: "guide_begin",
+    layout_constraintGuide_end: "guide_end",
     dimension_ratio: "dim_ratio",
     orientation: "orientation", //
 

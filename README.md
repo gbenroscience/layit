@@ -107,9 +107,10 @@ The constraint properties with long names have been renamed to shorter forms to 
     layout_constraintBottom_toTopOf    -> bottom_top
     layout_constraintCenterXAlign      -> cx_align
     layout_constraintCenterYAlign      -> cy_align
-    layout_constraintGuide_percent     -> guide_percent
     layout_constraintDimensionRatio    -> dim_ratio
-    layout_constraintGuide_percent     -> guide_percent
+    layout_constraintGuide_percent     -> guide_percent(in %)
+    layout_constraintGuide_begin     -> guide_begin(in px or no units)
+    layout_constraintGuide_end     -> guide_end(in px or no units)
 ```
 
 #### width and height
@@ -138,6 +139,11 @@ All these apply to `height` also.<br>
 
 #### maxWidth and maxHeight , minWidth and minHeight 
 These are all supported.
+
+#### margins
+
+Negative margins are not supported! The units supported for margins are pixels and percentages. 
+If no units are supplied, pixels are assumed.
     
 
 #### cx_align and cy_align

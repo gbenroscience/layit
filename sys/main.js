@@ -199,7 +199,7 @@ function View(wkspc, node) {
         this.width = node.getAttribute(attrKeys.layout_width);
         this.height = node.getAttribute(attrKeys.layout_height);
 
-        changePxToUnitLess:{
+        changePxToUnitLess: {
 
             if (endsWith(this.width, 'px')) {
                 this.width = parseInt(this.width);
@@ -226,11 +226,11 @@ function View(wkspc, node) {
          * height="72" (in px) Note: only division operation is supported
          *
          */
-        changeDimensionalReferences:{
+        changeDimensionalReferences: {
             let w = parseInt(this.width);
             let h = parseInt(this.height);
             let i = -1;
-//change width and height values to id.width and id.height for same view references in xml
+            //change width and height values to id.width and id.height for same view references in xml
             if (typeof this.width === 'string') {
                 if (this.width === 'height') {
                     this.width = this.id + ".height";
@@ -282,8 +282,8 @@ function View(wkspc, node) {
         let fontSz = '13px';
         let fontName = 'serif';
         let fnt = '';
-//store all references to other view ids here, alongside the property that references the id
-//So, the prop will be the key and the id will be the value
+        //store all references to other view ids here, alongside the property that references the id
+        //So, the prop will be the key and the id will be the value
         for (let i = 0; i < node.attributes.length; i++) {
 
             let attrName = node.attributes[i].nodeName;
@@ -360,6 +360,13 @@ function View(wkspc, node) {
                 case attrKeys.layout_constraintGuide_percent:
                     this.refIds.set(attrKeys.layout_constraintGuide_percent, attrValue);
                     break;
+                case attrKeys.layout_constraintGuide_begin:
+                    this.refIds.set(attrKeys.layout_constraintGuide_begin, attrValue);
+                    break;
+                case attrKeys.layout_constraintGuide_end:
+                    this.refIds.set(attrKeys.layout_constraintGuide_end, attrValue);
+                    break;
+
                 case attrKeys.orientation:
                     this.refIds.set(attrKeys.orientation, attrValue);
                     break;
@@ -384,7 +391,7 @@ function View(wkspc, node) {
                         throw new Error('Invalid dimension ratio specified on view with id: ' + this.id);
                     }
                     break;
-                    //as a bonus save the paddings in this pass
+                //as a bonus save the paddings in this pass
                 case attrKeys.layout_padding:
                     this.style.addStyleElement("padding", attrValue);
                     break;
@@ -400,7 +407,7 @@ function View(wkspc, node) {
                 case attrKeys.layout_paddingEnd:
                     this.style.addStyleElement("padding-right", attrValue);
                     break;
-//paddings saved
+                //paddings saved
                 case attrKeys.border:
                     this.style.addStyleElement("border", attrValue);
                     break;
@@ -593,7 +600,7 @@ View.prototype.getTextSize = function (txt) {
     };
     let formattedWidth = size.width + "px";
     document.querySelector('#za_span').textContent
-            = formattedWidth;
+        = formattedWidth;
     document.body.removeChild(span);
     return size;
 };
@@ -641,7 +648,7 @@ function isDimensionRatio(val) {
  * @returns {String}
  */
 View.prototype.positionIncludedLayouts = function (array, mt, mb, ms, me,
-        maxWid, minWid, maxHei, minHei, maxWidth, minWidth, maxHeight, minHeight) {
+    maxWid, minWid, maxHei, minHei, maxWidth, minWidth, maxHeight, minHeight) {
 
     let mtt = endsWith(this.margins.top, "%") ? this.margins.top : mt;
     let mbb = endsWith(this.margins.bottom, "%") ? this.margins.bottom : mb;
@@ -845,7 +852,7 @@ View.prototype.makeVFL = function (wkspc) {
     let pw = parseInt(this.width);
     let ph = parseInt(this.height);
     if (this.dimRatio > 0) {
-//dimRatio = w/h
+        //dimRatio = w/h
         if (pw === 0) {
             if (isNaN(ph)) {
                 this.width = this.height + "/" + (1.0 / this.dimRatio);
@@ -877,13 +884,13 @@ View.prototype.makeVFL = function (wkspc) {
      */
     if (hasIncludedParent === true) {
         return this.positionIncludedLayouts(parent.directChildConstraints, mt, mb, ms, me,
-                maxWid, minWid, maxHei, minHei, maxWidth, minWidth, maxHeight, minHeight);
+            maxWid, minWid, maxHei, minHei, maxWidth, minWidth, maxHeight, minHeight);
     }
 
     //For template views to be used with li, td and th
     if (wkspc.template === true && attributeEmpty(this.parentId)) {
         return this.positionIncludedLayouts(this.templateConstraints, mt, mb, ms, me,
-                maxWid, minWid, maxHei, minHei, maxWidth, minWidth, maxHeight, minHeight);
+            maxWid, minWid, maxHei, minHei, maxWidth, minWidth, maxHeight, minHeight);
     }
 
     ms = !ms ? '0' : (endsWith(this.margins.start, '%') ? this.margins.start : ms);
@@ -892,10 +899,11 @@ View.prototype.makeVFL = function (wkspc) {
     mb = !mb ? '0' : (endsWith(this.margins.bottom, '%') ? this.margins.bottom : mb);
 
     /**
-     * EVFL seems not to support support percentage margins,
+     * EVFL seems not to support percentage margins,
      * so here we try to convert percentage margins to actual margins.
      * This will obviously fail if the parent's width(which is our reference(as per css specs)
-     * is a percentage. But let us do what we can for the developers that will use this library.
+     * is a percentage. 
+     * But we do what we can for the developers that will use this library.
      */
     if (parent) {
         let parentWidth = parent.width;
@@ -1225,7 +1233,7 @@ View.prototype.createElement = function (node) {
 };
 
 let useAutomaticBackgrounds = function (view, node) {
-    if(!(view instanceof View)){
+    if (!(view instanceof View)) {
         throw 'Invalid View found';
     }
     let useAutoBg = node.getAttribute(attrKeys.useMiBackground);
@@ -1295,12 +1303,12 @@ let useAutomaticBackgrounds = function (view, node) {
         };
 
         view.runView = function () {
-            let cStyle= getComputedStyle(this.htmlElement);
+            let cStyle = getComputedStyle(this.htmlElement);
             options.width = cStyle.width;
             options.height = cStyle.height;
             let background = new MysteryImage(options);
             background.draw();
-            let style = new Style('#'+this.htmlElement.id,[]);
+            let style = new Style('#' + this.htmlElement.id, []);
             style.addFromOptions({
                 "background-image": "url('" + background.getImage() + "')",
                 "background-position": "0% 0%"
@@ -2532,7 +2540,7 @@ TextField.prototype.createElement = function (node) {
         type = 'text'; //default
     }
     if (type && type !== 'text' && type !== 'password' && type !== 'file' && type !== 'date' && type !== 'search' && type !== 'datetime'
-            && type !== 'tel' && type !== 'phone' && type !== 'time' && type !== 'color' && type !== 'url' && type !== 'email') {
+        && type !== 'tel' && type !== 'phone' && type !== 'time' && type !== 'color' && type !== 'url' && type !== 'email') {
         throw 'Unsupported input type---(' + type + ')';
     }
 
@@ -3107,7 +3115,7 @@ GridView.prototype.createElement = function (node) {
     liStyle.addStyleElement('display', '-moz-inline-stack', true);//allow duplicate entry for style element
     liStyle.addStyleElement('display', 'inline-block', true);//allow duplicate entry for style element
 
-//Needed to achieve the specified cell-spacing at the right and the bottom edges of the grid
+    //Needed to achieve the specified cell-spacing at the right and the bottom edges of the grid
     this.style.addFromOptions({
         'padding-top': '0',
         'padding-left': '0',
@@ -3399,7 +3407,7 @@ IconLabelView.prototype.createElement = function (node) {
     let font = new Font(fontStyle, parseFontSize.number, fontName, parseFontSize.units);
     let size = getTextSize(text, font.string());
 
-    setWrapSize:{
+    setWrapSize: {
         this.wrapWidth = size.width;
         this.wrapHeight = size.height;
     }
@@ -3907,34 +3915,113 @@ Guideline.prototype.makeVFL = function () {
     }
 
     let guidePct = this.refIds.get(attrKeys.layout_constraintGuide_percent);
-    if (!guidePct || guidePct === '') {
-        throw 'Please specify the constraint-guide-percentage of the Guideline whose id is `' + this.id + '`';
+    let guideBegin = this.refIds.get(attrKeys.layout_constraintGuide_begin);
+    let guideEnd = this.refIds.get(attrKeys.layout_constraintGuide_end);
+
+
+    if(isEmpty(guidePct) && isEmpty(guideBegin) && isEmpty(guideEnd)){
+        throw 'Please specify either constraint-guide-(percentage|begin|end) for the Guideline whose id is `' + this.id + '`';
     }
 
     let val = 0;
-    if (endsWith(guidePct, '%')) {
-        if (isNaN(val = parseInt(guidePct))) {
-            throw 'Please specify a floating point number between 0 and 1 to signify 0 - 100% of width';
-        }
-        val += '%';
-    } else if (isNaN(val = parseFloat(guidePct))) {
-        throw 'Please specify a floating point number between 0 and 1 to signify 0 - 100% of width';
-    } else {
-        if (val >= 1) {
-            val = '100%';
-        } else {
-            val *= 100;
-            val += '%';
-        }
-    }
-
-
     let vfl = new StringBuffer();
-    if (orientation === orientations.VERTICAL) {
-        vfl.append('H:|-' + val + '-[' + this.id + '(1)]\nV:|[' + this.id + ']-|');
-    } else if (orientation === orientations.HORIZONTAL) {
-        vfl.append('H:|[' + this.id + ']|\nV:|-' + val + '-[' + this.id + '(1)]');
+
+    if(!isEmpty(guidePct)){
+        if(!isEmpty(guideBegin) || !isEmpty(guideEnd)){
+            throw 'Conflicting guide constraints! only one of guide_percent, guide_begin and guide_end hould be set!'
+        }
+
+        if (endsWith(guidePct, '%')) {
+            if (isNaN(val = parseInt(guidePct))) {
+                throw 'Please specify a floating point number between 0 and 1 to signify 0 - 100% of width';
+            }
+            val += '%';
+        } else if (isNaN(val = parseFloat(guidePct))) {
+            throw 'Please specify a floating point number between 0 and 1 to signify 0 - 100% of width';
+        } else {
+            if (val >= 1) {
+                val = '100%';
+            } else {
+                val *= 100;
+                val += '%';
+            }
+        }
+    
+        if (orientation === orientations.VERTICAL) {
+            vfl.append('H:|-' + val + '-[' + this.id + '(1)]\nV:|[' + this.id + ']-|');
+        } else if (orientation === orientations.HORIZONTAL) {
+            vfl.append('H:|[' + this.id + ']|\nV:|-' + val + '-[' + this.id + '(1)]');
+        }
+
     }
+
+    if(!isEmpty(guideBegin)){
+        if(!isEmpty(guidePct) || !isEmpty(guideEnd)){
+            throw 'Conflicting guide constraints! only one of `guide_percent`, `guide_begin` and `guide_end` should be set!'
+        }
+
+        if(endsWith(guideBegin, "%")){
+            throw "`guide_begin` must be a unitless number or be specified in pixels"
+        }
+
+        let parsed = parseNumberAndUnits(guideBegin);
+
+        if(!isEmpty(parsed.units) && parsed.units != 'px'){
+            throw "`guide_begin` must be a unitless number or be specified in pixels"
+        }
+
+        guideBegin = parsed.number;
+
+        if(isNaN(guideBegin)){
+            throw "please specify a number for `guide_begin`"
+        }
+
+        val = guideBegin;
+
+    
+        if (orientation === orientations.VERTICAL) {
+            vfl.append('H:|-' + val + '-[' + this.id + '(1)]\nV:|[' + this.id + ']-|');
+        } else if (orientation === orientations.HORIZONTAL) {
+            vfl.append('H:|[' + this.id + ']|\nV:|-' + val + '-[' + this.id + '(1)]');
+        }
+
+    }
+
+    if(!isEmpty(guideEnd)){
+        if(!isEmpty(guidePct) || !isEmpty(guideBegin)){
+            throw 'Conflicting guide constraints! only one of `guide_percent`, `guide_begin` and `guide_end` should be set!'
+        }
+
+        if(endsWith(guideEnd, "%")){
+            throw "`guide_end` must be a unitless number or be specified in pixels"
+        }
+
+        let parsed = parseNumberAndUnits(guideEnd);
+
+        if(!isEmpty(parsed.units) && parsed.units != 'px'){
+            throw "`guide_end` must be a unitless number or be specified in pixels"
+        }
+
+        guideEnd = parsed.number;
+
+        if(isNaN(guideEnd)){
+            throw "please specify a number for `guide_end`"
+        }
+
+        val = guideEnd;
+
+    
+        if (orientation === orientations.VERTICAL) {
+            vfl.append('H:|-0-[' + this.id + '(1)]-'+val+'-|\nV:|[' + this.id + ']-0-|');
+        } else if (orientation === orientations.HORIZONTAL) {
+            vfl.append('H:|[' + this.id + ']|\nV:|-0-[' + this.id + '(1)]-' + val + '-|');
+        }
+
+    }
+
+
+
+
     return vfl.toString();
 };
 /**
@@ -3974,7 +4061,7 @@ IncludedView.prototype.createElement = function (node) {
     if (attributeNotEmpty(name)) {
         this.htmlElement.setAttribute(attrKeys.name, name);
     }
-     useAutomaticBackgrounds(this, node);
+    useAutomaticBackgrounds(this, node);
     this.calculateWrapContentSizes(node);
 };
 IncludedView.prototype.calculateWrapContentSizes = function (node) {
@@ -4324,8 +4411,8 @@ function validateTableJson(jsonObj) {
 function isFontWeight(val) {
     if (val && typeof val === 'string') {
         if (val === 'bold' || val === 'bolder' || val === 'lighter' || val === 'normal' ||
-                val === '100' || val === '200' || val === '300' || val === '400' ||
-                val === '500' || val === '600' || val === '700' || val === '800' || val === '900') {
+            val === '100' || val === '200' || val === '300' || val === '400' ||
+            val === '500' || val === '600' || val === '700' || val === '800' || val === '900') {
             return true;
         }
     }
