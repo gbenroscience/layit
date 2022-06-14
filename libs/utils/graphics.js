@@ -388,16 +388,16 @@ function Graphics(canvas) {
 
         // Give the canvas pixel dimensions of their CSS
         // size * the device pixel ratio.
-        canvas.width = canvasRect.width * dpr;
-        canvas.height = canvasRect.height * dpr;
-
-
-        // Scale all drawing operations by the dpr, so you
-        // don't have to worry about the difference.
-        this.ctx.scale(1, 1);
+      canvas.width = Math.round (canvasRect.right * dpr) - Math.round (canvasRect.left * dpr);
+      canvas.height = Math.round (canvasRect.bottom * dpr) - Math.round (canvasRect.top * dpr);
 
         canvas.style.width = canvasRect.width + 'px';
         canvas.style.height = canvasRect.height + 'px';
+
+                // Scale all drawing operations by the dpr, so you
+        // don't have to worry about the difference.
+        //this.ctx.scale(dpr, dpr);
+        this.ctx.scale(1, 1);
 
     }
 
@@ -481,6 +481,15 @@ Graphics.prototype.setFont = function (font) {
         this.ctx.font = font.string();
     }
 };
+
+/**
+ * 
+ * @returns the stringified font as passed to the context
+ */
+Graphics.prototype.getFont = function () {
+    return this.ctx.font;
+};
+
 
 /**
  * Rotates the current drawing context in radians

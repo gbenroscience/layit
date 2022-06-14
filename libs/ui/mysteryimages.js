@@ -472,8 +472,8 @@ MysteryImage.prototype.drawStar = function (x, y, size, thickness, fill) {
     let cenBox = new Rectangle(lf, tp, rt, btm);
 
     let xPts = [x, cenBox.left, x + halfSz, cenBox.right(), x + size, cenBox.right(), x + halfSz, cenBox.left, x],
-            yPts = [y + halfSz, cenBox.top, y, cenBox.top, y + halfSz, cenBox.bottom(), y + size, cenBox.bottom(), y + halfSz],
-            nPts = 9;
+        yPts = [y + halfSz, cenBox.top, y, cenBox.top, y + halfSz, cenBox.bottom(), y + size, cenBox.bottom(), y + halfSz],
+        nPts = 9;
     if (fill) {
         g.fillPolygonFromVertices(xPts, yPts, nPts);
     } else {
@@ -529,7 +529,7 @@ MysteryImage.prototype.drawText = function (x, y) {
     let w = g.stringWidth(txt);
     let h = g.textHeight(txt);
     g.drawString(txt, x, y + h);
-    return {width: w, height: h};
+    return { width: w, height: h };
 };
 
 MysteryImage.prototype.drawRotatedText = function (x, y, size, angDeg) {
@@ -547,21 +547,20 @@ MysteryImage.prototype.drawRotatedText = function (x, y, size, angDeg) {
 
 MysteryImage.prototype.generateRect = function (w, h) {
 
-console.log('[w, h]: [',w,', ',h,']');
-
-let ww = w/PIXEL_RATIO;
-let hh = h/PIXEL_RATIO;
-    let sz = this.minSize + this.rnd.nextInt(this.minSize + 1);
+    let ww = w / PIXEL_RATIO;
+    let hh = h / PIXEL_RATIO;
+    let mnsz = this.minSize/PIXEL_RATIO;
+    let sz = mnsz + this.rnd.nextInt(mnsz + 1);
     //sz = this.g.normalizeQuantity(sz);
 
     let x = sz + this.rnd.nextInt(ww);
     let y = sz + this.rnd.nextInt(hh);
 
     if (x + sz >= ww) {
-      x = ww - 2 * sz;
+        x = ww - 2 * sz;
     }
     if (y + sz >= hh) {
-      y = hh - 2 * sz;
+        y = hh - 2 * sz;
     }
 
     return new Rectangle(x, y, x + sz, y + sz);
@@ -571,52 +570,55 @@ MysteryImage.prototype.maxIterations = function () {
 };
 
 
-function calibrate(g) {
+function calibrate(g, w, h, font) {
 
-    let fg = g.getStrokeColor();
-    let bg = g.getFillColor();
     let alpha = g.getAlpha();
-
     g.setAlpha(1);
+    g.setColor('pink');
+    g.setBackground("white");
 
-    g.setColor('yellow');
-    g.setBackground('white');
+    let fnt = new Font(FontStyle.REGULAR, 8, "Kartika", CssSizeUnits.PX, "normal")
 
-    g.drawLine(20, 80, 500, 80);
-    g.drawString("(500,80)", 501, 80);
-    g.drawLine(20, 215, 500, 215);
-    g.drawString("(500,215)", 501, 215);
+    let step = 50;
+    for (let x = 0; x < w; x+=step) {
+        g.drawLine(x, 0, x, 20);
+        g.setFont(fnt);
+        g.drawString(""+x, x, 30);
+        g.setFont(font);
+    }
 
+    
+    g.setColor('pink');
+    g.setBackground("white");
 
-    g.drawLine(1500, 12, 1500, 155);
-    g.drawString("(1500,155)", 1470, 155);
-
-
-    g.setColor(fg);
-    g.setBackground(bg);
+    for (let y = 0; y < h; y+=step) {
+        g.setFont(font);
+        g.drawLine(0, y, 20, y);
+        g.setFont(fnt);
+        g.drawString(""+y, 30, y);
+    }
     g.setAlpha(alpha);
 }
 
 MysteryImage.prototype.baseDraw = function (w, h) {
     let g = this.g;
-    //   g.fillRect(this.g.normalizeQuantity(1536-30) ,this.g.normalizeQuantity(128 - 30), 30,30);
     let area = w * h;
     let rnd = this.rnd;
     g.setAlpha(this.bgOpacityEnabled === true ? this.opacity : 1);
     g.setBackground(this.bgColor);
     g.fillRect(0, 0, w, h);
 
-    calibrate(g);
-    if (!this.bgOpacityEnabled) {
-        g.setAlpha(this.opacity);
-    }
-    g.setAlpha(1);
+    let maxIters = this.maxIterations();
+
+    calibrate(g, w, h, this.font);
+    g.setAlpha(this.opacity);
+
     if (this.shapesDensity > 0) {
         this.numShapes = this.shapesDensity * area * MysteryConstants.DENSITY_SCALE;
     }
     let attempts = 0;
     let rects = [];
-    let maxIters = this.maxIterations();
+
 
     while (rects.length < this.numShapes && attempts < maxIters) {
 
@@ -643,6 +645,7 @@ MysteryImage.prototype.baseDraw = function (w, h) {
             }
         }
 
+
         g.setBackground(this.fgColor);
 
         if (clashOccurred) {
@@ -650,9 +653,8 @@ MysteryImage.prototype.baseDraw = function (w, h) {
             continue;
         } else {
             rects.push(r);
-            g.setBackground('yellow');
-            g.fillEllipse(r.left + 8, r.top + 4, 8, 4, 30, 360, false);
-            g.setBackground(this.bgColor);
+            g.setColor(this.fgColor);
+            g.setBackground(this.fgColor);
             switch (this.state) {
 
                 case MysteryConstants.DRAW_SQUARE:
@@ -705,7 +707,6 @@ MysteryImage.prototype.baseDraw = function (w, h) {
         }
 
     }
-console.log('all rects:',rects);
 
 };
 
