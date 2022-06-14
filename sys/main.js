@@ -407,6 +407,15 @@ function View(wkspc, node) {
                 case attrKeys.layout_paddingEnd:
                     this.style.addStyleElement("padding-right", attrValue);
                     break;
+                case attrKeys.layout_paddingHorizontal:
+                    this.style.addStyleElement("padding-left", attrValue);
+                    this.style.addStyleElement("padding-right", attrValue);
+                    break;
+                case attrKeys.layout_paddingVertical:
+                    this.style.addStyleElement("padding-top", attrValue);
+                    this.style.addStyleElement("padding-bottom", attrValue);
+                    break;
+
                 //paddings saved
                 case attrKeys.border:
                     this.style.addStyleElement("border", attrValue);
@@ -3919,15 +3928,15 @@ Guideline.prototype.makeVFL = function () {
     let guideEnd = this.refIds.get(attrKeys.layout_constraintGuide_end);
 
 
-    if(isEmpty(guidePct) && isEmpty(guideBegin) && isEmpty(guideEnd)){
+    if (isEmpty(guidePct) && isEmpty(guideBegin) && isEmpty(guideEnd)) {
         throw 'Please specify either constraint-guide-(percentage|begin|end) for the Guideline whose id is `' + this.id + '`';
     }
 
     let val = 0;
     let vfl = new StringBuffer();
 
-    if(!isEmpty(guidePct)){
-        if(!isEmpty(guideBegin) || !isEmpty(guideEnd)){
+    if (!isEmpty(guidePct)) {
+        if (!isEmpty(guideBegin) || !isEmpty(guideEnd)) {
             throw 'Conflicting guide constraints! only one of guide_percent, guide_begin and guide_end hould be set!'
         }
 
@@ -3946,7 +3955,7 @@ Guideline.prototype.makeVFL = function () {
                 val += '%';
             }
         }
-    
+
         if (orientation === orientations.VERTICAL) {
             vfl.append('H:|-' + val + '-[' + this.id + '(1)]\nV:|[' + this.id + ']-|');
         } else if (orientation === orientations.HORIZONTAL) {
@@ -3955,30 +3964,30 @@ Guideline.prototype.makeVFL = function () {
 
     }
 
-    if(!isEmpty(guideBegin)){
-        if(!isEmpty(guidePct) || !isEmpty(guideEnd)){
+    if (!isEmpty(guideBegin)) {
+        if (!isEmpty(guidePct) || !isEmpty(guideEnd)) {
             throw 'Conflicting guide constraints! only one of `guide_percent`, `guide_begin` and `guide_end` should be set!'
         }
 
-        if(endsWith(guideBegin, "%")){
+        if (endsWith(guideBegin, "%")) {
             throw "`guide_begin` must be a unitless number or be specified in pixels"
         }
 
         let parsed = parseNumberAndUnits(guideBegin);
 
-        if(!isEmpty(parsed.units) && parsed.units != 'px'){
+        if (!isEmpty(parsed.units) && parsed.units != 'px') {
             throw "`guide_begin` must be a unitless number or be specified in pixels"
         }
 
         guideBegin = parsed.number;
 
-        if(isNaN(guideBegin)){
+        if (isNaN(guideBegin)) {
             throw "please specify a number for `guide_begin`"
         }
 
         val = guideBegin;
 
-    
+
         if (orientation === orientations.VERTICAL) {
             vfl.append('H:|-' + val + '-[' + this.id + '(1)]\nV:|[' + this.id + ']-|');
         } else if (orientation === orientations.HORIZONTAL) {
@@ -3987,32 +3996,32 @@ Guideline.prototype.makeVFL = function () {
 
     }
 
-    if(!isEmpty(guideEnd)){
-        if(!isEmpty(guidePct) || !isEmpty(guideBegin)){
+    if (!isEmpty(guideEnd)) {
+        if (!isEmpty(guidePct) || !isEmpty(guideBegin)) {
             throw 'Conflicting guide constraints! only one of `guide_percent`, `guide_begin` and `guide_end` should be set!'
         }
 
-        if(endsWith(guideEnd, "%")){
+        if (endsWith(guideEnd, "%")) {
             throw "`guide_end` must be a unitless number or be specified in pixels"
         }
 
         let parsed = parseNumberAndUnits(guideEnd);
 
-        if(!isEmpty(parsed.units) && parsed.units != 'px'){
+        if (!isEmpty(parsed.units) && parsed.units != 'px') {
             throw "`guide_end` must be a unitless number or be specified in pixels"
         }
 
         guideEnd = parsed.number;
 
-        if(isNaN(guideEnd)){
+        if (isNaN(guideEnd)) {
             throw "please specify a number for `guide_end`"
         }
 
         val = guideEnd;
 
-    
+
         if (orientation === orientations.VERTICAL) {
-            vfl.append('H:|-0-[' + this.id + '(1)]-'+val+'-|\nV:|[' + this.id + ']-0-|');
+            vfl.append('H:|-0-[' + this.id + '(1)]-' + val + '-|\nV:|[' + this.id + ']-0-|');
         } else if (orientation === orientations.HORIZONTAL) {
             vfl.append('H:|[' + this.id + ']|\nV:|-0-[' + this.id + '(1)]-' + val + '-|');
         }
