@@ -64,7 +64,7 @@ const xmlKeys = {
     listView: "ListView",
     horizontalListView: "HorizontalListView",
     gridView: "GridView",
-
+    link: "HyperLink",
     list: "NativeList",
     table: "NativeTable",
     form: "Form",
@@ -135,7 +135,7 @@ const attrKeys = {
     items: "items", // an array of items to display in a list or a dropdown
     tableHeaders: 'tableHeaders', //a 1d array of items to display as a custom table view's headers
     tableItems: 'tableItems', //a 2d array of items to display on a table
-    title: 'title', // table title
+    title: 'title', // table title and for hyper links also
     showBorders: 'showBorders', // show the custom table's inner borders(does not apply to the native table)
     pagingEnabled: 'pagingEnabled',
     tableTheme: 'tableTheme', // for custom tables only
@@ -224,6 +224,9 @@ const attrKeys = {
     checked: "checked",
     name: "name",
     value: "value",
+
+    
+    href: "href", // for hyperlinks
 
     placeholder: "placeholder",
     maxLength: 'maxLength',

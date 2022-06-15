@@ -14,8 +14,8 @@ if (!Number.isNaN) {
 
 if (!Number.isInteger) {
     Number.isInteger = function (x) {
-       // return (x ^ 0) === +x;
-         return +x === (+x - (+x % 1));
+        // return (x ^ 0) === +x;
+        return +x === (+x - (+x % 1));
     };
 }
 
@@ -184,7 +184,7 @@ function getWorkspace(options) {
         return new Workspace(options);
     }
 
-    let onComplete = function (rootView) {};
+    let onComplete = function (rootView) { };
     if (options.onComplete) {
         if (typeof options.onComplete === 'function') {
             onComplete = options.onComplete;
@@ -287,7 +287,7 @@ function Workspace(options) {
     }
 
 
-    this.onComplete = function (rootView) {};
+    this.onComplete = function (rootView) { };
 
     if (options.onComplete) {
         if (typeof options.onComplete === 'function') {
@@ -612,14 +612,14 @@ Workspace.prototype.prefetchAllLayouts = function (rootLayoutName, xmlContent, o
                 //console.log("DONE! , layout: " + rootLayoutName + ", layoutCount: " + self.layoutCount + ", loadedCount: " + self.loadedCount, ", deadEnds: ", self.deadEnds);
                 onload(self.rootXml);
                 self.resetLoaderIndices();
-/////
+                /////
 
                 self.workersMap.forEach(function (worker, name) {
                     let workerName = worker.name;
                     self.stopFetchWorker(workerName);
-                    console.log('closed: ' + workerName);
+                   // console.log('closed: ' + workerName);
                 });
-/////////
+                /////////
                 /**
                  * Remove due to IE non-support
                  for (let m in self.workersMap) {
@@ -880,6 +880,10 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
             view = new Paragraph(wkspc, node);
             break;
 
+        case xmlKeys.link:
+            view = new HyperLink(wkspc, node);
+            break;
+
         case xmlKeys.dropDown:
             view = new DropDown(wkspc, node);
             break;
@@ -952,13 +956,13 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
 
 Parser.prototype.buildUI = function (wkspc) {
 
-    injectButtonDefaults:{
+    injectButtonDefaults: {
         let defBtnStyle = new Style("input[type='button']:hover", []);
         defBtnStyle.addStyleElement('cursor', 'pointer');
         wkspc.allStyles.push(defBtnStyle);
     }
 
-    injectAbsCss:{
+    injectAbsCss: {
         let styleObj = new Style('.abs', []);
         styleObj.addStyleElement('position', 'absolute');
         styleObj.addStyleElement('padding', '0');
@@ -966,7 +970,7 @@ Parser.prototype.buildUI = function (wkspc) {
         wkspc.allStyles.push(styleObj);
     }
 
-    injectInputShadowRemover:{
+    injectInputShadowRemover: {
         if (DISABLE_INPUT_SHADOW === true) {
             let inputShadowRemoveStyle = new Style('input', []);
             inputShadowRemoveStyle.addStyleElement(' background-image', 'none');
@@ -1009,7 +1013,7 @@ Parser.prototype.buildUI = function (wkspc) {
     this.html = this.rootView.toHTML();
     updateOrCreateSelectorsInStyleSheet(styleSheet, wkspc.allStyles);
 
-    makeDefaultPositioningDivs:{
+    makeDefaultPositioningDivs: {
 
         let baseRoot = null;
         let rootDiv = null;
@@ -1052,7 +1056,7 @@ Parser.prototype.buildUI = function (wkspc) {
         autoLayout(this.rootView.htmlElement, this.constraints);
 
 
-//layout the includes
+        //layout the includes
         includes.forEach(function (include) {//Each view is an include
             let rootChild = wkspc.viewMap.get(include.childrenIds[0]);
             //layout the root of an included layout with respect to its include parent element(which is just a div)
@@ -1063,7 +1067,7 @@ Parser.prototype.buildUI = function (wkspc) {
             //console.log('Generated Child Constraints for ', view.id, view.constraints);
         });
 
-//layout generated views on their lis        
+        //layout generated views on their lis        
 
 
         compounds.forEach(function (child) {
@@ -1103,7 +1107,7 @@ function autoLayout(parentElm, visualFormat) {
 
     let AutoLayout = window.AutoLayout;
     let view = new AutoLayout.View();
-    view.addConstraints(AutoLayout.VisualFormat.parse(visualFormat, {extended: true}));
+    view.addConstraints(AutoLayout.VisualFormat.parse(visualFormat, { extended: true }));
     let elements = {};
 
 
@@ -1141,7 +1145,7 @@ function autoLayout(parentElm, visualFormat) {
     window.addEventListener('resize', updateLayout);
     if (parentElm && parentElm.getAttribute(attrKeys.id) === BODY_ID) {
         let rs = new ResizeSensor(parentElm, function () {
-//is scroll visible
+            //is scroll visible
             if (parentElm) {
                 if (parentElm.scrollHeight > parentElm.clientHeight || parentElm.scrollWidth > parentElm.clientWidth) {
                     updateLayout();
@@ -1159,16 +1163,16 @@ function autoLayout(parentElm, visualFormat) {
 Workspace.prototype.startFetchWorker = function (layoutFileName, onSucc) {
 
     let worker = new WorkerBot("worker-" + layoutFileName, PATH_TO_COMPILER_SCRIPTS + 'layout-worker.js',
-            function (e) {
-                let layoutXML = e.data.content;
-                if (onSucc.length === 1) {
-                    onSucc(layoutXML);
-                } else {
-                    console.log(onSucc);
-                }
-            }, function (e) {
-        throw e;
-    });
+        function (e) {
+            let layoutXML = e.data.content;
+            if (onSucc.length === 1) {
+                onSucc(layoutXML);
+            } else {
+                console.log(onSucc);
+            }
+        }, function (e) {
+            throw e;
+        });
 
     let args = {};
     args.layout = layoutFileName;
@@ -1299,7 +1303,7 @@ function launcher(fileName, elemId, templateData) {
                         if (templateData.length > 0) {
                             try {
                                 let data = JSON.parse(templateData);
-                                workspace = new Workspace({layoutName: fileName, bindingElemId: elemId, templateData: data});
+                                workspace = new Workspace({ layoutName: fileName, bindingElemId: elemId, templateData: data });
                             } catch (err) {
                                 throw new Error('Template data specified but is not valid JSON!...' + templateData);
                             }
@@ -1307,12 +1311,12 @@ function launcher(fileName, elemId, templateData) {
                             throw new Error('Template data specified but has no content');
                         }
                     } else if (typeof templateData === 'object') {
-                        workspace = new Workspace({layoutName: fileName, bindingElemId: elemId, templateData: templateData});
+                        workspace = new Workspace({ layoutName: fileName, bindingElemId: elemId, templateData: templateData });
                     } else {
                         throw new Error('Template data specified but its type is invalid');
                     }
                 } else {
-                    workspace = new Workspace({layoutName: fileName, bindingElemId: elemId});
+                    workspace = new Workspace({ layoutName: fileName, bindingElemId: elemId });
                 }
             } else {
                 throw new Error('Invalid xml file specified in data-launcher attribute of `layit.js` script tag.');

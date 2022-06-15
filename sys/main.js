@@ -1329,34 +1329,30 @@ let useAutomaticBackgrounds = function (view, node) {
     }
 };
 
-/*View.prototype.calculateWrapContentSizes = function (node) {
- //bold 12pt arial;
- let w = node.getAttribute(attrKeys.layout_width);
- let h = node.getAttribute(attrKeys.layout_height);
- if (w === sizes.WRAP_CONTENT || h === sizes.WRAP_CONTENT) {
- let elem = this.htmlElement.cloneNode(true);
- //elem.style.visibility = 'hidden';
- this.style.applyInline(elem);
- document.body.appendChild(elem);
- this.wrapWidth = (0.813 * parseFloat(window.getComputedStyle(elem).width)) + 'px';
- this.wrapHeight = (0.825 * parseFloat(window.getComputedStyle(elem).height)) + 'px';
- //console.log('wrapWidth: '+this.wrapWidth, 'wrapHeight: '+this.wrapHeight+"...", this.constructor.name,"[",this.id,"]");
- elem.remove();
- }
- };*/
+
 
 View.prototype.calculateWrapContentSizes = function (node) {
     //bold 12pt arial;
     let w = node.getAttribute(attrKeys.layout_width);
     let h = node.getAttribute(attrKeys.layout_height);
     let elem = this.htmlElement.cloneNode(true);
+
+
     //elem.style.visibility = 'hidden';
     if (w === sizes.WRAP_CONTENT && h === sizes.WRAP_CONTENT) {
         this.style.applyInline(elem);
         document.body.appendChild(elem);
-        this.wrapWidth = (0.813 * parseFloat(window.getComputedStyle(elem).width)) + 'px';
-        this.wrapHeight = (0.825 * parseFloat(window.getComputedStyle(elem).height)) + 'px';
-        //console.log('wrapWidth: '+this.wrapWidth, 'wrapHeight: '+this.wrapHeight+"...", this.constructor.name,"[",this.id,"]");
+
+        let computedStyle = window.getComputedStyle(elem);
+        if (computedStyle.width === 'auto' || !isNumber(parseInt(computedStyle.width)) ||
+            computedStyle.height === 'auto' || !isNumber(parseInt(computedStyle.height))) {
+            let rect = elem.getBoundingClientRect();
+            this.wrapWidth = (0.813 * rect.width) + 'px';
+            this.wrapHeight = (0.825 * rect.height) + 'px';
+        } else {
+            this.wrapWidth = (0.813 * parseFloat(computedStyle.width)) + 'px';
+            this.wrapHeight = (0.825 * parseFloat(computedStyle.height)) + 'px';
+        }
         elem.remove();
     } else if (w !== sizes.WRAP_CONTENT && h === sizes.WRAP_CONTENT) {
         let stl = this.style.clone('.quick_clone_' + this.id);
@@ -1365,10 +1361,16 @@ View.prototype.calculateWrapContentSizes = function (node) {
         });
         stl.applyInline(elem);
         document.body.appendChild(elem);
-        this.wrapHeight = (0.825 * parseFloat(window.getComputedStyle(elem).height)) + 'px';
+
+        let computedStyle = window.getComputedStyle(elem);
+        if (computedStyle.height === 'auto' || !isNumber(parseInt(computedStyle.height))) {
+            let rect = elem.getBoundingClientRect();
+            this.wrapHeight = (0.825 * rect.height) + 'px';
+        } else {
+            this.wrapHeight = (0.825 * parseFloat(computedStyle.height)) + 'px';
+        }
 
         elem.remove();
-
     } else if (w === sizes.WRAP_CONTENT && h !== sizes.WRAP_CONTENT) {
         let stl = this.style.clone('.quick_clone_' + this.id);
         stl.addFromOptions({
@@ -1376,9 +1378,19 @@ View.prototype.calculateWrapContentSizes = function (node) {
         });
         stl.applyInline(elem);
         document.body.appendChild(elem);
-        this.wrapWidth = (0.813 * parseFloat(window.getComputedStyle(elem).width)) + 'px';
+
+        let computedStyle = window.getComputedStyle(elem);
+        if (computedStyle.width === 'auto' || !isNumber(parseInt(computedStyle.width))) {
+            let rect = elem.getBoundingClientRect();
+            this.wrapWidth = (0.813 * rect.width) + 'px';
+        } else {
+            this.wrapWidth = (0.813 * parseFloat(computedStyle.width)) + 'px';
+        }
+
+
         elem.remove();
     }
+    //console.log('id: ' + this.id, "wrapWidth: " + this.wrapWidth + ", wrapHeight: " + this.wrapHeight);
 };
 CheckBox.prototype = Object.create(View.prototype);
 CheckBox.prototype.constructor = CheckBox;
@@ -1412,8 +1424,13 @@ GridView.prototype = Object.create(ListView.prototype);
 GridView.prototype.constructor = GridView;
 Label.prototype = Object.create(View.prototype);
 Label.prototype.constructor = Label;
+
 Paragraph.prototype = Object.create(View.prototype);
 Paragraph.prototype.constructor = Paragraph;
+
+HyperLink.prototype = Object.create(View.prototype);
+HyperLink.prototype.constructor = HyperLink;
+
 IconLabelView.prototype = Object.create(View.prototype);
 IconLabelView.prototype.constructor = IconLabelView;
 
@@ -3524,6 +3541,36 @@ Paragraph.prototype.createElement = function (node) {
         let textNode = document.createTextNode(value);
         this.htmlElement.appendChild(textNode);
     }
+
+    this.assignId();
+    this.calculateWrapContentSizes(node);
+};
+
+function HyperLink(wkspc, node) {
+    View.call(this, wkspc, node);
+}
+
+HyperLink.prototype.createElement = function (node) {
+    this.htmlElement = document.createElement('a');
+
+
+    let text = node.getAttribute(attrKeys.text);//link text
+    let href = node.getAttribute(attrKeys.href);// link href
+    let title = node.getAttribute(attrKeys.title);// link title
+    if (attributeEmpty(text)) {
+        text = "";
+    }
+    if (attributeEmpty(href)) {
+        href = "";
+    }
+    if (attributeEmpty(title)) {
+        title = "";
+    }
+
+    var linkText = document.createTextNode(text);
+    this.htmlElement.appendChild(linkText);
+    this.htmlElement.title = title;
+    this.htmlElement.href = href;
 
     this.assignId();
     this.calculateWrapContentSizes(node);
