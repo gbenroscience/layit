@@ -126,9 +126,23 @@ const attrKeys = {
     layout_constraintGuide_end: "guide_end",
     dimension_ratio: "dim_ratio",
     orientation: "orientation", //
-
+    
+    
     listType: 'listType', //ol or ul
     showBullets: 'showBullets', //for lists, if true, will show the bullets or numbers
+    
+    //These four apply to the NativeList widget alone
+    cellPaddingLeft: "cellPaddingLeft",
+    cellPaddingRight: "cellPaddingRight",
+    cellPaddingTop: "cellPaddingTop",
+    cellPaddingBottom: "cellPaddingBottom",
+    cellForeground: "cellForeground", //applies to NativeList
+    
+    cellSelectedForeground: "cellSelectedForeground",
+    cellSelectedBackground: "cellSelectedBackground",
+    
+    
+
 
     // an array of view template(reference them by their filenames) to be used to construct the custom views for the list's cell. The type of the view is its index in this array
     itemViews: 'itemViews',
@@ -276,6 +290,7 @@ const attrKeys = {
     //ListView and HorizontalListView and GridView's property... The gap between consecutive cells
     cellSpacing: "cellSpacing", // the space between items in the ListView|HorizontalListView|GridView's cells
     //ListView and HorizontalListView and GridView's property... The background of a list|grid cell
+    //Also applies to NativeList
     cellBackground: "cellBackground",
     //ListView and HorizontalListView and GridView's property... The border of a list|grid cell
     cellBorder: "cellBorder",

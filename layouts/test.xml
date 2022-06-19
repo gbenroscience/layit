@@ -239,9 +239,9 @@
             miBgOpacityEnabled="false"
             miStrokeWidth="1"
             miMinSize="8"
-            miNumShapes="20"
+            miNumShapes="80"
             miTextOnly="false"
-            miTextArray='["NGN","GBP","USD","EUR"]'
+            miTextArray='["NGN","GBP","USD","EUR","CAD"]'
             miCacheAfterDraw="false"
     />
 

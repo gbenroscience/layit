@@ -2742,6 +2742,17 @@ DropDown.prototype.editElement = function (index, value) {
         this.htmlElement.options[index].innerText = value;
     }
 };
+DropDown.prototype.selectedIndex = function () {
+    return this.htmlElement.selectedIndex;
+};
+DropDown.prototype.selectedValue = function () {
+    return this.htmlElement.options[this.htmlElement.selectedIndex].innerText;
+};
+DropDown.prototype.selectIndex = function (index) {
+    if (index < this.htmlElement.options.length) {
+        this.htmlElement.selectedIndex = index;
+    }
+};
 /**
  * @param {Workspace} wkspc
  * @param {type} node key-value object
@@ -2767,6 +2778,59 @@ NativeList.prototype.createElement = function (node) {
     }
 
 
+
+    let cellPaddingLeft = node.getAttribute(attrKeys.cellPaddingLeft);
+    let cellPaddingRight = node.getAttribute(attrKeys.cellPaddingRight);
+    let cellPaddingTop = node.getAttribute(attrKeys.cellPaddingTop);
+    let cellPaddingBottom = node.getAttribute(attrKeys.cellPaddingBottom);
+    
+    
+    let cellBg = node.getAttribute(attrKeys.cellBackground);
+    let cellFg = node.getAttribute(attrKeys.cellForeground);
+    
+    let cellSelBg =  node.getAttribute(attrKeys.cellSelectedBackground);
+    let cellSelFg =  node.getAttribute(attrKeys.cellSelectedForeground);
+    
+    
+     let liStyle = new Style(listType+'#' + this.id + " > li", []);
+     let liStyleHover = new Style(listType+'#' + this.id + " > li:hover", []);
+     liStyleHover.addStyleElement("cursor", "pointer");
+    
+    
+    if(!isEmpty(cellBg)){
+        liStyle.addStyleElement("background-color", cellBg);
+    }
+        if(!isEmpty(cellFg)){
+        liStyle.addStyleElement("color", cellFg);
+    }
+    
+       if(!isEmpty(cellSelBg)){
+        liStyleHover.addStyleElement("background-color", cellSelBg);
+    }
+        if(!isEmpty(cellSelFg)){
+        liStyleHover.addStyleElement("color", cellSelFg);
+    }
+    
+   
+    
+    if(!isEmpty(cellPaddingLeft)){
+        parseNumberAndUnits(cellPaddingLeft, true);
+        liStyle.addStyleElement("padding-left", cellPaddingLeft);
+    }
+    if(!isEmpty(cellPaddingRight)){
+        parseNumberAndUnits(cellPaddingRight, true);
+        liStyle.addStyleElement("padding-right", cellPaddingRight);
+    }
+    if(!isEmpty(cellPaddingTop)){
+        parseNumberAndUnits(cellPaddingTop, true);
+        liStyle.addStyleElement("padding-top", cellPaddingTop);
+    }
+    if(!isEmpty(cellPaddingBottom)){
+        parseNumberAndUnits(cellPaddingBottom, true);
+        liStyle.addStyleElement("padding-bottom", cellPaddingBottom);
+    }
+    
+    
     let showBullets = node.getAttribute(attrKeys.showBullets);
     let items = node.getAttribute(attrKeys.items);
     items = items.replace(/\n|\r/g, ''); //remove new lines
@@ -2792,6 +2856,7 @@ NativeList.prototype.createElement = function (node) {
         this.style.addStyleElementCss('list-style-type: none;');
     }
 
+    updateOrCreateSelectorsInStyleSheet(styleSheet, [liStyle, liStyleHover]);
 
     this.assignId();
     this.calculateWrapContentSizes(node);
