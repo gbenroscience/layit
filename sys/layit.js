@@ -755,7 +755,7 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
             break;
 
         case xmlKeys.imports:
-            if (this === wkspc.rootParser) {
+            //if (this === wkspc.rootParser) {
                 let files = node.getAttribute(attrKeys.files);
                 let scripts = parseImports(files);
                 loadScripts(scripts, function () {
@@ -775,9 +775,9 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
 
                     }
                 });
-            } else {
+            /*} else {
                 throw new Error('Please insert your imports in the root xml layout(' + wkspc.id + ') alone. ');
-            }
+            }*/
 
 
 
