@@ -209,7 +209,7 @@ function getWorkspace(options) {
  * @returns {Boolean}
  */
 let isNumber = function (number) {
-    return isNaN(number) === false;
+    return number !== null && isNaN(number) === false;
 };
 
 
@@ -275,6 +275,24 @@ function Workspace(options) {
     if (options.bindingElemId && typeof options.bindingElemId === 'string' && options.bindingElemId.length !== 0) {
         this.systemRootId = options.bindingElemId;
     }
+    //if bindingElemId is not supplied in options, default to attaching the element to the body.
+
+    this.rootWidth = 0;
+    this.rootHeight = 0;
+
+    if (this.systemRootId === BODY_ID) {
+        let parentElm = window;
+        let horScrollBarShowing = parentElm.scrollWidth > parentElm.clientWidth;
+        let vertScrollBarShowing = parentElm.scrollHeight > parentElm.clientHeight;
+        this.rootWidth = (vertScrollBarShowing ? window.innerWidth - getScrollBarWidth() : window.innerWidth);
+        this.rootHeight = (horScrollBarShowing ? window.innerHeight - getScrollBarWidth() : window.innerHeight);
+    } else {
+        let v = document.getElementById(this.systemRootId);
+        let rect = v.getBoundingClientRect();
+        this.rootWidth = rect.width;
+        this.rootHeight = rect.height;
+    }
+
 
     this.templateData = null;
     if (options.templateData && typeof options.templateData === 'object') {
@@ -353,6 +371,10 @@ function Workspace(options) {
  * @returns {Parser}
  */
 function Parser(workspace, xml, parentId) {
+
+    if (isEmpty(xml)) {
+        throw 'Your xml layout was not supplied... xml = ' + xml + ", parent-id = " + parentId;
+    }
 
     if (workspace.templateData) {//RCN: 2015483397
         xml = Mustache.render(xml, workspace.templateData);
@@ -617,20 +639,9 @@ Workspace.prototype.prefetchAllLayouts = function (rootLayoutName, xmlContent, o
                 self.workersMap.forEach(function (worker, name) {
                     let workerName = worker.name;
                     self.stopFetchWorker(workerName);
-                   // console.log('closed: ' + workerName);
+                    // console.log('closed: ' + workerName);
                 });
-                /////////
-                /**
-                 * Remove due to IE non-support
-                 for (let m in self.workersMap) {
-                 for (let i = 0; i < self.workersMap[m].length; i++) {
-                 let worker = self.workersMap[m][i];
-                 let workerName = worker.name;
-                 self.stopFetchWorker(workerName);
-                 console.log('closed: ' + workerName);
-                 }
-                 }
-                 */
+
             }
         } else {
             for (let i = 0; i < layouts.length; i++) {
@@ -720,7 +731,6 @@ function doXmlParse(xml) {
 
 Parser.prototype.nodeProcessor = function (wkspc, node) {
     //use node.parentNode to access the parent of this node
-    let childNodes = node.childNodes;
 
     //process it
     let view = null;
@@ -733,7 +743,7 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
                 node.setAttribute('id', 'root_' + wkspc.id.replace('.', '_') + '_' + wkspc.rootCount);
             }
 
-            view = new View(wkspc, node);//view adds to viewMap automatically in constructor
+            view = new View(wkspc, node, this.parentId);//view adds to viewMap automatically in constructor
 
             if (wkspc.viewMap.size === 1) {//first ConstraintLayout tag in the Parser
                 view.topLevel = true;
@@ -756,29 +766,28 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
 
         case xmlKeys.imports:
             //if (this === wkspc.rootParser) {
-                let files = node.getAttribute(attrKeys.files);
-                let scripts = parseImports(files);
-                loadScripts(scripts, function () {
-                    let controllerName = node.getAttribute(attrKeys.controller);
-                    if (typeof controllerName === 'string' && controllerName.length > 0) {
-                        let viewController = new window[controllerName](wkspc.id);
+            let files = node.getAttribute(attrKeys.files);
+            let scripts = parseImports(files);
+            loadScripts(scripts, function () {
+                let controllerName = node.getAttribute(attrKeys.controller);
+                if (typeof controllerName === 'string' && controllerName.length > 0) {
+                    let viewController = new window[controllerName](wkspc.id);
 
-                        if (viewController && viewController instanceof ViewController) {
-                            wkspc.controller = viewController;
-                            wkspc.controller.onCreate(wkspc);
-                            if (wkspc.rootParser.doneParsing === true) {
-                                wkspc.controller.onViewsAttached(wkspc);
-                            }
-                        } else {
-                            throw new Error("Couldn't initialize ViewController...");
+                    if (viewController && viewController instanceof ViewController) {
+                        wkspc.controller = viewController;
+                        wkspc.controller.onCreate(wkspc);
+                        if (wkspc.rootParser.doneParsing === true) {
+                            wkspc.controller.onViewsAttached(wkspc);
                         }
-
+                    } else {
+                        throw new Error("Couldn't initialize ViewController...");
                     }
-                });
+
+                }
+            });
             /*} else {
                 throw new Error('Please insert your imports in the root xml layout(' + wkspc.id + ') alone. ');
             }*/
-
 
 
             break;
@@ -910,7 +919,8 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
     }
 
     if (view !== null) {
-        this.constraints.push(view.makeVFL(wkspc));
+        //Array.prototype.push.apply(this.constraints, view.layoutChildren(wkspc));
+        //this.constraints.push(view.makeVFL(wkspc));
         wkspc.allStyles.push(view.style);
     } else {
         if (nodeName !== xmlKeys.imports) {
@@ -922,9 +932,8 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
         }
     }
 
-
     if (node.hasChildNodes()) {
-        childNodes = node.childNodes;
+        let childNodes = node.childNodes;
         for (let j = 0; j < childNodes.length; j++) {
             let childNode = childNodes[j];
             if (childNode.nodeName !== '#text' && childNode.nodeName !== '#comment') {
@@ -1029,23 +1038,25 @@ Parser.prototype.buildUI = function (wkspc) {
         baseRoot.appendChild(this.rootView.htmlElement);
 
 
-        //If the baseRoot is the document.body, then specify its own constraints on the page
+        //If the baseRoot is the dynamically created and attached to document.body, then specify its own constraints on the page
         if (wkspc.systemRootId === BODY_ID) {
             // main layout
-            autoLayout(undefined, [
-                'HV:|-0-[' + wkspc.systemRootId + ']-0-|'
-            ]);
+            //autoLayout(undefined, ['HV:|-0-[' + wkspc.systemRootId + ']-0-|']);
+            let id = wkspc.systemRootId;
+            autoLayout(undefined, layoutRootOnBindingElement(null, id));
         }
+            if (baseRoot.nodeName.toLowerCase() === 'li' || baseRoot.nodeName.toLowerCase() === 'td' || baseRoot.nodeName === 'th') {
+                //layout the template view on its li|td|th
+                //autoLayout(baseRoot, this.rootView.templateConstraints); // using vfl
+                autoLayout(baseRoot, this.rootView.layoutSelf(wkspc));
+            } else {
+                // layout the root layout on the baseRoot(the element we are attaching the xml layout to)
+                //autoLayout(baseRoot, ['HV:|-0-[' + this.rootView.htmlElement.id + ']-0-|']);
+                autoLayout(baseRoot, /*layoutRootOnBindingElement(null, this.rootView.id)*/ this.rootView.layoutSelf(wkspc));
+            }
+        
 
-        if (baseRoot.nodeName.toLowerCase() === 'li' || baseRoot.nodeName.toLowerCase() === 'td' || baseRoot.nodeName === 'th') {
-            //layout the template view on its li|td|th
-            autoLayout(baseRoot, this.rootView.templateConstraints);
-        } else {
-            // layout the root layout on the baseRoot(the element we are attaching the xml layout to)
-            autoLayout(baseRoot, [
-                'HV:|-0-[' + this.rootView.htmlElement.id + ']-0-|'
-            ]);
-        }
+  
 
 
         /**
@@ -1053,18 +1064,28 @@ Parser.prototype.buildUI = function (wkspc) {
          */
         this.rootView.constraints = this.constraints;
         // layout the xml layout with respect to its rootview
-        autoLayout(this.rootView.htmlElement, this.constraints);
+        // autoLayout(this.rootView.htmlElement, this.constraints); //using vfl
+        autoLayout(this.rootView.htmlElement, this.rootView.layoutChildren(wkspc), false);
 
 
         //layout the includes
         includes.forEach(function (include) {//Each view is an include
             let rootChild = wkspc.viewMap.get(include.childrenIds[0]);
-            //layout the root of an included layout with respect to its include parent element(which is just a div)
-            autoLayout(include.htmlElement, include.directChildConstraints);
-            //console.log('id:  ', view.id, '    ', view.directChildConstraints);
+            /**
+             * Lay out an included layout on its parent include using constraints found in the
+             * include.directChildConstraints array
+             */
+            //autoLayout(include.htmlElement, include.directChildConstraints);//using vfl
+            autoLayout(include.htmlElement, rootChild.layoutSelf(wkspc));
             //layout the xml of an included layout with respect to its root
-            autoLayout(rootChild.htmlElement, include.constraints);
-            //console.log('Generated Child Constraints for ', view.id, view.constraints);
+            /**
+             * An include holds the child constraints of its included layout
+             * in trust for it; lol! Use the constraints to layout the 
+             * included layout's children on the included layout's root.
+             */
+            //autoLayout(rootChild.htmlElement, include.constraints); //using vfl
+            
+            autoLayout(rootChild.htmlElement, rootChild.layoutChildren(wkspc));
         });
 
         //layout generated views on their lis        
@@ -1087,6 +1108,59 @@ Parser.prototype.buildUI = function (wkspc) {
     //  console.log('UI construction logic done...', wkspc.viewMap.size);
 
 };
+/**
+ * Generates constraints needed to layout the root element of any layout on the physical DOM
+ * element on which it is to be bound.
+ * @param {string} bindingElemId The id of the physical DOM element to which the xml layout will be attached
+ * @param {string} rootChildID The id of the root element of the xml layout
+ * @returns an array of raw constraints to use in the layout
+ */
+function layoutRootOnBindingElement(bindingElemId, rootChildID){
+    if(typeof bindingElemId !== 'string' && bindingElemId){
+        throw 'Invalid bindingElemId...bindingElemId: '+bindingElemId;
+    }
+    if(typeof rootChildID !== "string" || rootChildID.length === 0){
+        throw 'Invalid rootChildId';
+    }
+return [{
+            view1: rootChildID,
+            attr1: 'centerX',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: bindingElemId,
+            attr2: 'centerX',    // see AutoLayout.Attribute
+            constant: 0,
+            multiplier: 1,
+            priority: AutoLayout.Priority.REQUIRED
+        }, {
+            view1: rootChildID,
+            attr1: 'centerY',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: bindingElemId,
+            attr2: 'centerY',    // see AutoLayout.Attribute
+            constant: 0,
+            multiplier: 1,
+            priority: AutoLayout.Priority.REQUIRED
+        },{
+            view1: rootChildID,
+            attr1: 'width',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: bindingElemId,
+            attr2: "width",
+            constant: 0,
+            multiplier: 1,
+            priority: AutoLayout.Priority.REQUIRED
+        },{
+            view1: rootChildID,
+            attr1: 'height',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: bindingElemId,
+            attr2: "height",
+            constant: 0,
+            multiplier: 1,
+            priority: AutoLayout.Priority.REQUIRED
+        }
+    ];
+}
 
 /**
  * Lays out the child elements of a parent element absolutely
@@ -1096,22 +1170,25 @@ Parser.prototype.buildUI = function (wkspc) {
  * and the child elements are resized and repositioned.
  *
  * @param {Element} parentElm Parent DOM element
- * @param {String|Array} visualFormat One or more visual format strings
+ * @param {String|Array} constraints Either an array of raw constraints or  an array of one or more visual format strings
+ * @param {boolean} isVisualFormat If true, the connstraints array contains visual format strings, if not, it contains raw constraints
  */
-function autoLayout(parentElm, visualFormat) {
-    /* 
-     * To change this license header, choose License Headers in Project Properties.
-     * To change this template file, choose Tools | Templates
-     * and open the template in the editor.
-     */
+function autoLayout(parentElm, constraints) {
+    
+    let isVisualFormat = constraints && isOneDimArray(constraints) && constraints.length > 0 && typeof constraints[0] === "string";
+    let isOptionsFormat = constraints && isOneDimArray(constraints) && ((constraints.length > 0 && typeof constraints[0] === "object") || constraints.length === 0);
 
     let AutoLayout = window.AutoLayout;
     let view = new AutoLayout.View();
-    view.addConstraints(AutoLayout.VisualFormat.parse(visualFormat, { extended: true }));
+        if (isVisualFormat === true) {
+            view.addConstraints(AutoLayout.VisualFormat.parse(constraints, { extended: true }));
+        } else if(isOptionsFormat) {
+            view.addConstraints(constraints);
+        }else{
+            throw 'Invalid parameters passed to autoLayout! no layout constraints specified';
+        }
+    
     let elements = {};
-
-
-
 
     for (let key in view.subViews) {
         let elm = document.getElementById(key);

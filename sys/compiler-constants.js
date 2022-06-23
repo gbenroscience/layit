@@ -10,11 +10,6 @@ const PATH_TO_UI_SCRIPTS = SCRIPTS_BASE + "uiscripts/";
 
 
 
-
-
-
-
-
 const DISABLE_INPUT_SHADOW = true;
 
 const sizes = {
@@ -124,6 +119,8 @@ const attrKeys = {
     layout_constraintGuide_percent: "guide_percent",
     layout_constraintGuide_begin: "guide_begin",
     layout_constraintGuide_end: "guide_end",
+    layout_horizontalBias: "hor_bias",// a floating point bumber between 0 and 1 specifying the priority of the horizontal constraint attributes
+    layout_verticalBias: "ver_bias",// a floating point bumber between 0 and 1 specifying the priority of the vertical constraint attributes
     dimension_ratio: "dim_ratio",
     orientation: "orientation", //
     

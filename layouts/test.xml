@@ -116,8 +116,7 @@
     <TextArea
             id="notes_area"
             width="512px"
-            height="0"
-            dim_ratio='2:1'
+            height="0.5*width"
             cx_align="parent"
             top_bottom="section_top"
             marginTop="80"

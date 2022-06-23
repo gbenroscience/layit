@@ -1,3 +1,6 @@
+//const AutoLayout = require("./ext/autolayout");
+
+
 let TEMPLATE_INDEX = 0;
 /**
  *
@@ -86,9 +89,11 @@ function setAbsoluteSizeAndPosition(elm, left, top, width, height) {
  *
  * @param {Workspace} wkspc
  * @param {XMLNode} node
+ * @param {string} parentId This is an optional parameter, and its only supplied when this View is the root layout of an xml include.
+ * We use it to pass the id of the include element in the original layout to this View.
  * @returns {View}
  */
-function View(wkspc, node) {
+function View(wkspc, node, parentId) {
     const zaId = node.getAttribute(attrKeys.id);
     if (typeof zaId === 'undefined' || zaId === null || zaId === '') {
         throw 'Please specify the view id properly';
@@ -111,7 +116,9 @@ function View(wkspc, node) {
     //The main ConstraintLayout tag in the original layout file
     this.topLevelRoot = this.root === true && wkspc.viewMap.size === 0;
     this.id = zaId;
-    this.parentId = (node.parentNode.getAttribute) ? node.parentNode.getAttribute(attrKeys.id).trim() : null;
+    this.parentId = (node.parentNode.getAttribute) ? node.parentNode.getAttribute(attrKeys.id).trim() :
+        (parentId && typeof parentId === 'string' ? parentId : null);
+
     this.childrenIds = [];
     this.style = new Style("#" + this.id, []);
     this.refIds = new Map();
@@ -121,7 +128,7 @@ function View(wkspc, node) {
         /**
          * Similar to the IncludedView.directChildConstraints method.
          * For views to be used as template for list | grid | table cells, 
-         * their parent is not in the layit view heirarchy...e.g it is an `LI` or a `TD` or a `TH`.
+         * their parent is not in the layit view hierarchy...e.g it is an `LI` or a `TD` or a `TH`.
          * We need to store the constraints that relate the template to this absentee(from the layit hierarchy) parent.
          * So we store them here.
          */
@@ -183,88 +190,69 @@ function View(wkspc, node) {
         }
 
 
-        if (this.margins.top && startsWith(this.margins.top, "-")) {
-            throw new Error('Negative margins (margin-top) on view(' + this.id + ') not supported by layout engine');
+        if (!this.margins.start) {
+            this.margins.start = 0;
         }
-        if (this.margins.bottom && startsWith(this.margins.bottom, "-")) {
-            throw new Error('Negative margins (margin-bottom) on view(' + this.id + ') not supported by layout engine');
+        if (!this.margins.end) {
+            this.margins.end = 0;
         }
-        if (this.margins.start && startsWith(this.margins.start, "-")) {
-            throw new Error('Negative margins (margin-start) on view(' + this.id + ') not supported by layout engine');
+        if (!this.margins.top) {
+            this.margins.top = 0;
         }
-        if (this.margins.end && startsWith(this.margins.end, "-")) {
-            throw new Error('Negative margins (margin-end) on view(' + this.id + ') not supported by layout engine');
+        if (!this.margins.bottom) {
+            this.margins.bottom = 0;
         }
 
+
+        /**
+         * Values supported for width and height in xml.
+         * Unitless values are supported, these are assumed to mean pixels
+         * So you may say:<br>
+         * width="2" or height="32"<br>
+         * The following units are supported: 
+         * px, em and %.
+         * So you may say:
+         * width="322px" or height="308em" or width="5%"
+         * Relational values are supported in the following format alone:
+         * width="height"//makes the width and height same on the view
+         * width="elemId" // makes the width of this view same as the width of the view with id=elemId
+         * width="elemId*2" and width="2*elemId" are equivalent //makes the width of this view twice as large as the width of the view with id=elemId
+         * width="elemId.width" // makes the width of this view same as the width of the view with id=elemId
+         * width="elemId.height" // makes the width of this view same as the height of the view with id=elemId
+         * width="4.2*elemId.width"// makes the width of this view 4.2 times the width of the view with id=elemId
+         * width="0.25*elemId.height"// makes the width of this view 0.25 times the height of the view with id=elemId
+         * width="elemId.width*3.8"// makes the width of this view 3.8 times the width of the view with id=elemId
+         * width="elemId.height*3.142"// makes the width of this view 3.142 the height of the view with id=elemId
+         * 
+         */
         this.width = node.getAttribute(attrKeys.layout_width);
         this.height = node.getAttribute(attrKeys.layout_height);
+
+
+        if (this.width === sizes.MATCH_PARENT) {
+            this.width = '100%';
+        }
+        if (this.height === sizes.MATCH_PARENT) {
+            this.height = '100%';
+        }
 
         changePxToUnitLess: {
 
             if (endsWith(this.width, 'px')) {
-                this.width = parseInt(this.width);
+                this.width = parseFloat(this.width);
             }
             if (endsWith(this.height, 'px')) {
-                this.height = parseInt(this.height);
+                this.height = parseFloat(this.height);
             }
 
         }
 
-        /**
-         * In your xml, you may have:
-         * width="height"
-         * height="100px"
-         * This code section will make
-         * width="100px" here
-         *
-         * Or if you have:
-         *
-         * width="90px"
-         * height="width/1.25"
-         *
-         * This code section will make:
-         * height="72" (in px) Note: only division operation is supported
-         *
-         */
-        changeDimensionalReferences: {
-            let w = parseInt(this.width);
-            let h = parseInt(this.height);
-            let i = -1;
-            //change width and height values to id.width and id.height for same view references in xml
-            if (typeof this.width === 'string') {
-                if (this.width === 'height') {
-                    this.width = this.id + ".height";
-                } else if (this.width.indexOf("height") !== -1 && (i = this.width.indexOf("/")) !== -1) {
-                    let lhs = this.width.substring(0, i);
-                    lhs = lhs.trim();
-                    let rhs = this.width.substring(i + 1);
-                    rhs = rhs.trim();
-                    if (lhs === 'height' && isNumber(rhs)) {
-                        lhs = this.id + ".height";
-                        this.width = lhs + "/" + rhs;
-                    }
-                }
-            }
-            if (typeof this.height === 'string') {
-                if (this.height === 'width') {
-                    this.height = this.id + ".width";
-                } else if (this.height.indexOf("width") !== -1 && (i = this.height.indexOf("/")) !== -1) {
-                    let lhs = this.height.substring(0, i);
-                    lhs = lhs.trim();
-                    let rhs = this.height.substring(i + 1);
-                    rhs = rhs.trim();
-                    if (lhs === 'width' && isNumber(rhs)) {
-                        lhs = this.id + ".width";
-                        this.height = lhs + "/" + rhs;
-                    }
-                }
-            }
-        }
+
 
 
         this.dimRatio = -1; //Not specified... dimRatio is width/height
-        this.wrapWidth = "";
-        this.wrapHeight = "";
+        this.wrapWidth = -1;
+        this.wrapHeight = -1;
         const err = new Error();
         if (typeof this.width === 'undefined' || this.width === null || this.width === '') {
             err.name = 'UnspecifiedWidthError';
@@ -288,9 +276,9 @@ function View(wkspc, node) {
 
             let attrName = node.attributes[i].nodeName;
             let attrValue = node.attributes[i].nodeValue;
-            if (attrValue === 'parent') {
-                attrValue = this.parentId;
-            }
+            // if (attrValue === 'parent') {
+            //     attrValue = this.parentId;
+            // }
 
             switch (attrName) {
                 case attrKeys.layout:
@@ -366,13 +354,21 @@ function View(wkspc, node) {
                 case attrKeys.layout_constraintGuide_end:
                     this.refIds.set(attrKeys.layout_constraintGuide_end, attrValue);
                     break;
+                case attrKeys.layout_horizontalBias:
+                    this.refIds.set(attrKeys.layout_horizontalBias, attrValue);
+                    break;
+                case attrKeys.layout_verticalBias:
+                    this.refIds.set(attrKeys.layout_verticalBias, attrValue);
+                    break;
 
                 case attrKeys.orientation:
                     this.refIds.set(attrKeys.orientation, attrValue);
                     break;
                 case attrKeys.dimension_ratio:
-                    if (isDimensionRatio(attrValue) === true) {
-                        this.refIds.set(attrKeys.dimension_ratio, attrValue);
+                    if (isNumber(attrValue)) {
+                        this.dimRatio = parseFloat(attrValue);
+                        this.refIds.set(attrKeys.dimension_ratio, this.dimRatio);
+                    } else if (isDimensionRatio(attrValue) === true) {
                         let arr = attrValue.split(':');
                         let num = parseFloat(arr[0]);
                         let den = parseFloat(arr[1]);
@@ -382,11 +378,8 @@ function View(wkspc, node) {
                         if (den <= 0) {
                             throw new Error('Bad ratio specified! RHS can neither be 0 nor less than 0');
                         }
-                        if (isNumber(attrValue)) {
-                            this.dimRatio = parseFloat(attrValue);
-                        } else {
-                            this.dimRatio = num / den;
-                        }
+                        this.dimRatio = num / den;
+                        this.refIds.set(attrKeys.dimension_ratio, this.dimRatio);
                     } else {
                         throw new Error('Invalid dimension ratio specified on view with id: ' + this.id);
                     }
@@ -584,12 +577,143 @@ function View(wkspc, node) {
 
 
     this.createElement(node);
-    wkspc.viewMap.set(this.id, this);
+
+    if (this.width === sizes.WRAP_CONTENT) {
+        this.width = this.wrapWidth;
+    } if (this.height === sizes.WRAP_CONTENT) {
+        this.height = this.wrapHeight;
+    }
+
     if (cssClasses !== null) {
         addClass(this.htmlElement, cssClasses);
     }
 
 
+    this.rawWidth = 0;
+    this.rawHeight = 0;
+
+    let parent = wkspc.viewMap.get(this.parentId);
+    if (endsWith(this.width, "%")) {
+        if (this.topLevelRoot) {
+            this.rawWidth = (parseFloat(this.width) / 100.0) * wkspc.rootWidth;
+        } else {
+            this.rawWidth = (parseFloat(this.width) / 100.0) * parent.width;
+        }
+    }
+    else if (endsWith(this.width, "em")) {
+        if (this.topLevelRoot) {
+            this.rawWidth = parseFloat(this.width) * wkspc.rootWidth;
+        } else {
+            this.rawWidth = parseFloat(this.width) * parent.width;
+        }
+    } else {
+        this.rawWidth = parseInt(this.width);
+    }
+
+    if (endsWith(this.height, "%")) {
+        if (this.topLevelRoot) {
+            this.rawHeight = (parseFloat(this.height) / 100.0) * wkspc.rootHeight;
+        } else {
+            this.rawHeight = (parseFloat(this.height) / 100.0) * parent.height;
+        }
+    }
+    else if (endsWith(this.height, "em")) {
+        if (this.topLevelRoot) {
+            this.rawHeight = parseFloat(this.height) * wkspc.rootHeight;
+        } else {
+            this.rawHeight = parseFloat(this.height) * parent.height;
+        }
+    } else {
+        this.rawHeight = parseInt(this.height);
+    }
+
+    //By this point, the rawWidth and the rawHeight properties of the View are in pixels(no units) or NaN.
+    // The original values of width and height are preserved
+
+
+    if (this.rawWidth === 0) {
+        if (this.dimRatio !== -1) {
+            this.rawWidth = this.dimRatio * this.rawHeight;
+        }
+    } if (this.rawHeight === 0) {
+        if (this.dimRatio !== -1) {
+            this.rawHeight = this.rawWidth * this.dimRatio;
+        }
+    }
+
+
+
+    function convertSizeToPx(size, viewWidth) {
+        let res = 0;
+        if (endsWith(size, "px")) {
+            res = parseFloat(size);
+        } else if (endsWith(size, "%")) {
+            res = (parseFloat(size) / 100.0) * viewWidth;
+        } else if (endsWith(size, "em")) {
+            res = parseFloat(size) * viewWidth;
+        } else if (isNumber(size)) {
+            res = parseFloat(size);
+        }
+        return res;
+    }
+
+    let maxWidth = this.refIds.get(attrKeys.layout_maxWidth);
+    let maxHeight = this.refIds.get(attrKeys.layout_maxHeight);
+    let minWidth = this.refIds.get(attrKeys.layout_minWidth);
+    let minHeight = this.refIds.get(attrKeys.layout_minHeight);
+
+    if (maxWidth) {
+        let a = convertSizeToPx(maxWidth, parent.rawWidth);
+        this.refIds.set(attrKeys.layout_maxWidth, isNumber(a) ? a : maxWidth);
+    } if (maxHeight) {
+        let a = convertSizeToPx(maxHeight, parent.rawHeight);
+        this.refIds.set(attrKeys.layout_maxHeight, isNumber(a) ? a : maxHeight);
+    } if (minWidth) {
+        let a = convertSizeToPx(minWidth, parent.rawWidth);
+        this.refIds.set(attrKeys.layout_minWidth, isNumber(a) ? a : minWidth);
+    } if (minHeight) {
+        let a = convertSizeToPx(minHeight, parent.rawHeight);
+        this.refIds.set(attrKeys.layout_minHeight, isNumber(a) ? a : minHeight);
+    }
+    //maxWidth, maxHeight, minWidth, minHeight are now unitless and in pixels, too
+
+
+    let throwErr = function (msg) {
+        throw msg;
+    }
+    if (this.margins.top) {
+        let a = convertSizeToPx(this.margins.top, parent.rawWidth);
+        if (isNumber(a)) {
+            this.margins.top = a;
+        } else {
+            throwErr('Invalid value set for margin-top on view.id=' + this.id);
+        }
+    } if (this.margins.bottom) {
+        let a = convertSizeToPx(this.margins.bottom, parent.rawWidth);
+        if (isNumber(a)) {
+            this.margins.bottom = a;
+        } else {
+            throwErr('Invalid value set for margin-bottom on view.id=' + this.id);
+        }
+    } if (this.margins.start) {
+        let a = convertSizeToPx(this.margins.start, parent.rawWidth);
+        if (isNumber(a)) {
+            this.margins.start = a;
+        } else {
+            throwErr('Invalid value set for margin-start on view.id=' + this.id);
+        }
+    } if (this.margins.end) {
+        let a = convertSizeToPx(this.margins.end, parent.rawWidth);
+        if (isNumber(a)) {
+            this.margins.end = a;
+        } else {
+            throwErr('Invalid value set for margin-end on view.id=' + this.id);
+        }
+
+    }
+    //All defined margins are now unitless and in pixels, too
+
+    wkspc.viewMap.set(this.id, this);
 }
 
 View.prototype.getTextSize = function (txt) {
@@ -848,12 +972,6 @@ View.prototype.makeVFL = function (wkspc) {
     }
 
 
-    if (this.width === sizes.MATCH_PARENT) {
-        this.width = '100%';
-    }
-    if (this.height === sizes.MATCH_PARENT) {
-        this.height = '100%';
-    }
 
 
     let isWidPct = endsWith(this.width, '%');
@@ -1156,8 +1274,1531 @@ View.prototype.makeVFL = function (wkspc) {
     }
 
 
+
+
     return vfl.toString().trim();
 };
+
+View.prototype.getValueAndPriority = function (value) {
+
+    if (!value) {
+        return value;
+    }
+    if (typeof value === 'number') {
+        return {
+            id: value,
+            priority: AutoLayout.Priority.REQUIRED
+        };
+    }
+    let index = value.indexOf('@');
+
+    if (index === -1) {
+        return {
+            id: value,
+            priority: AutoLayout.Priority.REQUIRED
+        };
+    }
+    if (index === 0) {
+        throw 'Bad value for id';
+    }
+
+    return {
+        id: value.substring(0, index),
+        priority: parseInt(value.substring(index+1))
+    };
+};
+
+
+/**
+ * Applies necessary constraints to itself, where necessary
+ *  Included layouts, templated layouts, and root layouts will need this a lot.
+ */
+View.prototype.layoutSelf = function (wkspc) {
+
+    let w = this.width;
+    let h = this.height;
+    let id = this.id;
+
+    let maxWid = this.refIds.get(attrKeys.layout_maxWidth);
+    let maxHei = this.refIds.get(attrKeys.layout_maxHeight);
+    let minWid = this.refIds.get(attrKeys.layout_minWidth);
+    let minHei = this.refIds.get(attrKeys.layout_minHeight);
+
+    let ss = this.refIds.get(attrKeys.layout_constraintStart_toStartOf);
+    let ee = this.refIds.get(attrKeys.layout_constraintEnd_toEndOf);
+    let tt = this.refIds.get(attrKeys.layout_constraintTop_toTopOf);
+    let bb = this.refIds.get(attrKeys.layout_constraintBottom_toBottomOf);
+    let cx = this.refIds.get(attrKeys.layout_constraintCenterXAlign);
+    let cy = this.refIds.get(attrKeys.layout_constraintCenterYAlign);
+
+
+
+    let constraints = [];
+
+
+    let idnpWid = this.getValueAndPriority(w);
+    w = idnpWid.id;
+    let priorityWidth = idnpWid.priority;
+
+    this.setWidthConstraints(constraints, this.id, w, priorityWidth);
+
+    let idnpHei = this.getValueAndPriority(h);
+    h = idnpHei.id;
+    let priorityHeight = idnpHei.priority;
+
+    this.setHeightConstraints(constraints, this.id, h, priorityHeight);
+    
+    if (maxWid) {
+        
+    let idnpMaxWid = this.getValueAndPriority(maxWid);
+    maxWid = idnpMaxWid.id;
+    let priorityMaxWid = idnpMaxWid.priority;
+
+        //set maxWidth
+        constraints.push({
+            view1: id,
+            attr1: 'width',    // see AutoLayout.Attribute
+            relation: 'leq',   // see AutoLayout.Relation
+            constant: maxWid,
+            multiplier: 1,
+            priority: priorityMaxWid
+        });
+    }
+    if (minWid) {
+        let idnpMinWid = this.getValueAndPriority(minWid);
+        minWid = idnpMinWid.id;
+        let priorityMinWid = idnpMinWid.priority;
+    
+        //set minWidth
+        constraints.push({
+            view1: id,
+            attr1: 'width',    // see AutoLayout.Attribute
+            relation: 'geq',   // see AutoLayout.Relation
+            constant: minWid,
+            multiplier: 1,
+            priority: priorityMinWid
+        });
+    }
+    if (maxHei) {
+        let idnpMaxHei = this.getValueAndPriority(maxHei);
+        maxHei = idnpMaxHei.id;
+        let priorityMaxHei = idnpMaxHei.priority;
+    
+    
+        //set maxHeight
+        constraints.push({
+            view1: id,
+            attr1: 'height',    // see AutoLayout.Attribute
+            relation: 'leq',   // see AutoLayout.Relation
+            constant: maxHei,
+            multiplier: 1,
+            priority: priorityMaxHei
+        });
+    }
+
+    if (minHei) {
+
+        let idnpMinHei = this.getValueAndPriority(minHei);
+        minHei = idnpMinHei.id;
+        let priorityMinHei = idnpMinHei.priority;
+    
+        //set minHeight
+        constraints.push({
+            view1: id,
+            attr1: 'height',    // see AutoLayout.Attribute
+            relation: 'geq',   // see AutoLayout.Relation
+            constant: minHei,
+            multiplier: 1,
+            priority: priorityMinHei
+        });
+    }
+
+
+    
+    let view = this;
+
+    if (ss) {
+        let idnp = this.getValueAndPriority(ss);
+        ss = idnp.id;
+        let priority = idnp.priority;
+        constraints.push({
+            view1: id,
+            attr1: 'left',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: 'left',    // see AutoLayout.Attribute
+            constant: view.margins.start,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+    if (tt) {
+        let idnp = this.getValueAndPriority(tt);
+        tt = idnp.id;
+        let priority = idnp.priority;
+        constraints.push({
+            view1: id,
+            attr1: 'top',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: 'top',    // see AutoLayout.Attribute
+            constant: view.margins.top,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+    if (ee) {
+        let idnp = this.getValueAndPriority(ee);
+        ee = idnp.id;
+        let priority = idnp.priority;
+        constraints.push({
+            view1: id,
+            attr1: 'right',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: 'right',    // see AutoLayout.Attribute
+            constant: view.margins.end,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+    if (bb) {
+        let idnp = this.getValueAndPriority(bb);
+        bb = idnp.id;
+        let priority = idnp.priority;
+        constraints.push({
+            view1: id,
+            attr1: 'bottom',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: 'bottom',    // see AutoLayout.Attribute
+            constant: view.margins.bottom,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+
+    if (cx) {
+        let idnp = this.getValueAndPriority(cx);
+        cx = idnp.id;
+        let priority = idnp.priority;
+        constraints.push({
+            view1: id,
+            attr1: 'centerX',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: 'centerX',    // see AutoLayout.Attribute
+            constant: view.margins.start - view.margins.end,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+    if (cy) {
+        let idnp = this.getValueAndPriority(cy);
+        cy = idnp.id;
+        let priority = idnp.priority;
+        constraints.push({
+            view1: id,
+            attr1: 'centerY',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: 'centerY',    // see AutoLayout.Attribute
+            constant: view.margins.top - view.margins.bottom,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+
+    return constraints;
+
+
+};
+/**
+ * Applies necessary constraints to itself, where necessary
+ *  Included layouts, templated layouts, and root layouts will need this a lot.
+ */
+View.prototype.layoutSelf1 = function (wkspc) {
+    let w = this.width;
+    let h = this.height;
+    let id = this.id;
+
+
+    let constraints = [];
+
+    if (this.nodeName !== xmlKeys.root) {
+        return constraints;
+    }
+
+
+    let ss = this.refIds.get(attrKeys.layout_constraintStart_toStartOf);
+    let ee = this.refIds.get(attrKeys.layout_constraintEnd_toEndOf);
+    let tt = this.refIds.get(attrKeys.layout_constraintTop_toTopOf);
+    let bb = this.refIds.get(attrKeys.layout_constraintBottom_toBottomOf);
+    let cx = this.refIds.get(attrKeys.layout_constraintCenterXAlign);
+    let cy = this.refIds.get(attrKeys.layout_constraintCenterYAlign);
+
+    let maxWid = this.refIds.get(attrKeys.layout_maxWidth);
+    let maxHei = this.refIds.get(attrKeys.layout_maxHeight);
+    let minWid = this.refIds.get(attrKeys.layout_minWidth);
+    let minHei = this.refIds.get(attrKeys.layout_minHeight);
+
+
+    // set width
+    constraints.push({
+        view1: id,
+        attr1: 'width',    // see AutoLayout.Attribute
+        relation: 'equ',   // see AutoLayout.Relation
+        view2: null,
+        attr2: 'width',
+        constant: 0,
+        multiplier: 1
+    });
+
+    //set height
+    constraints.push({
+        view1: id,
+        attr1: 'height',    // see AutoLayout.Attribute
+        relation: 'equ',   // see AutoLayout.Relation
+        view2: null,
+        attr2: 'height',
+        constant: 0,
+        multiplier: 1
+    });
+
+    if (maxWid) {
+        //set maxWidth
+        constraints.push({
+            view1: id,
+            attr1: 'width',    // see AutoLayout.Attribute
+            relation: 'leq',   // see AutoLayout.Relation
+            constant: maxWid,
+            multiplier: 1,
+            priority: AutoLayout.Priority.REQUIRED
+        });
+    }
+    if (minWid) {
+        //set minWidth
+        constraints.push({
+            view1: id,
+            attr1: 'width',    // see AutoLayout.Attribute
+            relation: 'geq',   // see AutoLayout.Relation
+            constant: minWid,
+            multiplier: 1,
+            priority: AutoLayout.Priority.REQUIRED
+        });
+    }
+    if (maxHei) {
+        //set maxHeight
+        constraints.push({
+            view1: id,
+            attr1: 'height',    // see AutoLayout.Attribute
+            relation: 'leq',   // see AutoLayout.Relation
+            constant: maxHei,
+            multiplier: 1,
+            priority: AutoLayout.Priority.REQUIRED
+        });
+    }
+
+    if (minHei) {
+        //set minHeight
+        constraints.push({
+            view1: id,
+            attr1: 'height',    // see AutoLayout.Attribute
+            relation: 'geq',   // see AutoLayout.Relation
+            constant: minHei,
+            multiplier: 1,
+            priority: AutoLayout.Priority.REQUIRED
+        });
+    }
+
+    let view = this;
+
+    if (ss) {
+        let idnp = this.getValueAndPriority(ss);
+        ss = idnp.id;
+        let priority = idnp.priority;
+        constraints.push({
+            view1: id,
+            attr1: 'left',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: 'left',    // see AutoLayout.Attribute
+            constant: view.margins.start,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+    if (tt) {
+        let idnp = this.getValueAndPriority(tt);
+        tt = idnp.id;
+        let priority = idnp.priority;
+        constraints.push({
+            view1: id,
+            attr1: 'top',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: 'top',    // see AutoLayout.Attribute
+            constant: view.margins.top,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+    if (ee) {
+        let idnp = this.getValueAndPriority(ee);
+        ee = idnp.id;
+        let priority = idnp.priority;
+        constraints.push({
+            view1: id,
+            attr1: 'right',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: 'right',    // see AutoLayout.Attribute
+            constant: view.margins.end,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+    if (bb) {
+        let idnp = this.getValueAndPriority(bb);
+        bb = idnp.id;
+        let priority = idnp.priority;
+        constraints.push({
+            view1: id,
+            attr1: 'bottom',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: 'bottom',    // see AutoLayout.Attribute
+            constant: view.margins.bottom,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+
+    if (cx) {
+        let idnp = this.getValueAndPriority(cx);
+        cx = idnp.id;
+        let priority = idnp.priority;
+        constraints.push({
+            view1: id,
+            attr1: 'centerX',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: 'centerX',    // see AutoLayout.Attribute
+            constant: view.margins.start - view.margins.end,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+    if (cy) {
+        let idnp = this.getValueAndPriority(cy);
+        cy = idnp.id;
+        let priority = idnp.priority;
+        constraints.push({
+            view1: id,
+            attr1: 'centerY',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: 'centerY',    // see AutoLayout.Attribute
+            constant: view.margins.top - view.margins.bottom,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+
+    return constraints;
+
+};
+
+//Manually layout the child views
+View.prototype.layoutChildren = function (wkspc) {
+    var w = this.width;
+    var h = this.height;
+
+    let constraints = [];
+    /*
+     A constraint definition has the following format:
+        constraint: {
+            view1: {String},
+            attr1: {AutoLayout.Attribute},
+            relation: {AutoLayout.Relation},
+            view2: {String},
+            attr2: {AutoLayout.Attribute},
+            multiplier: {Number},
+            constant: {Number},
+            priority: {Number}(0..1000)
+          }
+
+    */
+    for (let i = 0; i < this.childrenIds.length; i++) {
+
+        let cid = this.childrenIds[i];
+        let child = wkspc.viewMap.get(cid);
+
+        let ss = child.refIds.get(attrKeys.layout_constraintStart_toStartOf);
+        let se = child.refIds.get(attrKeys.layout_constraintStart_toEndOf);
+        let es = child.refIds.get(attrKeys.layout_constraintEnd_toStartOf);
+        let ee = child.refIds.get(attrKeys.layout_constraintEnd_toEndOf);
+        let tt = child.refIds.get(attrKeys.layout_constraintTop_toTopOf);
+        let tb = child.refIds.get(attrKeys.layout_constraintTop_toBottomOf);
+        let bt = child.refIds.get(attrKeys.layout_constraintBottom_toTopOf);
+        let bb = child.refIds.get(attrKeys.layout_constraintBottom_toBottomOf);
+        let cx = child.refIds.get(attrKeys.layout_constraintCenterXAlign);
+        let cy = child.refIds.get(attrKeys.layout_constraintCenterYAlign);
+
+
+        let horBias = child.refIds.get(attrKeys.layout_horizontalBias);
+        let verBias = child.refIds.get(attrKeys.layout_verticalBias);
+
+
+        if (horBias) {
+            if (isNumber(horBias)) {
+                horBias = parseFloat(horBias);
+                if (horBias >= 0 && horBias <= 1) {
+                    horBias = horBias * 1000;
+                } else {
+                    throw "Invalid value set for horBias...should be between 0 and 1 view.id=" + cid
+                }
+            } else {
+                throw "Invalid type set for horBias...should be between 0 and 1 view.id=" + cid
+            }
+        } else {
+            horBias = AutoLayout.Priority.REQUIRED;
+        }
+        if (verBias) {
+            if (isNumber(verBias)) {
+                verBias = parseFloat(verBias);
+                if (verBias >= 0 && verBias <= 1) {
+                    verBias = verBias * 1000;
+                } else {
+                    throw "Invalid value set for verBias...should be between 0 and 1 view.id=" + cid
+                }
+            } else {
+                throw "Invalid type set for verBias...should be between 0 and 1 view.id=" + cid
+            }
+        } else {
+            verBias = AutoLayout.Priority.REQUIRED
+        }
+
+
+        let maxWid = child.refIds.get(attrKeys.layout_maxWidth);
+        let maxHei = child.refIds.get(attrKeys.layout_maxHeight);
+        let minWid = child.refIds.get(attrKeys.layout_minWidth);
+        let minHei = child.refIds.get(attrKeys.layout_minHeight);
+
+
+        let w = child.width;
+        let h = child.height;
+
+        let idnpWid = this.getValueAndPriority(w);
+        w = idnpWid.id;
+        let priorityWid = idnpWid.priority;
+        console.log('idnp-obj: ', idnpWid);
+        this.setWidthConstraints(constraints, cid, w, priorityWid);
+
+        let idnpHei = this.getValueAndPriority(h);
+        h = idnpHei.id;
+        let priorityHei = idnpHei.priority;
+        this.setHeightConstraints(constraints, cid, h, priorityHei);
+
+        this.setSizeBoundariesConstraints(constraints, cid, maxWid, minWid, maxHei, minHei);
+
+
+        if (ss) {
+            let idnp = this.getValueAndPriority(ss);
+            ss = idnp.id;
+            let priority = idnp.priority;
+            constraints.push({
+                view1: cid,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: ss === 'parent' ? null : ss,
+                attr2: 'left',    // see AutoLayout.Attribute
+                constant: child.margins.start,
+                multiplier: 1,
+                priority: priority
+            });
+        }
+        if (tt) {
+            let idnp = this.getValueAndPriority(tt);
+            tt = idnp.id;
+            let priority = idnp.priority;
+            constraints.push({
+                view1: cid,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: tt === 'parent' ? null : tt,
+                attr2: 'top',    // see AutoLayout.Attribute
+                constant: child.margins.top,
+                multiplier: 1,
+                priority: priority
+            });
+        }
+        if (ee) {
+            let idnp = this.getValueAndPriority(ee);
+            ee = idnp.id;
+            let priority = idnp.priority;
+            constraints.push({
+                view1: cid,
+                attr1: 'right',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: ee === 'parent' ? null : ee,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: -1 * child.margins.end,
+                multiplier: 1,
+                priority: priority
+            });
+        }
+        if (bb) {
+            let idnp = this.getValueAndPriority(bb);
+            bb = idnp.id;
+            let priority = idnp.priority;
+            constraints.push({
+                view1: cid,
+                attr1: 'bottom',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: bb === 'parent' ? null : bb,
+                attr2: 'bottom',    // see AutoLayout.Attribute
+                constant: -1 * child.margins.bottom,
+                multiplier: 1,
+                priority: priority
+            });
+        }
+        if (se) {
+            let idnp = this.getValueAndPriority(se);
+            se = idnp.id;
+            let priority = idnp.priority;
+            constraints.push({
+                view1: cid,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: se === 'parent' ? null : se,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: child.margins.start,
+                multiplier: 1,
+                priority: priority
+            });
+        }
+        if (es) {
+            let idnp = this.getValueAndPriority(es);
+            es = idnp.id;
+            let priority = idnp.priority;
+            constraints.push({
+                view1: cid,
+                attr1: 'right',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: es === 'parent' ? null : es,
+                attr2: 'left',    // see AutoLayout.Attribute
+                constant: -1 * child.margins.end,
+                multiplier: 1,
+                priority: priority
+            });
+        }
+        if (tb) {
+            let idnp = this.getValueAndPriority(tb);
+            tb = idnp.id;
+            let priority = idnp.priority;
+            constraints.push({
+                view1: cid,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: tb === 'parent' ? null : tb,
+                attr2: 'bottom',    // see AutoLayout.Attribute
+                constant: child.margins.top,
+                multiplier: 1,
+                priority: priority
+            });
+        }
+        if (bt) {
+            let idnp = this.getValueAndPriority(bt);
+            bt = idnp.id;
+            let priority = idnp.priority;
+            constraints.push({
+                view1: cid,
+                attr1: 'bottom',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: bt === 'parent' ? null : bt,
+                attr2: 'top',    // see AutoLayout.Attribute
+                constant: -1 * child.margins.bottom,
+                multiplier: 1,
+                priority: priority
+            });
+        }
+        if (cx) {
+            let idnp = this.getValueAndPriority(cx);
+            cx = idnp.id;
+            let priority = idnp.priority;
+            constraints.push({
+                view1: cid,
+                attr1: 'centerX',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: cx === 'parent' ? null : cx,
+                attr2: 'centerX',    // see AutoLayout.Attribute
+                constant: child.margins.start - child.margins.end,
+                multiplier: 1,
+                priority: priority
+            });
+        }
+        if (cy) {
+            let idnp = this.getValueAndPriority(cy);
+            cy = idnp.id;
+            let priority = idnp.priority;
+            constraints.push({
+                view1: cid,
+                attr1: 'centerY',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: cy === 'parent' ? null : cy,
+                attr2: 'centerY',    // see AutoLayout.Attribute
+                constant: child.margins.top - child.margins.bottom,
+                multiplier: 1,
+                priority: verBias
+            });
+        }
+    }
+    console.log('layoutChildren on id, ', this.id, ' -> \n', constraints)
+    return constraints;
+};
+
+View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid, minWid, maxHei, minHei) {
+
+    if (maxWid) {
+
+        let idnpMaxWid = this.getValueAndPriority(maxWid);
+        maxWid = idnpMaxWid.id;
+        let priorityMaxWid = idnpMaxWid.priority;
+
+        let i = -1;
+        let vid = '';
+        if (isNumber(maxWid)) {
+            constraints.push({
+                view1: cid,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'leq',   // see AutoLayout.Relation
+                view2: null,
+                attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                constant: maxWid,
+                multiplier: 1,
+                priority: priorityMaxWid
+            });
+        } else if (maxWid === 'parent' || this.childrenIds.indexOf(maxWid) !== -1) {//maxWid is an id of another element... so use that element's width for maxWid
+            constraints.push({
+                view1: cid,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'leq',   // see AutoLayout.Relation
+                view2: maxWid === 'parent' ? null : maxWid,
+                attr2: "width",
+                constant: 0,
+                multiplier: 1,
+                priority: priorityMaxWid
+            });
+        } else if ((i = maxWid.indexOf(".")) !== -1 &&
+            this.childrenIds.indexOf((vid = maxWid.substring(0, i))) !== -1) {//maxWid is elementId.width or elementId.height... so use that element's width for maxWid
+
+            if (maxWid.substring(i + 1) === 'width') {
+                constraints.push({
+                    view1: cid,
+                    attr1: 'width',    // see AutoLayout.Attribute
+                    relation: 'leq',   // see AutoLayout.Relation
+                    view2: vid === 'parent' ? null : vid,
+                    attr2: "width",
+                    constant: 0,
+                    multiplier: 1,
+                    priority: priorityMaxWid
+                });
+            } else if (maxWid.substring(i + 1) === 'height') {
+                constraints.push({
+                    view1: cid,
+                    attr1: 'width',    // see AutoLayout.Attribute
+                    relation: 'leq',   // see AutoLayout.Relation
+                    view2: vid === 'parent' ? null : vid,
+                    attr2: "height",
+                    constant: 0,
+                    multiplier: 1,
+                    priority: priorityMaxWid
+                });
+            }
+
+        } else {
+            let parsedMaxWidth = parseNumberAndUnitsNoValidation(maxWid, true);
+
+            if (parsedMaxWidth.number) {
+                if (parsedMaxWidth.units === 'px') {
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'width',    // see AutoLayout.Attribute
+                        relation: 'leq',   // see AutoLayout.Relation
+                        constant: parsedMaxWidth.number,
+                        view2: null,
+                        attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                        multiplier: 1,
+                        priority: priorityMaxWid
+                    });
+                } else if (parsedMaxWidth.units === '%') {
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'width',    // see AutoLayout.Attribute
+                        relation: 'leq',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: 'width',    // see AutoLayout.Attribute
+                        constant: 0,
+                        multiplier: parseFloat(parsedMaxWidth.number) / 100.0,
+                        priority: priorityMaxWid
+                    });
+                } else if (parsedMaxWidth.units === 'em') {
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'width',    // see AutoLayout.Attribute
+                        relation: 'leq',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: 'width',    // see AutoLayout.Attribute
+                        constant: 0,
+                        multiplier: parsedMaxWidth.number, //em is already a multiplier
+                        priority: priorityMaxWid
+                    });
+                } else {
+                    throw "Invalid values specified for the max-width units on view.id=" + cid
+                }
+            } else {
+                throw "Bad value specified for the max-width units on view.id=" + cid + ", value=" + maxWid
+            }
+        }
+    }
+
+
+
+
+
+
+    if (minWid) {
+        let idnpMinWid = this.getValueAndPriority(minWid);
+        minWid = idnpMinWid.id;
+        let priorityMinWid = idnpMinWid.priority;
+
+        let i = -1;
+        let vid = '';
+        if (isNumber(minWid)) {
+            constraints.push({
+                view1: cid,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'geq',   // see AutoLayout.Relation
+                view2: null,
+                attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                constant: minWid,
+                multiplier: 1,
+                priority: priorityMinWid
+            });
+        } else if (minWid === 'parent' || this.childrenIds.indexOf(minWid) !== -1) {//minWid is an id of another element... so use that element's width for minWid
+            constraints.push({
+                view1: cid,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'geq',   // see AutoLayout.Relation
+                view2: minWid === 'parent' ? null : minWid,
+                attr2: "width",
+                constant: 0,
+                multiplier: 1,
+                priority: priorityMinWid
+            });
+        } else if ((i = minWid.indexOf(".")) !== -1 &&
+            this.childrenIds.indexOf((vid = minWid.substring(0, i))) !== -1) {//minWid is elementId.width or elementId.height... so use that element's width for minWid
+
+            if (minWid.substring(i + 1) === 'width') {
+                constraints.push({
+                    view1: cid,
+                    attr1: 'width',    // see AutoLayout.Attribute
+                    relation: 'geq',   // see AutoLayout.Relation
+                    view2: vid === 'parent' ? null : vid,
+                    attr2: "width",
+                    constant: 0,
+                    multiplier: 1,
+                    priority: priorityMinWid
+                });
+            } else if (minWid.substring(i + 1) === 'height') {
+                constraints.push({
+                    view1: cid,
+                    attr1: 'width',    // see AutoLayout.Attribute
+                    relation: 'geq',   // see AutoLayout.Relation
+                    view2: vid === 'parent' ? null : vid,
+                    attr2: "height",
+                    constant: 0,
+                    multiplier: 1,
+                    priority: priorityMinWid
+                });
+            }
+
+        } else {
+            let parsedMinWidth = parseNumberAndUnitsNoValidation(minWid, true);
+            if (parsedMinWidth.number) {
+                if (parsedMinWidth.units === 'px') {
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'width',    // see AutoLayout.Attribute
+                        relation: 'geq',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                        constant: parsedMinWidth.number,
+                        multiplier: 1,
+                        priority: priorityMinWid
+                    });
+                } else if (parsedMinWidth.units === '%') {
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'width',    // see AutoLayout.Attribute
+                        relation: 'geq',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: 'width',    // see AutoLayout.Attribute
+                        constant: 0,
+                        multiplier: parseFloat(parsedMinWidth.number) / 100.0,
+                        priority: priorityMinWid
+                    });
+                } else if (parsedMinWidth.units === 'em') {
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'width',    // see AutoLayout.Attribute
+                        relation: 'geq',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: 'width',    // see AutoLayout.Attribute
+                        constant: 0,
+                        multiplier: parsedMinWidth.number, //em is already a multiplier
+                        priority: priorityMinWid
+                    });
+                } else {
+                    throw "Invalid values specified for the min-width units on view.id=" + cid
+                }
+            } else {
+                throw "Bad value specified for the min-width units on view.id=" + cid + ", value=" + minWid
+            }
+        }
+
+
+    }
+
+    if (maxHei) {
+        let idnpMaxHei = this.getValueAndPriority(maxHei);
+        maxHei = idnpMaxHei.id;
+        let priorityMaxHei = idnpMaxHei.priority;
+
+        let i = -1;
+        let vid = '';
+        if (isNumber(maxHei)) {
+            constraints.push({
+                view1: cid,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'leq',   // see AutoLayout.Relation
+                view2: null,
+                attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                constant: maxHei,
+                multiplier: 1,
+                priority: priorityMaxHei
+            });
+        } else if (maxHei === 'parent' || this.childrenIds.indexOf(maxHei) !== -1) {//maxHei is an id of another element... so use that element's height for maxHei
+            constraints.push({
+                view1: cid,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'leq',   // see AutoLayout.Relation
+                view2: maxHei === 'parent' ? null : maxHei,
+                attr2: "height",
+                constant: 0,
+                multiplier: 1,
+                priority: priorityMaxHei
+            });
+        } else if ((i = maxHei.indexOf(".")) !== -1 &&
+            this.childrenIds.indexOf((vid = maxHei.substring(0, i))) !== -1) {//maxHei is elementId.width or elementId.height... so use that element's width for maxWid
+
+            if (maxHei.substring(i + 1) === 'width') {
+                constraints.push({
+                    view1: cid,
+                    attr1: 'height',    // see AutoLayout.Attribute
+                    relation: 'leq',   // see AutoLayout.Relation
+                    view2: vid === 'parent' ? null : vid,
+                    attr2: "width",
+                    constant: 0,
+                    multiplier: 1,
+                    priority: priorityMaxHei
+                });
+            } else if (maxHei.substring(i + 1) === 'height') {
+                constraints.push({
+                    view1: cid,
+                    attr1: 'height',    // see AutoLayout.Attribute
+                    relation: 'leq',   // see AutoLayout.Relation
+                    view2: vid === 'parent' ? null : vid,
+                    attr2: "height",
+                    constant: 0,
+                    multiplier: 1,
+                    priority: priorityMaxHei
+                });
+            }
+
+        } else {
+            let parsedMaxHeight = parseNumberAndUnitsNoValidation(maxHei, true);
+
+            if (parsedMaxHeight.number) {
+                if (parsedMaxHeight.units === 'px') {
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'height',    // see AutoLayout.Attribute
+                        relation: 'leq',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                        constant: parsedMaxHeight.number,
+                        multiplier: 1,
+                        priority: priorityMaxHei
+                    });
+                } else if (parsedMaxHeight.units === '%') {
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'height',    // see AutoLayout.Attribute
+                        relation: 'leq',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: 'height',    // see AutoLayout.Attribute
+                        constant: 0,
+                        multiplier: parseFloat(parsedMaxHeight.number) / 100.0,
+                        priority: priorityMaxHei
+                    });
+                } else if (parsedMaxHeight.units === 'em') {
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'height',    // see AutoLayout.Attribute
+                        relation: 'leq',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: 'height',    // see AutoLayout.Attribute
+                        constant: 0,
+                        multiplier: parsedMaxHeight.number, //em is already a multiplier
+                        priority: priorityMaxHei
+                    });
+                } else {
+                    throw "Invalid values specified for the max-height units on view.id=" + cid
+                }
+            } else {
+                throw "Bad value specified for the max-height units on view.id=" + cid + ", value=" + maxHei
+            }
+        }
+
+    }
+    if (minHei) {
+
+        let idnpMinHei = this.getValueAndPriority(minHei);
+        minHei = idnpMinHei.id;
+        let priorityMinHei = idnpMinHei.priority;
+
+        let i = -1;
+        let vid = '';
+        if (isNumber(minHei)) {
+            constraints.push({
+                view1: cid,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'geq',   // see AutoLayout.Relation
+                view2: null,
+                attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                constant: minHei,
+                multiplier: 1,
+                priority: priorityMinHei
+            });
+        } else if (minHei === 'parent' || this.childrenIds.indexOf(maxHei) !== -1) {//minHei is an id of another element... so use that element's height for minHei
+            constraints.push({
+                view1: cid,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'geq',   // see AutoLayout.Relation
+                view2: minHei === 'parent' ? null : minHei,
+                attr2: "height",
+                constant: 0,
+                multiplier: 1,
+                priority: priorityMinHei
+            });
+        } else if ((i = minHei.indexOf(".")) !== -1 &&
+            this.childrenIds.indexOf((vid = minHei.substring(0, i))) !== -1) {//maxHei is elementId.width or elementId.height... so use that element's width for maxWid
+
+            if (minHei.substring(i + 1) === 'width') {
+                constraints.push({
+                    view1: cid,
+                    attr1: 'height',    // see AutoLayout.Attribute
+                    relation: 'geq',   // see AutoLayout.Relation
+                    view2: vid === 'parent' ? null : vid,
+                    attr2: "width",
+                    constant: 0,
+                    multiplier: 1,
+                    priority: priorityMinHei
+                });
+            } else if (minHei.substring(i + 1) === 'height') {
+                constraints.push({
+                    view1: cid,
+                    attr1: 'height',    // see AutoLayout.Attribute
+                    relation: 'geq',   // see AutoLayout.Relation
+                    view2: vid === 'parent' ? null : vid,
+                    attr2: "height",
+                    constant: 0,
+                    multiplier: 1,
+                    priority: priorityMinHei
+                });
+            }
+
+        } else {
+            let parsedMinHeight = parseNumberAndUnitsNoValidation(minHei, true);
+
+            if (parsedMinHeight.number) {
+                if (parsedMinHeight.units === 'px') {
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'height',    // see AutoLayout.Attribute
+                        relation: 'geq',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                        constant: parsedMinHeight.number,
+                        multiplier: 1,
+                        priority: priorityMinHei
+                    });
+                } else if (parsedMinHeight.units === '%') {
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'height',    // see AutoLayout.Attribute
+                        relation: 'geq',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: 'height',    // see AutoLayout.Attribute
+                        constant: 0,
+                        multiplier: parseFloat(parsedMinHeight.number) / 100.0,
+                        priority: priorityMinHei
+                    });
+                } else if (parsedMinHeight.units === 'em') {
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'height',    // see AutoLayout.Attribute
+                        relation: 'geq',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: 'height',    // see AutoLayout.Attribute
+                        constant: 0,
+                        multiplier: parsedMinHeight.number, //em is already a multiplier
+                        priority: priorityMinHei
+                    });
+                } else {
+                    throw "Invalid values specified for the min-height units on view.id=" + cid
+                }
+            } else {
+                throw "Bad value specified for the min-height units on view.id=" + cid + ", value=" + minHei
+            }
+        }
+
+
+    }
+
+}
+/**
+ * Sometimes the width or height may come as a relational quantity instead of being given as a number or a number with units.
+ * Some examples are,
+ * width=some_id*4
+ * width=some_id.width*2
+ * height=some_id.height*0.35
+ * height=0.81*some_id.width.
+ * 
+ * We need to split this statements into tokens and extract information about the individual tokens.
+ * 
+ * To avoid the scanner splitting floating point numbers, we will change the floating point on 
+ * some_id.width and some_id.height to % instead
+ * and then we can safely split on the % and replace to floating point after the scan.
+ * To optimize further, we could leave the % in place instead of replacing it back when done and deal with it as such in 
+ * code that uses this. To do this, we introduce an optional `optimize` parameter, which if true, leaves the '%' in place,
+ * but if false will change it back to the original '.'
+ * Thinking premature optimization? dont sue me :)
+ * @param {string} dim 
+ * @param {string} optimize
+ * @returns {Array} an array containing the input split into relevant tokens
+ */
+function quickScan(dim, optimize) {
+    let hh = dim + "";
+    //to avoid the scanner splitting floating point numbers, we will change the floating point on id.width and id.height to % instead
+    // and then we can safely split on the % and replace to floating point after the scan
+    hh = hh.replace(".width", "%width");
+    hh = hh.replace(".height", "%height");
+
+    let tokens = new Scanner(hh, true, ["*", "+", "%"]).scan();
+    if (optimize && optimize === true) {
+        return tokens;
+    }
+    let i = tokens.indexOf("%");
+    if (i !== -1) {
+        tokens[i] = '.';//change % back to .
+    }
+
+    return tokens;
+}
+
+View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
+
+    let i = -1;
+    let vid = '';
+    if (isNumber(w)) {
+        w = typeof w === 'string' ? parseFloat(w) : w;
+        constraints.push({
+            view1: id,
+            attr1: 'width',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: null,
+            attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+            constant: w,
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (w === 'height') {//width = height refers to the height of same element... so use this element's height for its width
+        constraints.push({
+            view1: id,
+            attr1: 'width',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: id,
+            attr2: "height",
+            constant: 0,
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (w === 'parent' || this.childrenIds.indexOf(w) !== -1) {//width is an id of another element... so use that element's width for maxWid
+        constraints.push({
+            view1: id,
+            attr1: 'width',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: w === 'parent' ? null : w,
+            attr2: "width",
+            constant: 0,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+    // width is a multiple of some other quantity...e.g width="2*elemId.width" or width="0.8*elemId.height" or width="2*elemId"
+    else if (w.indexOf("*") !== -1 && w.indexOf("+") !== -1) {
+        throw 'width can only compare using either `*` or `+` but not using both';
+    }
+    else if (w.indexOf("*") !== -1 || w.indexOf("+") !== -1) {
+        let tokens = quickScan(w, true);
+        if (tokens.length !== 3 && tokens.length !== 5) {
+            throw 'invalid expression for width found on view.id=' + this.id;
+        }
+        let mulIndex = tokens.indexOf("*");
+        let sumIndex = tokens.indexOf("+");
+
+
+        if (mulIndex !== -1) {
+            let vid;
+            let selectedDimensionForAttr2IsWidth;
+            let number;
+            if (isNumber(number = tokens[0])) {//format is number*elemid or number*elemid.width or number*elemid.height
+                vid = tokens[2] === 'height' ? id : tokens[2];
+                if (vid === 'width') {
+                    throw 'the width is not yet initialized';
+                }
+                if (tokens.length === 3) {
+                    selectedDimensionForAttr2IsWidth = tokens[2] !== 'height';
+                } else if (tokens.length === 5) {
+                    selectedDimensionForAttr2IsWidth = tokens[4] === 'width';
+                } else {
+                    throw 'error in value specified for width on view.id=' + cid + '... expression ' + w
+                }
+            }
+            else if (isNumber(number = tokens[tokens.length - 1])) {//format is elemid*number or height*number or elemid.width*number or elemid.height*number
+                vid = tokens[0] === 'height' ? id : tokens[0];
+                if (vid === 'width') {
+                    throw 'the width is not yet initialized';
+                }
+                if (tokens.length === 3) {
+                    //if the first token is width, then it refers to the height of the same element
+                    selectedDimensionForAttr2IsWidth = tokens[0] !== 'height';
+                } else if (tokens.length === 5) {
+                    selectedDimensionForAttr2IsWidth = tokens[2] === 'width';
+                } else {
+                    throw 'error in value specified for width on view.id=' + cid + '... expression ' + w
+                }
+            }
+
+            constraints.push({
+                view1: id,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: vid === 'parent' ? null : vid,
+                attr2: selectedDimensionForAttr2IsWidth ? "width" : "height",
+                constant: 0,
+                multiplier: parseFloat(number),
+                priority: priority
+            });
+
+        } else if (sumIndex !== -1) {
+            let vid;
+            let selectedDimensionForAttr2IsWidth;
+            let number;
+            if (isNumber(number = tokens[0])) {//format is number+elemid or number+elemid.width or number+elemid.height
+                vid = tokens[2] === 'height' ? id : tokens[2];
+                if (vid === 'width') {
+                    throw 'the width is not yet initialized';
+                }
+                if (tokens.length === 3) {
+                    selectedDimensionForAttr2IsWidth = tokens[2] !== 'height';
+                } else if (tokens.length === 5) {
+                    selectedDimensionForAttr2IsWidth = tokens[4] === 'width';
+                } else {
+                    throw 'error in value specified for width on view.id=' + cid + '... expression ' + w
+                }
+            }
+            else if (isNumber(number = tokens[tokens.length - 1])) {//format is elemid+number or number+elemid or width+number or elemid.width+number or elemid.height+number
+                vid = tokens[0] === 'height' ? id : tokens[0];
+                if (vid === 'width') {
+                    throw 'the width is not yet initialized';
+                }
+                if (tokens.length === 3) {
+                    //if the first token is width, then it refers to the height of the same element
+                    selectedDimensionForAttr2IsWidth = tokens[0] !== 'height';
+                } else if (tokens.length === 5) {
+                    selectedDimensionForAttr2IsWidth = tokens[2] === 'width';
+                } else {
+                    throw 'error in value specified for width on view.id=' + cid + '... expression ' + w
+                }
+            }
+
+            constraints.push({
+                view1: id,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: vid === 'parent' ? null : vid,
+                attr2: selectedDimensionForAttr2IsWidth ? "width" : "height",
+                constant: parseFloat(number),
+                multiplier: 1,
+                priority: priority
+            });
+
+        }
+    } else {
+        let parsedWidth = parseNumberAndUnitsNoValidation(w, true);
+        if (parsedWidth.number) { // number exists, unit too must exist
+            if (parseInt(parsedWidth.number) === 0) {
+                parsedWidth.number = '100';
+                parsedWidth.units = '%';
+            }
+            if (parsedWidth.units === 'px') {
+                constraints.push({
+                    view1: id,
+                    attr1: 'width',    // see AutoLayout.Attribute
+                    relation: 'equ',   // see AutoLayout.Relation
+                    view2: null,
+                    attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                    constant: parseFloat(parsedWidth.number),
+                    multiplier: 1,
+                    priority: priority
+                });
+            } else if (parsedWidth.units === '%') {
+                constraints.push({
+                    view1: id,
+                    attr1: 'width',    // see AutoLayout.Attribute
+                    relation: 'equ',   // see AutoLayout.Relation
+                    view2: null,
+                    attr2: 'width',    // see AutoLayout.Attribute
+                    constant: 0,
+                    multiplier: parseFloat(parsedWidth.number) / 100.0,
+                    priority: priority
+                });
+            } else if (parsedWidth.units === 'em') {
+                constraints.push({
+                    view1: id,
+                    attr1: 'width',    // see AutoLayout.Attribute
+                    relation: 'equ',   // see AutoLayout.Relation
+                    view2: null,
+                    attr2: 'width',    // see AutoLayout.Attribute
+                    constant: 0,
+                    multiplier: parseFloat(parsedWidth.number), //em is already a multiplier,
+                    priority: priority
+                });
+            } else {
+                throw "Invalid values specified for the width units on view.id=" + id
+            }
+        }
+
+    }
+
+}
+View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
+
+    let i = -1;
+    let vid = '';
+    if (isNumber(h)) {
+        h = typeof h === 'string' ? parseFloat(h) : h;
+        constraints.push({
+            view1: id,
+            attr1: 'height',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation    
+            view2: null,
+            attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+            constant: h,
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (h === 'width') {//height = width refers to the width of same element... so use this element's width for its height
+        constraints.push({
+            view1: id,
+            attr1: 'height',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: id,
+            attr2: "width",
+            constant: 0,
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (h === 'parent' || this.childrenIds.indexOf(h) !== -1) {//height is an id of another element... so use that element's height for height
+        constraints.push({
+            view1: id,
+            attr1: 'height',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: h === 'parent' ? null : h,
+            attr2: "height",
+            constant: 0,
+            multiplier: 1,
+            priority: priority
+        });
+    }
+    // width is a multiple of some other quantity...e.g width="2*elemId.width" or width="0.8*elemId.height" or width="2*elemId"
+    else if (h.indexOf("*") !== -1 && h.indexOf("+") !== -1) {
+        throw 'height can only compare using either `*` or `+` but not using both';
+    }
+    else if (h.indexOf("*") !== -1 || h.indexOf("+") !== -1) {
+        let tokens = quickScan(h, true);
+
+        if (tokens.length !== 3 && tokens.length !== 5) {
+            throw 'invalid expression for height found on view.id=' + this.id + ',... ' + tokens;
+        }
+
+        let mulIndex = tokens.indexOf("*");
+        let sumIndex = tokens.indexOf("+");
+
+
+        if (mulIndex !== -1) {
+            let vid;
+            let selectedDimensionForAttr2IsHeight;
+            let number;
+            if (isNumber(number = tokens[0])) {//format is number*elemid or number*width or number*elemid.width or number*elemid.height
+                vid = tokens[2] === 'width' ? id : tokens[2];
+                if (vid === 'height') {
+                    throw 'the height is not yet initialized';
+                }
+                if (tokens.length === 3) {
+                 //if the first token is width, then it refers to the width of the same element
+                 selectedDimensionForAttr2IsHeight = tokens[2] !== 'width';
+                } else if (tokens.length === 5) {
+                    selectedDimensionForAttr2IsHeight = tokens[4] === 'height';
+                } else {
+                    throw 'error in value specified for height on view.id=' + cid + '... expression ' + h
+                }
+            }
+            else if (isNumber(number = tokens[tokens.length - 1])) {//format is elemid*number or width*number or elemid.width*number or elemid.height*number
+                vid = tokens[0] === 'width' ? id : tokens[0];
+                if (vid === 'height') {
+                    throw 'the height is not yet initialized';
+                }
+                if (tokens.length === 3) {
+                    //if the first token is width, then it refers to the width of the same element
+                    selectedDimensionForAttr2IsHeight = tokens[0] !== 'width';
+                } else if (tokens.length === 5) {
+                    selectedDimensionForAttr2IsHeight = tokens[2] === 'height';
+                } else {
+                    throw 'error in value specified for height on view.id=' + cid + '... expression ' + h
+                }
+            }
+
+            constraints.push({
+                view1: id,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: vid === 'parent' ? null : vid,
+                attr2: selectedDimensionForAttr2IsHeight ? "height" : "width",
+                constant: 0,
+                multiplier: parseFloat(number),
+                priority: priority
+            });
+
+        } else if (sumIndex !== -1) {
+            let vid;
+            let selectedDimensionIsHeight;
+            let number;
+            if (isNumber(number = tokens[0])) {//format is number+elemid or number+elemid.width or number+elemid.height
+                vid = tokens[2] === 'width' ? id : tokens[2];
+                if (vid === 'height') {
+                    throw 'the height is not yet initialized';
+                }
+                if (tokens.length === 3) {
+                     //if the first token is width, then it refers to the width of the same element
+                     selectedDimensionForAttr2IsHeight = tokens[2] !== 'width';
+                } else if (tokens.length === 5) {
+                    selectedDimensionIsHeight = tokens[4] === 'height';
+                } else {
+                    throw 'error in value specified for height on view.id=' + cid + '... expression ' + h
+                }
+            }
+            else if (isNumber(number = tokens[tokens.length - 1])) {//format is elemid+number or elemid.width+number or elemid.height+number
+                vid = tokens[0] === 'width' ? id : tokens[0];
+                if (vid === 'height') {
+                    throw 'the height is not yet initialized';
+                }
+                if (tokens.length === 3) {
+                    //if the first token is width, then it refers to the width of the same element
+                    selectedDimensionIsHeight = tokens[0] !== 'width';
+                } else if (tokens.length === 5) {
+                    selectedDimensionIsHeight = tokens[2] === 'height';
+                } else {
+                    throw 'error in value specified for height on view.id=' + cid + '... expression ' + h
+                }
+            }
+
+            constraints.push({
+                view1: id,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: vid === 'parent' ? null : vid,
+                attr2: selectedDimensionIsHeight ? "height" : "width",
+                constant: parseFloat(number),
+                multiplier: 1,
+                priority: priority
+            });
+
+        }
+    } else {
+        let parsedHeight = parseNumberAndUnitsNoValidation(h, true);
+        if (parsedHeight.number) { // number exists, unit too must exist
+            if (parseInt(parsedHeight.number) === 0) {
+                parsedHeight.number = '100';
+                parsedHeight.units = '%';
+            }
+            if (parsedHeight.units === 'px') {
+                constraints.push({
+                    view1: id,
+                    attr1: 'height',    // see AutoLayout.Attribute
+                    relation: 'equ',   // see AutoLayout.Relation
+                    view2: null,
+                    attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                    constant: parseFloat(parsedHeight.number),
+                    multiplier: 1,
+                    priority: priority
+                });
+            } else if (parsedHeight.units === '%') {
+                constraints.push({
+                    view1: id,
+                    attr1: 'height',    // see AutoLayout.Attribute
+                    relation: 'equ',   // see AutoLayout.Relation
+                    view2: null,
+                    attr2: 'height',    // see AutoLayout.Attribute
+                    constant: 0,
+                    multiplier: parseFloat(parsedHeight.number) / 100.0,
+                    priority: priority
+                });
+            } else if (parsedHeight.units === 'em') {
+                constraints.push({
+                    view1: id,
+                    attr1: 'height',    // see AutoLayout.Attribute
+                    relation: 'equ',   // see AutoLayout.Relation
+                    view2: null,
+                    attr2: 'height',    // see AutoLayout.Attribute
+                    constant: 0,
+                    multiplier: parseFloat(parsedHeight.number), //em is already a multiplier,
+                    priority: priority
+                });
+            } else {
+                throw "Invalid values specified for the height units on view.id=" + id
+            }
+        }
+
+    }
+
+}
+
+
 function isHTMLTagName(tagName) {
     if (typeof tagName === 'string') {
         const tags = 'a b u i body head header h1 h2 h3 h4 h5 h6 style title div p span button checkbox radio input label textarea select legend ul ol li link table tbody thead tfoot tr td th option optgroup video meta img hr picture pre script section small strong noscript object canvas caption blockquote article audio time var cite code iframe nav noframes menu br'.split(' ');
@@ -1323,7 +2964,6 @@ let useAutomaticBackgrounds = function (view, node) {
                 "background-position": "0% 0%"
             });
             updateOrCreateSelectorInStyleSheet(styleSheet, style);
-            console.log("image-cache: ", background.imageCache);
             background.cleanup();
         };
     }
@@ -1390,7 +3030,7 @@ View.prototype.calculateWrapContentSizes = function (node) {
 
         elem.remove();
     }
-    //console.log('id: ' + this.id, "wrapWidth: " + this.wrapWidth + ", wrapHeight: " + this.wrapHeight);
+
 };
 CheckBox.prototype = Object.create(View.prototype);
 CheckBox.prototype.constructor = CheckBox;
@@ -2783,54 +4423,54 @@ NativeList.prototype.createElement = function (node) {
     let cellPaddingRight = node.getAttribute(attrKeys.cellPaddingRight);
     let cellPaddingTop = node.getAttribute(attrKeys.cellPaddingTop);
     let cellPaddingBottom = node.getAttribute(attrKeys.cellPaddingBottom);
-    
-    
+
+
     let cellBg = node.getAttribute(attrKeys.cellBackground);
     let cellFg = node.getAttribute(attrKeys.cellForeground);
-    
-    let cellSelBg =  node.getAttribute(attrKeys.cellSelectedBackground);
-    let cellSelFg =  node.getAttribute(attrKeys.cellSelectedForeground);
-    
-    
-     let liStyle = new Style(listType+'#' + this.id + " > li", []);
-     let liStyleHover = new Style(listType+'#' + this.id + " > li:hover", []);
-     liStyleHover.addStyleElement("cursor", "pointer");
-    
-    
-    if(!isEmpty(cellBg)){
+
+    let cellSelBg = node.getAttribute(attrKeys.cellSelectedBackground);
+    let cellSelFg = node.getAttribute(attrKeys.cellSelectedForeground);
+
+
+    let liStyle = new Style(listType + '#' + this.id + " > li", []);
+    let liStyleHover = new Style(listType + '#' + this.id + " > li:hover", []);
+    liStyleHover.addStyleElement("cursor", "pointer");
+
+
+    if (!isEmpty(cellBg)) {
         liStyle.addStyleElement("background-color", cellBg);
     }
-        if(!isEmpty(cellFg)){
+    if (!isEmpty(cellFg)) {
         liStyle.addStyleElement("color", cellFg);
     }
-    
-       if(!isEmpty(cellSelBg)){
+
+    if (!isEmpty(cellSelBg)) {
         liStyleHover.addStyleElement("background-color", cellSelBg);
     }
-        if(!isEmpty(cellSelFg)){
+    if (!isEmpty(cellSelFg)) {
         liStyleHover.addStyleElement("color", cellSelFg);
     }
-    
-   
-    
-    if(!isEmpty(cellPaddingLeft)){
+
+
+
+    if (!isEmpty(cellPaddingLeft)) {
         parseNumberAndUnits(cellPaddingLeft, true);
         liStyle.addStyleElement("padding-left", cellPaddingLeft);
     }
-    if(!isEmpty(cellPaddingRight)){
+    if (!isEmpty(cellPaddingRight)) {
         parseNumberAndUnits(cellPaddingRight, true);
         liStyle.addStyleElement("padding-right", cellPaddingRight);
     }
-    if(!isEmpty(cellPaddingTop)){
+    if (!isEmpty(cellPaddingTop)) {
         parseNumberAndUnits(cellPaddingTop, true);
         liStyle.addStyleElement("padding-top", cellPaddingTop);
     }
-    if(!isEmpty(cellPaddingBottom)){
+    if (!isEmpty(cellPaddingBottom)) {
         parseNumberAndUnits(cellPaddingBottom, true);
         liStyle.addStyleElement("padding-bottom", cellPaddingBottom);
     }
-    
-    
+
+
     let showBullets = node.getAttribute(attrKeys.showBullets);
     let items = node.getAttribute(attrKeys.items);
     items = items.replace(/\n|\r/g, ''); //remove new lines
@@ -2972,7 +4612,6 @@ ListView.prototype.createElement = function (node) {
         try {
             this.data = JSON.parse(items);
         } catch (e) {
-            console.log('JSON error: ' + items);
             throw new Error('error: ' + e + ', Error in `items` array while expanding view: ' + this.id);
         }
 
@@ -3230,7 +4869,6 @@ GridView.prototype.createElement = function (node) {
         try {
             this.data = JSON.parse(items);
         } catch (e) {
-            console.log('JSON error: ' + items);
             throw new Error('error: ' + e + ', Error in `items` array while expanding view: ' + this.id);
         }
 
@@ -3936,7 +5574,7 @@ TabView.prototype.createElement = function (node) {
         fontStyle: fontStyle, // e.g bold or italic or italic bold or 
         tabItems: tabItems,
         onTabChanged: function (newIndex, oldIndex) {
-            console.log('onTabChanged: newIndex: ', newIndex, ", oldIndex: ", oldIndex);
+
         }
     };
     this.assignId();
