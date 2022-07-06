@@ -64,6 +64,7 @@
  * @return the number and the units
  */
 function parseNumberAndUnits(val, seeNoUnitsAsPx) {
+    console.log("number: ", val);
     if (typeof val !== "string") {
         throw new Error('parses only string input');
     }
@@ -77,19 +78,22 @@ function parseNumberAndUnits(val, seeNoUnitsAsPx) {
         if (seeNoUnitsAsPx && seeNoUnitsAsPx === true) {
             return {number: val, units: "px"};
         }else{
-           throw "No units specified for number: "+val
+           throw "No units specified for number: "+val;
         }
     }
 
     let number = '';
+    console.log("...val: ", val);
     let i = val.length - 1;
-    for (; i > 0; i--) {
+    for (; i >= 0; i--) {
         let token = val.substring(i, i + 1);
+        console.log('token: ', token, ' i: ', i);
         if (token !== '0' && token !== '1' && token !== '2' && token !== '3' && token !== '4' && token !== '5' &&
                 token !== '6' && token !== '7' && token !== '8' && token !== '9') {
             // units = token + units;
         } else {
             number = val.substring(0, i + 1);
+             console.log("...number: ", number," i: "+i);
             break;
         }
     }
@@ -98,6 +102,7 @@ function parseNumberAndUnits(val, seeNoUnitsAsPx) {
         throw new Error("This unit is not a valid css unit.. Use one of:\n " + CssSizeUnitsValues);
     }
     if (!isNumber(number)) {
+        console.log("number: ", number," i: "+i);
         throw new Error("The number is not a valid number!..." + number);
     }
 
