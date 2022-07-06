@@ -34,7 +34,9 @@ to autolayout.js.
    they can change the default name of the folder from _**layitres**_ to whatever they want. 
    To do this, go into the _**layit**_ folder and find the common-constants file in the _**sys**_ folder.
    Now, find the constant named: _**RESOURCES**_, then change the value to whatever you have named your folder as.
-
+   The folder structure for using _**layit**_ in a project will look like:
+   
+    ![Folder Structure](examples/folder-structure.png)
 3. Because of Point 1 above, we have flexibility to make the library more powerful. Guidelines work better now,also we have implemented 
    priorities on the width, height and the constraint properties, such as `start_start`,  `end_end`, `start_end`, `end_start`, top_top, `bottom_bottom`, `top_bottom`, `bottom_top`,
    `cx_align` and `cy_align`. Specifying the priority is totally optional. If you do not specify it, a priority of `REQUIRED` or `1000` is assumed.
