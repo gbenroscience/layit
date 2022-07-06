@@ -1,4 +1,5 @@
 # layit
+
 Its an android xml style layout library for web interfaces!<br>
 Layouts on steroids with android-style xml constraint-layouts on the web, backed by autolayout.js!
 
@@ -11,15 +12,44 @@ This project already works, but is currently under development and new ui widget
 
 You can see an example site [here](https://gbenroscience.github.io/layitdemo/file.html), showing layit being used to position things with ease(ignore the design, please)
 
+
+##Welcome to Layit v0.1.0
+
+
+### What's new?
+
+
+The best things come in small packages.
+
+1. **_layit_**'s layout system now uses raw constraints instead of `VFL/EVFL`(Visual Format Language/Extended Visual Format Language).
+The former system was defining layout relationships using `VFL` and then feeding the `VFL` to the autolayout library.
+The library then parses the `VFL` and generates raw constraints which are applied to the views. For complex layouts, this means that the library generate lots of `VFL` strings which the underlying autolayout library would then need
+to parse. The rendering hence takes a hit. In this new version, **layit** gains speed by generating raw constraints from the xml layouts, which are then passed
+to autolayout.js.
+
+2. The folder structure has been changed to fit better with project development structure realities. 
+   The former structure had both user files and library files in the same folder which wasn't efficient when the library would need to be updated from the VCS.
+   Now, all the developer needs to do is create a folder for their resources called **layitres** as a sibling folder of(in same directory as) the **layit** library folder.
+   Copy your layouts, images and scripts folder to that folder. That's it. If the developer is careful enough,
+   they can change the default name of the folder from **layitres** to whatever they want. 
+   To do this, go into the **layits** folder and find the common-constants file in the **sys** folder.
+   Now, find the constant named: **RESOURCES**, then change the value to whatever you have named your folder as.
+
+3. Because of Point 1 above, we have flexibility to make the library more powerful. Guidelines work better now,also we have implemented 
+   priorities on the width, height and the constraint properties, such as `start_start`,  `end_end`, `start_end`, `end_start`, top_top, `bottom_bottom`, `top_bottom`, `bottom_top`,
+   `cx_align` and `cy_align`. Specifying the priority is totally optional. If you do not specify it, a priority of `REQUIRED` or `1000` is assumed.
+   To specify it on any property, just use the: `property="value@priority"` syntax
+   So for instance: `width="20px@1000"` or `height="width@750"` or `start_start="some_id@251"`. The priority definitions follow iOS Autolayout rules.
+
+
 You can achieve very complex layouts very quickly using constraints. In addition, we adopted the cool xml style of Google's android xml layouts which allow you build layouts very quickly instead of the weird but **powerful?** syntax of VFL and EVFL.
 To make things even sweeter, we have changed the long names given to the constraint properties in the android xml syntax, to much shorter versions to allow for quick typing and to reduce bloat, e.g: `app:layout_constraintBottom_toBottomOf="parent"` becomes: `bottom_bottom='parent'`
 
-### NOTE: Some of the more advanced constraint properties in Android xml's ConstraintLayout are not yet supported, such as chaining, layout weight, priorities(from autolayout) etc.
+### NOTE: Some of the more advanced constraint properties in Android xml's ConstraintLayout are not yet supported, such as chaining, layout weight.
 ## Usage
 
 You need the entire project folder, so clone this repository and place it(the `layit` folder) in the root of your web project.<br>
-The xml files in the layouts directory are good and simple examples also. But you may delete them as they hold no value for your project.
-When you create an html file in your web project, depending on your code organization, it should look like this:
+When you create a `html` file in your web project, depending on your code organization, it should look like this:
 ```html
 <html>
     <head>
@@ -35,14 +65,13 @@ When you create an html file in your web project, depending on your code organiz
     </body>
 </html>
 ```
-The code above will go and fetch an xml layout called `test.xml` from the `layouts` sub-folder in the `layit` folder and use it as the ui definition for the current html page.
-
-You will not need to worry about importing the other js files, the layit project does that for you. **ABSOLUTELY ENSURE THAT YOU RUN YOUR CODE IN A WEB-SERVER ENVIRONMENT!**<br>
+Thhis fetches an xml layout called `test.xml` from the `layouts` sub-folder in your `layitres` folder and use it as the ui definition for the current html page.
 
 
 
 ### Layouts
-All your xml layouts must be placed in the `layit/layouts` folder.<br>
+All your xml layouts must be placed in the `layitres/layouts` folder. If you have changed the location of the reosurces folder,
+You should use that folder name<br>
 No sub-folders are allowed here.
 All your view tags, with the exception of the root view tag in the xml must have an `id`
 
@@ -115,21 +144,63 @@ The constraint properties with long names have been renamed to shorter forms to 
 
 #### width and height
 
-These properties are used to specify the size of the view. You may specify the values without a dimension, e.g. `width='200'`, or with a dimension, e.g. `width='200px'` or `width='45%'` , or relative to another view in the same layout file, e.g `width='another_views_id/2'` or `width='another_views_id/0.85'` or `width='another_views_id'`. Multiplication operation is not supported here, only division.
+These properties are used to specify the size of the view. 
+Here are perfectly valid ways to specify the width of a view:
 
-On a given view, you may also do: <br>
+1. width="80px"  //sets the width in pixels
+2. width="50%"   // sets the width as a percentage of its parent's width
+3. width="80"    //sets the width in pixels
+4. width="height" // sets the view's width to be same as its height
+5. width="height*0.5" //sets the view's width to be half of its height
+6. width="0.5*height" //sets the view's width to be half of its height
+7. width="some_id" // sets the view's width to be same as that of the view whose id is `some_id`
+8. width="some_id.width" // sets the view's width to be same as that of the view whose id is `some_id`
+9. width="some_id.height" // sets the view's width to be same as the height of the view whose id is `some_id`
+10. width="0.8*some_id" // sets the view's width to be 0.8 times the width of `some_id`
+11. width="0.3*some_id.width"// sets the view's width to be 0.3 times the width of `some_id`
+12. width="0.8*some_id.height"// sets the view's width to be 0.8 times the height of `some_id`
+13. width="some_id.width*0.3"// sets the view's width to be 0.3 times the width of `some_id`
+14. width="some_id.height*0.8"// sets the view's width to be 0.8 times the height of `some_id`
+15. width="12+height" // sets the view's width to be 12 plus its own height
+16. width="height+20" // sets the view's width to be 20 plus its own height
+17. width="height-12" // sets the view's width to be its own height minus 12
+18. width="96+some_id.width"// sets the view's width to be 96 pixels plus the width of `some_id`
+19. width="32+some_id.height"// sets the view's width to be 32 pixels plus the height of `some_id`
+20. width="some_id.width+120"// sets the view's width to be 120 pixels plus the width of `some_id`
+21. width="some_id.height+32"// sets the view's width to be 32 pixels plus the height of `some_id`
+22. width="some_id.width-120"// sets the view's width to be the width of `some_id` minus 120 pixels
+23. width="some_id.height-32"// sets the view's width to be the height of `some_id` minus 120 pixels
+
+These same rules apply to the height also. Note that division operation is not supported, only multiplication, addition and subtraction.
+
+Be careful not to use values which have not been initialized.
+e.g.
+width="height" is correct, but
+width="width+20" is wrong
+
+Also make sure that `some_id` is a different view from the one whose size we are setting or if it is the same view, 
+then it should refer to the other dimension.
+For example, if the view whose size we are setting is `phone_label`, You may do:
+width="phone_label.height"
+but not:
+width="phone_label.width" or width="phone_label.width*2" or something similar.
+
+If you are setting the width in terms of the height or the height in terms of the width, then ensure that you have properly
+defined the value of the other dimension e.g.
+
 `width="height"`<br>
 `height="90px"`<br>
 
 OR
 
-`width="height/2.3"`<br>
-`height="120px"`<br>
+`width="height"`<br>
+`height="some_id"`<br>
 
-These will help with maintaining a certain aspect ratio for the views.
+All these relationships help to define aspect ratios and more complicated relationships that give developers flexibility in building UI.
 
 `width='match_parent'` and `height='match_parent'` are supported.
-`width='wrap_content'` and `height='wrap_content'` are only partially supported. The implementation is not yet complete as regards these, for various reasons.
+`width='wrap_content'` and `height='wrap_content'` are only partially supported. 
+The implementation is not yet complete as regards these, for various reasons.
 
 The underlying `autolayout.js` library does not seem to support `wrap_content`,so we are trying to provide some implementation for it.
 
@@ -588,7 +659,7 @@ In your controller's `onViewsAttached`, you can do:
         let personNameView = this.getChildView(li,"person_name");
         let personPhoneView = this.getChildView(li,"person_phone");
 
-        personImageView.src = getImagePath(item.src);
+        personImageView.src = getImagePath(item.src, true);
         personNameView.textContent = item.name;
         personPhoneView.textContent = item.phone;
         this.repaint(li, pos, [personNameView, personPhoneView]);

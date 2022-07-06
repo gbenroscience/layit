@@ -7,7 +7,7 @@ importScripts('common-constants.js');
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-const PATH_TO_LAYOUTS_FOLDER = '../../layouts/';//project layouts folder
+const PATH_TO_LAYOUTS_FOLDER = '../../'+RESOURCES+'/layouts/';//project layouts folder
 const PATH_TO_LIBS_LAYOUTS_FOLDER = '../layouts/';//library layouts folder
 
 

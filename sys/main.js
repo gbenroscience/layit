@@ -2632,7 +2632,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
  * but if false will change it back to the original '.'
  * Thinking premature optimization? dont sue me :)
  * @param {string} dim
- * @param {string} optimize
+ * @param {boolean} optimize
  * @returns {Array} an array containing the input split into relevant tokens
  */
 function quickScan(dim, optimize) {
@@ -2691,18 +2691,6 @@ View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
                     priority: priority
                 });
                 break;
-            case CssSizeUnits.EM:
-                constraints.push({
-                    view1: id,
-                    attr1: 'width',    // see AutoLayout.Attribute
-                    relation: 'equ',   // see AutoLayout.Relation
-                    view2: null,
-                    attr2: 'width',    // see AutoLayout.Attribute
-                    constant: 0,
-                    multiplier: val, //em is already a multiplier,
-                    priority: priority
-                });
-                break;
             case CssSizeUnits.PCT:
                 constraints.push({
                     view1: id,
@@ -2730,7 +2718,7 @@ View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
             multiplier: 1,
             priority: priority
         });
-    } else if (w === 'parent' || this.childrenIds.indexOf(w) !== -1) {//width is an id of another element... so use that element's width for maxWid
+    } else if (w === 'parent' || this.childrenIds.indexOf(w) !== -1) {//width is an id of another element... so use that element's width for width
         constraints.push({
             view1: id,
             attr1: 'width',    // see AutoLayout.Attribute
@@ -2749,7 +2737,7 @@ View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
     else if (mulInd !== -1 || addInd !== -1 || subInd !== -1) {
         let tokens = quickScan(w, true);
         if (tokens.length !== 3 && tokens.length !== 5) {
-            throw 'invalid expression for width found on view.id=' + this.id + ", expression: " + w;
+            throw 'invalid expression for width found on view.id=' + id + ", expression: " + w;
         }
         let mulIndex = tokens.indexOf("*");
         let sumIndex = tokens.indexOf("+");
@@ -2769,7 +2757,7 @@ View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
                 } else if (tokens.length === 5) {
                     selectedDimensionForAttr2IsWidth = tokens[4] === 'width';
                 } else {
-                    throw 'error in value specified for width on view.id=' + cid + '... expression ' + w
+                    throw 'error in value specified for width on view.id=' + id + '... expression ' + w
                 }
             }
             else if (isNumber(number = tokens[tokens.length - 1])) {//format is elemid*number or height*number or elemid.width*number or elemid.height*number
@@ -2783,7 +2771,7 @@ View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
                 } else if (tokens.length === 5) {
                     selectedDimensionForAttr2IsWidth = tokens[2] === 'width';
                 } else {
-                    throw 'error in value specified for width on view.id=' + cid + '... expression ' + w
+                    throw 'error in value specified for width on view.id=' + id + '... expression ' + w
                 }
             }
 
@@ -2825,7 +2813,7 @@ View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
                 } else if (tokens.length === 5) {
                     selectedDimensionForAttr2IsWidth = tokens[2] === 'width';
                 } else {
-                    throw 'error in value specified for width on view.id=' + cid + '... expression ' + w
+                    throw 'error in value specified for width on view.id=' + id + '... expression ' + w
                 }
             }
 
@@ -2857,7 +2845,7 @@ View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
                 } else if (tokens.length === 5) {
                     selectedDimensionForAttr2IsWidth = tokens[2] === 'width';
                 } else {
-                    throw 'error in value specified for width on view.id=' + cid + '... expression ' + w
+                    throw 'error in value specified for width on view.id=' + id + '... expression ' + w
                 }
             }
 
@@ -2945,18 +2933,6 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
                     priority: priority
                 });
                 break;
-            case CssSizeUnits.EM:
-                constraints.push({
-                    view1: id,
-                    attr1: 'height',    // see AutoLayout.Attribute
-                    relation: 'equ',   // see AutoLayout.Relation
-                    view2: null,
-                    attr2: 'height',    // see AutoLayout.Attribute
-                    constant: 0,
-                    multiplier: val, //em is already a multiplier,
-                    priority: priority
-                });
-                break;
             case CssSizeUnits.PCT:
                 constraints.push({
                     view1: id,
@@ -3004,7 +2980,7 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
         let tokens = quickScan(h, true);
 
         if (tokens.length !== 3 && tokens.length !== 5) {
-            throw 'invalid expression for height found on view.id=' + this.id + ',... ' + tokens;
+            throw 'invalid expression for height found on view.id=' + id + ',... ' + tokens;
         }
 
         let mulIndex = tokens.indexOf("*");
@@ -3026,7 +3002,7 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
                 } else if (tokens.length === 5) {
                     selectedDimensionForAttr2IsHeight = tokens[4] === 'height';
                 } else {
-                    throw 'error in value specified for height on view.id=' + cid + '... expression ' + h
+                    throw 'error in value specified for height on view.id=' + id + '... expression ' + h
                 }
             }
             else if (isNumber(number = tokens[tokens.length - 1])) {//format is elemid*number or width*number or elemid.width*number or elemid.height*number
@@ -3040,7 +3016,7 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
                 } else if (tokens.length === 5) {
                     selectedDimensionForAttr2IsHeight = tokens[2] === 'height';
                 } else {
-                    throw 'error in value specified for height on view.id=' + cid + '... expression ' + h
+                    throw 'error in value specified for height on view.id=' + id + '... expression ' + h
                 }
             }
 
@@ -3069,7 +3045,7 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
                 } else if (tokens.length === 5) {
                     selectedDimensionForAttr2IsHeight = tokens[4] === 'height';
                 } else {
-                    throw 'error in value specified for height on view.id=' + cid + '... expression ' + h
+                    throw 'error in value specified for height on view.id=' + id + '... expression ' + h
                 }
             }
             else if (isNumber(number = tokens[tokens.length - 1])) {//format is elemid+number or elemid.width+number or elemid.height+number
@@ -3083,7 +3059,7 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
                 } else if (tokens.length === 5) {
                     selectedDimensionForAttr2IsHeight = tokens[2] === 'height';
                 } else {
-                    throw 'error in value specified for height on view.id=' + cid + '... expression ' + h
+                    throw 'error in value specified for height on view.id=' + id + '... expression ' + h
                 }
             }
 
@@ -3117,7 +3093,7 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
                 } else if (tokens.length === 5) {
                     selectedDimensionForAttr2IsHeight = tokens[2] === 'height';
                 } else {
-                    throw 'error in value specified for height on view.id=' + cid + '... expression ' + h
+                    throw 'error in value specified for height on view.id=' + id + '... expression ' + h
                 }
             }
 
