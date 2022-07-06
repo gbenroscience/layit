@@ -5,35 +5,35 @@ Layouts on steroids with android-style xml constraint-layouts on the web, backed
 
 **Integrates seamlessly with Electron, thereby allowing you to use android style ConstraintLayout for designing desktop UI!**<br>
 **Added support for listadapters and forms**<br>
-**Added support for TabViews**<br>
-**Added Canvas based text-labels, MultiLineLabel and IconLabelView**<br>
+**Added support for TabViews**
+**Added Canvas based text-labels, MultiLineLabel and IconLabelView**
 
-This project already works, but is currently under development and new ui widgets are being added to it.
+This project already works, but is currently under development and new ui widgets are been added to it.
 
 You can see an example site [here](https://gbenroscience.github.io/layitdemo/file.html), showing layit being used to position things with ease(ignore the design, please)
 
 
-##Welcome to Layit v0.1.1
+##Welcome to Layit v0.1.0
 
 
 ### What's new?
 
 
-The best things come in small packages... small packages as in, the changes here are not visible per se, but are implementation changes mostly.
+The best things come in small packages.
 
 1. **_layit_**'s layout system now uses raw constraints instead of `VFL/EVFL`(Visual Format Language/Extended Visual Format Language).
 The former system was defining layout relationships using `VFL` and then feeding the `VFL` to the autolayout library.
 The library then parses the `VFL` and generates raw constraints which are applied to the views. For complex layouts, this means that the library generate lots of `VFL` strings which the underlying autolayout library would then need
-to parse. The rendering hence takes a hit. <br>In this new version, **layit** gains speed by generating raw constraints from the xml layouts, which are then passed
+to parse. The rendering hence takes a hit. In this new version, **layit** gains speed by generating raw constraints from the xml layouts, which are then passed
 to autolayout.js.
 
 2. The folder structure has been changed to fit better with project development structure realities. 
    The former structure had both user files and library files in the same folder which wasn't efficient when the library would need to be updated from the VCS.
-   Now, all the developer needs to do is create a folder for their resources called **layitres** as a sibling folder of(in same directory as) the **layit** library folder.
+   Now, all the developer needs to do is create a folder for their resources called _**layitres**_ as a sibling folder of(in same directory as) the _**layit**_ library folder.
    Copy your layouts, images and scripts folder to that folder. That's it. If the developer is careful enough,
-   they can change the default name of the folder from **layitres** to whatever they want. 
-   To do this, go into the **layits** folder and find the common-constants file in the **sys** folder.
-   Now, find the constant named: **RESOURCES**, then change the value to whatever you have named your folder as.
+   they can change the default name of the folder from _**layitres**_ to whatever they want. 
+   To do this, go into the _**layit**_ folder and find the common-constants file in the _**sys**_ folder.
+   Now, find the constant named: _**RESOURCES**_, then change the value to whatever you have named your folder as.
 
 3. Because of Point 1 above, we have flexibility to make the library more powerful. Guidelines work better now,also we have implemented 
    priorities on the width, height and the constraint properties, such as `start_start`,  `end_end`, `start_end`, `end_start`, top_top, `bottom_bottom`, `top_bottom`, `bottom_top`,
@@ -42,7 +42,7 @@ to autolayout.js.
    So for instance: `width="20px@1000"` or `height="width@750"` or `start_start="some_id@251"`. The priority definitions follow iOS Autolayout rules.
 
 
-You can achieve very complex layouts very quickly using constraints. In addition, we adopted the cool xml style of Google's android xml layouts which allow you build layouts very quickly instead of the weird but **powerful?** syntax of VFL and EVFL.
+You can achieve very complex layouts very quickly using constraints. In addition, we adopted the cool xml style of Google's android xml layouts which allow you build layouts very quickly instead of the weird but _**powerful?**_ syntax of VFL and EVFL.
 To make things even sweeter, we have changed the long names given to the constraint properties in the android xml syntax, to much shorter versions to allow for quick typing and to reduce bloat, e.g: `app:layout_constraintBottom_toBottomOf="parent"` becomes: `bottom_bottom='parent'`
 
 ### NOTE: Some of the more advanced constraint properties in Android xml's ConstraintLayout are not yet supported, such as chaining, layout weight.
@@ -70,7 +70,7 @@ Thhis fetches an xml layout called `test.xml` from the `layouts` sub-folder in y
 
 
 ### Layouts
-All your xml layouts must be placed in the `layitres/layouts` folder. If you have changed the location of the reosurces folder,
+All your xml layouts must be placed in the `layitres/layouts` folder. If you have changed the location of the _**resources**_ folder,
 You should use that folder name<br>
 No sub-folders are allowed here.
 All your view tags, with the exception of the root view tag in the xml must have an `id`
