@@ -261,8 +261,8 @@ To import scripts, use the imports tag as such:
     <!--- ...Other xml tags -->
 </ConstraintLayout>    
 ```
-This will load the files `aaa.js` and `mmm.js` in the directories `aa` and `mm` respectively; where the directories `aa` and `mm` are both located in the `uiscripts` directory of the `layit` folder.<br>
-Your ui scripts should be defined in the `uiscripts` directory. You may create folders and subfolders within the `uiscripts` directory
+This will load the files `aaa.js` and `mmm.js` in the directories `aa` and `mm` respectively; where the directories `aa` and `mm` are both located in the `scripts` directory of the `layitres` folder.<br>
+Your ui scripts should be defined in the `scripts` directory. You may create folders and subfolders within the `scripts` directory
 
 
 Define an `imports` tag anywhere in the root xml layout and the library will load the scripts defined in the `imports` tag.<br>
@@ -281,7 +281,7 @@ Your view controller must inherit from the base `ViewController` class of the li
 
 The minimum code to do this is:
 
-Say you have created your `ViewController class` in the `uiscripts` folder; let's say its name is `TestController` in a file called `test.js`.
+Say you have created your `ViewController class` in the `scripts` folder; let's say its name is `TestController` in a file called `test.js`.
 
 
 
