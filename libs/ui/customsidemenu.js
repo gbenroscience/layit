@@ -242,7 +242,7 @@ SideMenuX.prototype.build = function () {
 
     if (freshCall) {
         let style = document.createElement('style');
-        style.type = 'text/css';
+        style.setAttribute('type', 'text/css');
         let css = new StringBuffer();
 
         for (var key in this.registry) {

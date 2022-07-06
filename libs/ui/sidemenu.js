@@ -525,7 +525,7 @@ SideMenu.prototype.buildSections = function (frame) {
             if (hasImg === true) {
                 let img = document.createElement('img');
                 addClass(img, listItemImageClass);
-                img.setAttribute('src', PATH_TO_IMAGES + item.src);
+                img.setAttribute('src', PATH_TO_USER_IMAGES + item.src);
                 img.setAttribute('alt', '');
                 li.appendChild(img);
             }
@@ -610,7 +610,7 @@ SideMenu.prototype.build = function () {
 
     if (freshCall) {
         let style = document.createElement('style');
-        style.type = 'text/css';
+        style.setAttribute('type', 'text/css');
         let css = new StringBuffer();
 
         for (var key in this.registry) {

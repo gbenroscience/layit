@@ -103,7 +103,7 @@ Style.prototype.injectStyleSheet = function () {
     }
     let style = document.createElement('style');
     if (this.styleElements.length > 0) {
-        style.type = 'text/css';
+        style.setAttribute('type', 'text/css');
         style.innerHTML = this.styleSheetEntry(this.name);
         document.getElementsByTagName('head')[0].appendChild(style);
     }

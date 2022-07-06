@@ -70,7 +70,7 @@ TableCell.prototype.build = function () {
     td.innerHTML = this.colData;
     let style = document.createElement('style');
     if (this.style.styleElements.length > 0) {
-        style.type = 'text/css';
+        style.setAttribute('type', 'text/css');
         style.innerHTML = this.style.getCss();
         td.style = style;
     }
@@ -191,7 +191,7 @@ TableCell.prototype.reloadStyles = function () {
     if (this.id !== null && this.id !== '') {
         let td = document.getElementById(this.id);
         if (td !== null) {
-            td.style.type = 'text/css';
+            td.style.setAttribute('type', 'text/css');
             td.style.innerHTML = this.style.getCss();
         }
 
@@ -455,7 +455,7 @@ TableRow.prototype.reloadStyles = function () {
     if (this.id !== null && this.id !== '') {
         let tr = document.getElementById(this.id);
         if (tr !== null) {
-            tr.style.type = 'text/css';
+            tr.style.setAttribute('type', 'text/css');
             tr.style.innerHTML = this.style.getCss();
         }
     }

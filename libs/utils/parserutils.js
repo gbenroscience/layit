@@ -33,10 +33,10 @@
             return {number: null, units: null};
         }
     }
-  
+
     let number = '';
-    let i = val.length - 1;
-    for (; i > 0; i--) {
+    let i = val.length-1;
+    for (; i >= 0; i--) {
         let token = val.substring(i, i + 1);
         if (token !== '0' && token !== '1' && token !== '2' && token !== '3' && token !== '4' && token !== '5' &&
                 token !== '6' && token !== '7' && token !== '8' && token !== '9') {
@@ -47,6 +47,9 @@
         }
     }
     let units = val.substring(i + 1);
+    if (CssSizeUnitsValues.indexOf(units) === -1) {
+        return {number: null, units: null};
+    }
     if (!isNumber(number)) {
         return {number: null, units: null};
     }

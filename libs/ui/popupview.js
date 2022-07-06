@@ -274,7 +274,7 @@ Popup.prototype.build = function () {
 
     if (freshCall) {
         var style = document.createElement('style');
-        style.type = 'text/css';
+        style.setAttribute('type', 'text/css');
         var css = new StringBuffer();
         for (var key in this.registry) {
             css.append(this.registry[key].styleSheetEntry("." + key));

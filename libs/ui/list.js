@@ -302,7 +302,7 @@ List.prototype.build = function (parent) {
 
 
     let style = document.createElement('style');
-    style.type = 'text/css';
+    style.setAttribute('type', 'text/css');
     let css = new StringBuffer();
     for (let key in this.registry) {
         css.append(this.registry[key].styleSheetEntry("." + key));

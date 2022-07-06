@@ -1,37 +1,29 @@
 importScripts('ext/promise-poly.js');
 importScripts('ext/fetch-poly.js');
+importScripts('common-constants.js');
 
 /* 
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
-const PATH_TO_LAYOUTS_FOLDER = '../layouts/';
-
+const PATH_TO_LAYOUTS_FOLDER = '../../layouts/';//project layouts folder
+const PATH_TO_LIBS_LAYOUTS_FOLDER = '../layouts/';//library layouts folder
 
 
 
 
 onmessage = function (e) {
-        const message = e.data;
-    loadFile(message.layout);
-};
-
-/**
- onmessage = e => {
     const message = e.data;
     loadFile(message.layout);
 };
-*/
-function makeRequest() {
 
-}
+
 
 
 function loadFile(layoutFile) {
 
-    const prefix = PATH_TO_LAYOUTS_FOLDER;
+    const prefix = layoutFile.indexOf(NATIVE_LAYOUTS_FOLDER_FILE_PREFIX) === 0 ? PATH_TO_LIBS_LAYOUTS_FOLDER : PATH_TO_LAYOUTS_FOLDER;
 
     layoutFile = prefix + layoutFile;
 
@@ -45,8 +37,6 @@ function loadFile(layoutFile) {
     }).then(function (data) {
         return data.text();
     }).then(function (xmlLayout) {
-
-
         // console.log(xmlLayout);
         let data = {};
 
@@ -64,8 +54,3 @@ function loadFile(layoutFile) {
     });
 
 }
-
-
-
-
-makeRequest();

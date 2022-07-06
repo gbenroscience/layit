@@ -330,7 +330,7 @@ TabbedBar.prototype.loadImages = function () {
         let item = self.tabItems[index];
         if (item.type === 'image') {
             let image = new Image();
-            image.src = getImagePath(item.value);
+            image.src = getImagePath(item.value, true);
             image.onload = function (e) {
                 image.aspect = image.width / image.height;
                 self.images[item.value] = image;

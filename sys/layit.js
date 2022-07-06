@@ -68,7 +68,11 @@ if (!Number.isInteger) {
  */
 const BODY_ID = 'html_main';
 
-const SCRIPTS_BASE = getScriptBaseUrl();
+let urls = getUrls();
+
+const PROJECT_BASE = urls[0];
+const SCRIPTS_BASE = urls[1];
+console.log('project-url: ', PROJECT_BASE, 'scripts-url: ', SCRIPTS_BASE);
 
 const styleSheet = document.createElement('style');
 styleSheet.setAttribute('type', 'text/css');
@@ -84,6 +88,7 @@ const nativeScripts = [
     SCRIPTS_BASE + 'sys/ext/ulid.js',
     SCRIPTS_BASE + 'sys/main.js',
     SCRIPTS_BASE + 'sys/compiler-constants.js',
+    SCRIPTS_BASE + 'sys/common-constants.js',
     SCRIPTS_BASE + 'libs/utils/parserutils.js',
     SCRIPTS_BASE + 'sys/sdk/listadapter.js',
     SCRIPTS_BASE + 'sys/sdk/horizontaladapter.js',
@@ -209,7 +214,7 @@ function getWorkspace(options) {
  * @returns {Boolean}
  */
 let isNumber = function (number) {
-    return number !== null && isNaN(number) === false;
+    return number !== null && number !== '' && isNaN(number) === false;
 };
 
 
@@ -431,7 +436,7 @@ function NodeMaker(xml) {
 }
 
 
-let parseImports = function (scriptsText) {
+let parseImports = function (scriptsText, isUserScript) {
     scriptsText = scriptsText.trim();
 
     let scrLen = scriptsText.length;
@@ -449,31 +454,30 @@ let parseImports = function (scriptsText) {
         let file = files[i].trim();
         let len = file.length;
         if (file.substring(len - 3) === '.js') {
-            cleanedFiles.push(PATH_TO_UI_SCRIPTS + file);
+            cleanedFiles.push((isUserScript ? PATH_TO_USER_SCRIPTS : PATH_TO_LIB_SCRIPTS) + file);
         }
     }
     return cleanedFiles;
 };
 
 
-function getScriptBaseUrl() {
-
+function getUrls() {
     let scripts = document.getElementsByTagName('script');
-
     for (let i = 0; i < scripts.length; i++) {
         let script = scripts[i];
         let src = script.src;
         let ender = 'sys/layit.js';
         let fullLen = src.length;
         let endLen = ender.length;
-
         //check if script.src ends with layit.js
         if (src.lastIndexOf(ender) === fullLen - endLen) {
-            return src.substring(0, fullLen - endLen);
+            let scriptsURL = src.substring(0, fullLen - endLen);
+            
+            //let projectURL = scriptsURL.substring(0, scriptsURL.length - "layit/".length);
+            let projectURL = scriptsURL.substring(0, scriptsURL.lastIndexOf("/", scriptsURL.length - 2)+1);
+            return [projectURL, scriptsURL];
         }
-
     }
-
     return null;
 }
 
@@ -482,10 +486,12 @@ function getScriptBaseUrl() {
  * @param layitSrc The relative path in the xml...relative to the images folder
  * ...e.g an image file directlt in the folder will vbe specified directly by name.
  * If the image is in a folder in the images folder, then it is specified as  foldername/imagename.png|jpg etc.
+ * @param isFromUserImages If true, the image was loaded from the user's images folder, else it the library that
+ * loaded it for its internal UI
  * @returns {*}
  */
-function getImagePath(layitSrc) {
-    return PATH_TO_IMAGES + layitSrc;
+function getImagePath(layitSrc, isFromUserImages) {
+    return (isFromUserImages ? PATH_TO_USER_IMAGES : PATH_TO_LIB_IMAGES) + layitSrc;
 }
 
 
@@ -708,6 +714,9 @@ Workspace.prototype.findViewById = function (viewId) {
     return this.viewMap.get(viewId);
 };
 
+Workspace.prototype.isLibsLayout = function (){
+  return (this.layoutName.indexOf(NATIVE_LAYOUTS_FOLDER_FILE_PREFIX) === 0);
+};
 /**
  *
  * @param {string} xml The xml ui text to parse
@@ -766,8 +775,8 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
 
         case xmlKeys.imports:
             //if (this === wkspc.rootParser) {
-            let files = node.getAttribute(attrKeys.files);
-            let scripts = parseImports(files);
+            let files = node.getAttribute(attrKeys.files);      
+            let scripts = parseImports(files, !wkspc.isLibsLayout());
             loadScripts(scripts, function () {
                 let controllerName = node.getAttribute(attrKeys.controller);
                 if (typeof controllerName === 'string' && controllerName.length > 0) {
@@ -782,7 +791,6 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
                     } else {
                         throw new Error("Couldn't initialize ViewController...");
                     }
-
                 }
             });
             /*} else {
@@ -1065,7 +1073,7 @@ Parser.prototype.buildUI = function (wkspc) {
         this.rootView.constraints = this.constraints;
         // layout the xml layout with respect to its rootview
         // autoLayout(this.rootView.htmlElement, this.constraints); //using vfl
-        autoLayout(this.rootView.htmlElement, this.rootView.layoutChildren(wkspc), false);
+        autoLayout(this.rootView.htmlElement, this.rootView.layoutChildren(wkspc));
 
 
         //layout the includes
@@ -1239,7 +1247,7 @@ function autoLayout(parentElm, constraints) {
 
 Workspace.prototype.startFetchWorker = function (layoutFileName, onSucc) {
 
-    let worker = new WorkerBot("worker-" + layoutFileName, PATH_TO_COMPILER_SCRIPTS + 'layout-worker.js',
+    let worker = new WorkerBot("worker-" + layoutFileName, PATH_TO_ENGINE_SCRIPTS + 'layout-worker.js',
         function (e) {
             let layoutXML = e.data.content;
             if (onSucc.length === 1) {

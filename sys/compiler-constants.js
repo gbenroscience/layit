@@ -1,12 +1,43 @@
 
 
 
-/* global SCRIPTS_BASE */
+/* global SCRIPTS_BASE, PROJECT_BASE */
 
-const PATH_TO_LAYOUTS_FOLDER = SCRIPTS_BASE + 'layouts/';
-const PATH_TO_IMAGES = SCRIPTS_BASE + 'images/';
-const PATH_TO_COMPILER_SCRIPTS = SCRIPTS_BASE + "sys/";
-const PATH_TO_UI_SCRIPTS = SCRIPTS_BASE + "uiscripts/";
+/**
+ * The folder that the user should use for storing
+ * xml layouts
+ */
+const PATH_TO_LAYOUTS_FOLDER = PROJECT_BASE + 'layouts/';
+/**
+ * The native folder for layouts used by this library for
+ * its own widgets, if necessary.
+ * The user should not modify this!
+ */
+const PATH_TO_LIB_LAYOUTS_FOLDER = SCRIPTS_BASE + 'layouts/';
+/**
+ * The path to the user's images
+ */
+ const PATH_TO_USER_IMAGES = PROJECT_BASE + 'images/';
+/**
+ * The path to the lib's images
+ */
+ const PATH_TO_LIB_IMAGES = SCRIPTS_BASE + 'images/';
+
+/**
+ * The path to the scripts used by this library
+ */
+const PATH_TO_ENGINE_SCRIPTS = SCRIPTS_BASE + "sys/";
+/**
+ * The path to the user's project's scripts
+ */
+const PATH_TO_USER_SCRIPTS = PROJECT_BASE + "scripts/";
+/**
+ * The path to the library's widget scripts
+ */
+ const PATH_TO_LIB_SCRIPTS = SCRIPTS_BASE + "scripts/";
+
+
+
 
 
 

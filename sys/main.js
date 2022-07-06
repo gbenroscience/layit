@@ -1,6 +1,3 @@
-//const AutoLayout = require("./ext/autolayout");
-
-
 let TEMPLATE_INDEX = 0;
 /**
  *
@@ -77,7 +74,7 @@ function setAbsoluteSizeAndPosition(elm, left, top, width, height) {
 }
 
 
-/* global AutoLayout, attrKeys, xmlKeys, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits, CssSizeUnitsValues, PATH_TO_IMAGES, FontStyle, Gravity, styleSheet, ListAdapter, Alignments */
+/* global AutoLayout, attrKeys, xmlKeys, orientations, sizes, dummyDiv, dummyCanvas, PATH_TO_LAYOUTS_FOLDER, PATH_TO_COMPILER_SCRIPTS, rootCount, CssSizeUnits, CssSizeUnitsValues, PATH_TO_USER_IMAGES, FontStyle, Gravity, styleSheet, ListAdapter, Alignments */
 
 /**
  *
@@ -127,7 +124,7 @@ function View(wkspc, node, parentId) {
     if (wkspc.template === true) {
         /**
          * Similar to the IncludedView.directChildConstraints method.
-         * For views to be used as template for list | grid | table cells, 
+         * For views to be used as template for list | grid | table cells,
          * their parent is not in the layit view hierarchy...e.g it is an `LI` or a `TD` or a `TH`.
          * We need to store the constraints that relate the template to this absentee(from the layit hierarchy) parent.
          * So we store them here.
@@ -209,7 +206,7 @@ function View(wkspc, node, parentId) {
          * Unitless values are supported, these are assumed to mean pixels
          * So you may say:<br>
          * width="2" or height="32"<br>
-         * The following units are supported: 
+         * The following units are supported:
          * px, em and %.
          * So you may say:
          * width="322px" or height="308em" or width="5%"
@@ -223,7 +220,7 @@ function View(wkspc, node, parentId) {
          * width="0.25*elemId.height"// makes the width of this view 0.25 times the height of the view with id=elemId
          * width="elemId.width*3.8"// makes the width of this view 3.8 times the width of the view with id=elemId
          * width="elemId.height*3.142"// makes the width of this view 3.142 the height of the view with id=elemId
-         * 
+         *
          */
         this.width = node.getAttribute(attrKeys.layout_width);
         this.height = node.getAttribute(attrKeys.layout_height);
@@ -408,7 +405,9 @@ function View(wkspc, node, parentId) {
                     this.style.addStyleElement("padding-top", attrValue);
                     this.style.addStyleElement("padding-bottom", attrValue);
                     break;
-
+                case attrKeys.translationZ:
+                    this.style.addStyleElement("z-index", attrValue);
+                    break;
                 //paddings saved
                 case attrKeys.border:
                     this.style.addStyleElement("border", attrValue);
@@ -575,8 +574,8 @@ function View(wkspc, node, parentId) {
         throw 'The view id cannot be an empty string!';
     }
 
-
-    this.createElement(node);
+    console.log('id: ', this.id);
+    this.createElement(wkspc, node);
 
     if (this.width === sizes.WRAP_CONTENT) {
         this.width = this.wrapWidth;
@@ -677,42 +676,6 @@ function View(wkspc, node, parentId) {
     }
     //maxWidth, maxHeight, minWidth, minHeight are now unitless and in pixels, too
 
-
-    let throwErr = function (msg) {
-        throw msg;
-    }
-    if (this.margins.top) {
-        let a = convertSizeToPx(this.margins.top, parent.rawWidth);
-        if (isNumber(a)) {
-            this.margins.top = a;
-        } else {
-            throwErr('Invalid value set for margin-top on view.id=' + this.id);
-        }
-    } if (this.margins.bottom) {
-        let a = convertSizeToPx(this.margins.bottom, parent.rawWidth);
-        if (isNumber(a)) {
-            this.margins.bottom = a;
-        } else {
-            throwErr('Invalid value set for margin-bottom on view.id=' + this.id);
-        }
-    } if (this.margins.start) {
-        let a = convertSizeToPx(this.margins.start, parent.rawWidth);
-        if (isNumber(a)) {
-            this.margins.start = a;
-        } else {
-            throwErr('Invalid value set for margin-start on view.id=' + this.id);
-        }
-    } if (this.margins.end) {
-        let a = convertSizeToPx(this.margins.end, parent.rawWidth);
-        if (isNumber(a)) {
-            this.margins.end = a;
-        } else {
-            throwErr('Invalid value set for margin-end on view.id=' + this.id);
-        }
-
-    }
-    //All defined margins are now unitless and in pixels, too
-
     wkspc.viewMap.set(this.id, this);
 }
 
@@ -761,12 +724,13 @@ function isDimensionRatio(val) {
 
 View.prototype.getValueAndPriority = function (value) {
 
-    if (!value) {
+    if (typeof value === 'undefined') {
         return value;
     }
-    if (typeof value === 'number') {
+    if (isNumber(value)) {
         return {
-            id: value,
+            id: value + "",
+            defaultUsed: true,
             priority: AutoLayout.Priority.REQUIRED
         };
     }
@@ -775,6 +739,7 @@ View.prototype.getValueAndPriority = function (value) {
     if (index === -1) {
         return {
             id: value,
+            defaultUsed: true,
             priority: AutoLayout.Priority.REQUIRED
         };
     }
@@ -784,7 +749,8 @@ View.prototype.getValueAndPriority = function (value) {
 
     return {
         id: value.substring(0, index),
-        priority: parseInt(value.substring(index+1))
+        defaultUsed: false,
+        priority: parseInt(value.substring(index + 1))
     };
 };
 
@@ -827,19 +793,19 @@ View.prototype.layoutSelf = function (wkspc) {
     let priorityHeight = idnpHei.priority;
 
     this.setHeightConstraints(constraints, this.id, h, priorityHeight);
-    
+
     if (maxWid) {
-        
-    let idnpMaxWid = this.getValueAndPriority(maxWid);
-    maxWid = idnpMaxWid.id;
-    let priorityMaxWid = idnpMaxWid.priority;
+
+        let idnpMaxWid = this.getValueAndPriority(maxWid);
+        maxWid = idnpMaxWid.id;
+        let priorityMaxWid = idnpMaxWid.priority;
 
         //set maxWidth
         constraints.push({
             view1: id,
             attr1: 'width',    // see AutoLayout.Attribute
             relation: 'leq',   // see AutoLayout.Relation
-            constant: maxWid,
+            constant: parseFloat(maxWid),
             multiplier: 1,
             priority: priorityMaxWid
         });
@@ -848,13 +814,13 @@ View.prototype.layoutSelf = function (wkspc) {
         let idnpMinWid = this.getValueAndPriority(minWid);
         minWid = idnpMinWid.id;
         let priorityMinWid = idnpMinWid.priority;
-    
+
         //set minWidth
         constraints.push({
             view1: id,
             attr1: 'width',    // see AutoLayout.Attribute
             relation: 'geq',   // see AutoLayout.Relation
-            constant: minWid,
+            constant: parseFloat(minWid),
             multiplier: 1,
             priority: priorityMinWid
         });
@@ -863,14 +829,14 @@ View.prototype.layoutSelf = function (wkspc) {
         let idnpMaxHei = this.getValueAndPriority(maxHei);
         maxHei = idnpMaxHei.id;
         let priorityMaxHei = idnpMaxHei.priority;
-    
-    
+
+
         //set maxHeight
         constraints.push({
             view1: id,
             attr1: 'height',    // see AutoLayout.Attribute
             relation: 'leq',   // see AutoLayout.Relation
-            constant: maxHei,
+            constant: parseFloat(maxHei),
             multiplier: 1,
             priority: priorityMaxHei
         });
@@ -881,81 +847,43 @@ View.prototype.layoutSelf = function (wkspc) {
         let idnpMinHei = this.getValueAndPriority(minHei);
         minHei = idnpMinHei.id;
         let priorityMinHei = idnpMinHei.priority;
-    
+
         //set minHeight
         constraints.push({
             view1: id,
             attr1: 'height',    // see AutoLayout.Attribute
             relation: 'geq',   // see AutoLayout.Relation
-            constant: minHei,
+            constant: parseFloat(minHei),
             multiplier: 1,
             priority: priorityMinHei
         });
     }
 
-
-    
     let view = this;
 
     if (ss) {
         let idnp = this.getValueAndPriority(ss);
         ss = idnp.id;
         let priority = idnp.priority;
-        constraints.push({
-            view1: id,
-            attr1: 'left',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: null,
-            attr2: 'left',    // see AutoLayout.Attribute
-            constant: view.margins.start,
-            multiplier: 1,
-            priority: priority
-        });
+        this.setLeftAlignSS(id, view.margins.start, 'parent', priority, constraints);
     }
     if (tt) {
         let idnp = this.getValueAndPriority(tt);
         tt = idnp.id;
         let priority = idnp.priority;
-        constraints.push({
-            view1: id,
-            attr1: 'top',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: null,
-            attr2: 'top',    // see AutoLayout.Attribute
-            constant: view.margins.top,
-            multiplier: 1,
-            priority: priority
-        });
+        this.setTopAlignTT(id, view.margins.top, 'parent', priority, constraints);
     }
     if (ee) {
         let idnp = this.getValueAndPriority(ee);
         ee = idnp.id;
         let priority = idnp.priority;
-        constraints.push({
-            view1: id,
-            attr1: 'right',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: null,
-            attr2: 'right',    // see AutoLayout.Attribute
-            constant: view.margins.end,
-            multiplier: 1,
-            priority: priority
-        });
+        this.setRightAlignEE(id, view.margins.end, 'parent', priority, constraints);
     }
     if (bb) {
         let idnp = this.getValueAndPriority(bb);
         bb = idnp.id;
         let priority = idnp.priority;
-        constraints.push({
-            view1: id,
-            attr1: 'bottom',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: null,
-            attr2: 'bottom',    // see AutoLayout.Attribute
-            constant: view.margins.bottom,
-            multiplier: 1,
-            priority: priority
-        });
+        this.setBottomAlignBB(id, view.margins.bottom, 'parent', priority, constraints);
     }
 
     if (cx) {
@@ -991,201 +919,6 @@ View.prototype.layoutSelf = function (wkspc) {
 
     return constraints;
 
-
-};
-/**
- * Applies necessary constraints to itself, where necessary
- *  Included layouts, templated layouts, and root layouts will need this a lot.
- */
-View.prototype.layoutSelf1 = function (wkspc) {
-    let w = this.width;
-    let h = this.height;
-    let id = this.id;
-
-
-    let constraints = [];
-
-    if (this.nodeName !== xmlKeys.root) {
-        return constraints;
-    }
-
-
-    let ss = this.refIds.get(attrKeys.layout_constraintStart_toStartOf);
-    let ee = this.refIds.get(attrKeys.layout_constraintEnd_toEndOf);
-    let tt = this.refIds.get(attrKeys.layout_constraintTop_toTopOf);
-    let bb = this.refIds.get(attrKeys.layout_constraintBottom_toBottomOf);
-    let cx = this.refIds.get(attrKeys.layout_constraintCenterXAlign);
-    let cy = this.refIds.get(attrKeys.layout_constraintCenterYAlign);
-
-    let maxWid = this.refIds.get(attrKeys.layout_maxWidth);
-    let maxHei = this.refIds.get(attrKeys.layout_maxHeight);
-    let minWid = this.refIds.get(attrKeys.layout_minWidth);
-    let minHei = this.refIds.get(attrKeys.layout_minHeight);
-
-
-    // set width
-    constraints.push({
-        view1: id,
-        attr1: 'width',    // see AutoLayout.Attribute
-        relation: 'equ',   // see AutoLayout.Relation
-        view2: null,
-        attr2: 'width',
-        constant: 0,
-        multiplier: 1
-    });
-
-    //set height
-    constraints.push({
-        view1: id,
-        attr1: 'height',    // see AutoLayout.Attribute
-        relation: 'equ',   // see AutoLayout.Relation
-        view2: null,
-        attr2: 'height',
-        constant: 0,
-        multiplier: 1
-    });
-
-    if (maxWid) {
-        //set maxWidth
-        constraints.push({
-            view1: id,
-            attr1: 'width',    // see AutoLayout.Attribute
-            relation: 'leq',   // see AutoLayout.Relation
-            constant: maxWid,
-            multiplier: 1,
-            priority: AutoLayout.Priority.REQUIRED
-        });
-    }
-    if (minWid) {
-        //set minWidth
-        constraints.push({
-            view1: id,
-            attr1: 'width',    // see AutoLayout.Attribute
-            relation: 'geq',   // see AutoLayout.Relation
-            constant: minWid,
-            multiplier: 1,
-            priority: AutoLayout.Priority.REQUIRED
-        });
-    }
-    if (maxHei) {
-        //set maxHeight
-        constraints.push({
-            view1: id,
-            attr1: 'height',    // see AutoLayout.Attribute
-            relation: 'leq',   // see AutoLayout.Relation
-            constant: maxHei,
-            multiplier: 1,
-            priority: AutoLayout.Priority.REQUIRED
-        });
-    }
-
-    if (minHei) {
-        //set minHeight
-        constraints.push({
-            view1: id,
-            attr1: 'height',    // see AutoLayout.Attribute
-            relation: 'geq',   // see AutoLayout.Relation
-            constant: minHei,
-            multiplier: 1,
-            priority: AutoLayout.Priority.REQUIRED
-        });
-    }
-
-    let view = this;
-
-    if (ss) {
-        let idnp = this.getValueAndPriority(ss);
-        ss = idnp.id;
-        let priority = idnp.priority;
-        constraints.push({
-            view1: id,
-            attr1: 'left',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: null,
-            attr2: 'left',    // see AutoLayout.Attribute
-            constant: view.margins.start,
-            multiplier: 1,
-            priority: priority
-        });
-    }
-    if (tt) {
-        let idnp = this.getValueAndPriority(tt);
-        tt = idnp.id;
-        let priority = idnp.priority;
-        constraints.push({
-            view1: id,
-            attr1: 'top',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: null,
-            attr2: 'top',    // see AutoLayout.Attribute
-            constant: view.margins.top,
-            multiplier: 1,
-            priority: priority
-        });
-    }
-    if (ee) {
-        let idnp = this.getValueAndPriority(ee);
-        ee = idnp.id;
-        let priority = idnp.priority;
-        constraints.push({
-            view1: id,
-            attr1: 'right',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: null,
-            attr2: 'right',    // see AutoLayout.Attribute
-            constant: view.margins.end,
-            multiplier: 1,
-            priority: priority
-        });
-    }
-    if (bb) {
-        let idnp = this.getValueAndPriority(bb);
-        bb = idnp.id;
-        let priority = idnp.priority;
-        constraints.push({
-            view1: id,
-            attr1: 'bottom',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: null,
-            attr2: 'bottom',    // see AutoLayout.Attribute
-            constant: view.margins.bottom,
-            multiplier: 1,
-            priority: priority
-        });
-    }
-
-    if (cx) {
-        let idnp = this.getValueAndPriority(cx);
-        cx = idnp.id;
-        let priority = idnp.priority;
-        constraints.push({
-            view1: id,
-            attr1: 'centerX',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: null,
-            attr2: 'centerX',    // see AutoLayout.Attribute
-            constant: view.margins.start - view.margins.end,
-            multiplier: 1,
-            priority: priority
-        });
-    }
-    if (cy) {
-        let idnp = this.getValueAndPriority(cy);
-        cy = idnp.id;
-        let priority = idnp.priority;
-        constraints.push({
-            view1: id,
-            attr1: 'centerY',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: null,
-            attr2: 'centerY',    // see AutoLayout.Attribute
-            constant: view.margins.top - view.margins.bottom,
-            multiplier: 1,
-            priority: priority
-        });
-    }
-
-    return constraints;
 
 };
 
@@ -1228,6 +961,10 @@ View.prototype.layoutChildren = function (wkspc) {
 
         let horBias = child.refIds.get(attrKeys.layout_horizontalBias);
         let verBias = child.refIds.get(attrKeys.layout_verticalBias);
+        if (child.constructor.name === 'Guideline') {
+            child.layoutGuide(constraints);
+            continue;
+        }
 
 
         if (horBias) {
@@ -1269,138 +1006,187 @@ View.prototype.layoutChildren = function (wkspc) {
         let w = child.width;
         let h = child.height;
 
+        if(w === sizes.WRAP_CONTENT){
+            w =  child.wrapWidth;
+        }
+        if(h === sizes.WRAP_CONTENT){
+            h =  child.wrapHeight;
+        }
+
         let idnpWid = this.getValueAndPriority(w);
         w = idnpWid.id;
         let priorityWid = idnpWid.priority;
+
+        let hiddenViewForWidthId = undefined;
+        let hiddenViewForHeightId = undefined;
+
+
+        if(idnpWid.defaultUsed){//user specified no priority
+            if((ss && ee) || (se && ee) || (ss && es) || (se && es)){
+                if( parseInt(w) === 0 ){
+                    priorityWid = AutoLayout.Priority.DEFAULTLOW;
+                }else{
+                    hiddenViewForWidthId = cid + "_dummywid_" + ULID.ulid();
+                    if(ss){
+                        this.setLeftAlignSS(hiddenViewForWidthId, child.margins.start, ss, AutoLayout.Priority.REQUIRED, constraints);
+                    }else if(se){
+                        this.setLeftAlignSE(hiddenViewForWidthId, child.margins.start, se, AutoLayout.Priority.REQUIRED, constraints);
+                    }
+
+                    if(ee){
+                        this.setRightAlignEE(hiddenViewForWidthId, child.margins.end, ee, AutoLayout.Priority.REQUIRED, constraints);
+                    }else if(es){
+                        this.setRightAlignES(hiddenViewForWidthId, child.margins.end, se, AutoLayout.Priority.REQUIRED, constraints);
+                    }
+
+                    constraints.push({
+                        view1: hiddenViewForWidthId,
+                        attr1: 'width',    // see AutoLayout.Attribute
+                        relation: 'equ',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: AutoLayout.Attribute.NOTANATTRIBUTE,    // see AutoLayout.Attribute
+                        constant: 0,
+                        multiplier: 1,
+                        priority: AutoLayout.Priority.DEFAULTLOW
+                    });
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'centerX',    // see AutoLayout.Attribute
+                        relation: 'equ',   // see AutoLayout.Relation
+                        view2: hiddenViewForWidthId,
+                        attr2: 'centerX',    // see AutoLayout.Attribute
+                        constant: 0,
+                        multiplier: 1,
+                        priority: AutoLayout.Priority.REQUIRED
+                    });
+
+                }
+
+            }
+        }
+
         this.setWidthConstraints(constraints, cid, w, priorityWid);
 
         let idnpHei = this.getValueAndPriority(h);
         h = idnpHei.id;
         let priorityHei = idnpHei.priority;
+
+        if(idnpHei.defaultUsed){//user specified no priority
+            if((tt && bb) || (tb && bb) || (tt && bt) || (tb && bt)){
+                if( parseInt(h) === 0 ){
+                    priorityHei = AutoLayout.Priority.DEFAULTLOW;
+                }else{
+                    priorityHei = AutoLayout.Priority.REQUIRED;
+                    hiddenViewForHeightId = cid + "_dummyhei_" + ULID.ulid();
+
+
+                    if(tt){
+                        this.setTopAlignTT(hiddenViewForHeightId, child.margins.top, tt, AutoLayout.Priority.REQUIRED, constraints);
+                    }else if(tb){
+                        this.setTopAlignTB(hiddenViewForHeightId, child.margins.top, tb, AutoLayout.Priority.REQUIRED, constraints);
+                    }
+
+                    if(bb){
+                        this.setBottomAlignBB(hiddenViewForHeightId, child.margins.end, bb, AutoLayout.Priority.REQUIRED, constraints);
+                    }else if(bt){
+                        this.setBottomAlignBT(hiddenViewForHeightId, child.margins.end, bt, AutoLayout.Priority.REQUIRED, constraints);
+                    }
+
+                    constraints.push({
+                        view1: hiddenViewForHeightId,
+                        attr1: 'height',    // see AutoLayout.Attribute
+                        relation: 'equ',   // see AutoLayout.Relation
+                        view2: null,
+                        attr2: AutoLayout.Attribute.NOTANATTRIBUTE,    // see AutoLayout.Attribute
+                        constant: 0,
+                        multiplier: 1,
+                        priority: AutoLayout.Priority.DEFAULTLOW
+                    });
+                    constraints.push({
+                        view1: cid,
+                        attr1: 'centerY',    // see AutoLayout.Attribute
+                        relation: 'equ',   // see AutoLayout.Relation
+                        view2: hiddenViewForHeightId,
+                        attr2: 'centerY',    // see AutoLayout.Attribute
+                        constant: 0,
+                        multiplier: 1,
+                        priority: AutoLayout.Priority.REQUIRED
+                    });
+
+                }
+
+            }
+        }
         this.setHeightConstraints(constraints, cid, h, priorityHei);
 
         this.setSizeBoundariesConstraints(constraints, cid, maxWid, minWid, maxHei, minHei);
 
 
+
+
         if (ss) {
-            let idnp = this.getValueAndPriority(ss);
-            ss = idnp.id;
-            let priority = idnp.priority;
-            constraints.push({
-                view1: cid,
-                attr1: 'left',    // see AutoLayout.Attribute
-                relation: 'equ',   // see AutoLayout.Relation
-                view2: ss === 'parent' ? null : ss,
-                attr2: 'left',    // see AutoLayout.Attribute
-                constant: child.margins.start,
-                multiplier: 1,
-                priority: priority
-            });
+            if(!hiddenViewForWidthId){
+                let idnp = this.getValueAndPriority(ss);
+                ss = idnp.id;
+                let priority = idnp.priority;
+                this.setLeftAlignSS(cid, child.margins.start, ss, priority, constraints);
+            }
         }
         if (tt) {
-            let idnp = this.getValueAndPriority(tt);
-            tt = idnp.id;
-            let priority = idnp.priority;
-            constraints.push({
-                view1: cid,
-                attr1: 'top',    // see AutoLayout.Attribute
-                relation: 'equ',   // see AutoLayout.Relation
-                view2: tt === 'parent' ? null : tt,
-                attr2: 'top',    // see AutoLayout.Attribute
-                constant: child.margins.top,
-                multiplier: 1,
-                priority: priority
-            });
+            if(!hiddenViewForHeightId){
+                let idnp = this.getValueAndPriority(tt);
+                tt = idnp.id;
+                let priority = idnp.priority;
+                this.setTopAlignTT(cid, child.margins.top, tt, priority, constraints);
+            }
         }
         if (ee) {
-            let idnp = this.getValueAndPriority(ee);
-            ee = idnp.id;
-            let priority = idnp.priority;
-            constraints.push({
-                view1: cid,
-                attr1: 'right',    // see AutoLayout.Attribute
-                relation: 'equ',   // see AutoLayout.Relation
-                view2: ee === 'parent' ? null : ee,
-                attr2: 'right',    // see AutoLayout.Attribute
-                constant: -1 * child.margins.end,
-                multiplier: 1,
-                priority: priority
-            });
+            if(!hiddenViewForWidthId){
+                let idnp = this.getValueAndPriority(ee);
+                ee = idnp.id;
+                let priority = idnp.priority;
+                this.setRightAlignEE(cid, child.margins.end, ee, priority, constraints);
+            }
         }
         if (bb) {
-            let idnp = this.getValueAndPriority(bb);
-            bb = idnp.id;
-            let priority = idnp.priority;
-            constraints.push({
-                view1: cid,
-                attr1: 'bottom',    // see AutoLayout.Attribute
-                relation: 'equ',   // see AutoLayout.Relation
-                view2: bb === 'parent' ? null : bb,
-                attr2: 'bottom',    // see AutoLayout.Attribute
-                constant: -1 * child.margins.bottom,
-                multiplier: 1,
-                priority: priority
-            });
+            if(!hiddenViewForHeightId){
+                let idnp = this.getValueAndPriority(bb);
+                bb = idnp.id;
+                let priority = idnp.priority;
+                this.setBottomAlignBB(cid, child.margins.bottom, bb, priority, constraints);
+            }
         }
         if (se) {
-            let idnp = this.getValueAndPriority(se);
-            se = idnp.id;
-            let priority = idnp.priority;
-            constraints.push({
-                view1: cid,
-                attr1: 'left',    // see AutoLayout.Attribute
-                relation: 'equ',   // see AutoLayout.Relation
-                view2: se === 'parent' ? null : se,
-                attr2: 'right',    // see AutoLayout.Attribute
-                constant: child.margins.start,
-                multiplier: 1,
-                priority: priority
-            });
+            if(!hiddenViewForWidthId){
+                let idnp = this.getValueAndPriority(se);
+                se = idnp.id;
+                let priority = idnp.priority;
+                this.setLeftAlignSE(cid, child.margins.start, se, priority, constraints);
+            }
         }
         if (es) {
-            let idnp = this.getValueAndPriority(es);
-            es = idnp.id;
-            let priority = idnp.priority;
-            constraints.push({
-                view1: cid,
-                attr1: 'right',    // see AutoLayout.Attribute
-                relation: 'equ',   // see AutoLayout.Relation
-                view2: es === 'parent' ? null : es,
-                attr2: 'left',    // see AutoLayout.Attribute
-                constant: -1 * child.margins.end,
-                multiplier: 1,
-                priority: priority
-            });
+            if(!hiddenViewForWidthId){
+                let idnp = this.getValueAndPriority(es);
+                es = idnp.id;
+                let priority = idnp.priority;
+                this.setRightAlignES(cid, child.margins.end, es, priority, constraints);
+            }
         }
         if (tb) {
-            let idnp = this.getValueAndPriority(tb);
-            tb = idnp.id;
-            let priority = idnp.priority;
-            constraints.push({
-                view1: cid,
-                attr1: 'top',    // see AutoLayout.Attribute
-                relation: 'equ',   // see AutoLayout.Relation
-                view2: tb === 'parent' ? null : tb,
-                attr2: 'bottom',    // see AutoLayout.Attribute
-                constant: child.margins.top,
-                multiplier: 1,
-                priority: priority
-            });
+            if(!hiddenViewForHeightId){
+                let idnp = this.getValueAndPriority(tb);
+                tb = idnp.id;
+                let priority = idnp.priority;
+                this.setTopAlignTB(cid, child.margins.top, tb, priority, constraints);
+            }
         }
         if (bt) {
-            let idnp = this.getValueAndPriority(bt);
-            bt = idnp.id;
-            let priority = idnp.priority;
-            constraints.push({
-                view1: cid,
-                attr1: 'bottom',    // see AutoLayout.Attribute
-                relation: 'equ',   // see AutoLayout.Relation
-                view2: bt === 'parent' ? null : bt,
-                attr2: 'top',    // see AutoLayout.Attribute
-                constant: -1 * child.margins.bottom,
-                multiplier: 1,
-                priority: priority
-            });
+            if(!hiddenViewForHeightId){
+                let idnp = this.getValueAndPriority(bt);
+                bt = idnp.id;
+                let priority = idnp.priority;
+                this.setBottomAlignBT(cid, child.margins.bottom, bt, priority, constraints);
+            }
         }
         if (cx) {
             let idnp = this.getValueAndPriority(cx);
@@ -1433,8 +1219,978 @@ View.prototype.layoutChildren = function (wkspc) {
             });
         }
     }
-    console.log('layoutChildren on id, ', this.id, ' -> \n', constraints)
     return constraints;
+};
+
+/**
+ * Sets the left align constraint for a left-left(start-start) align situation...works with pixels, percents
+ * @param {string} view1 The view whose left is being constrained
+ * @param {string|number} marginLeft The left margin... supported units are px, % and no units(we assume px)
+ * @param {string} view2 The id of the view being constrained to, or parent to refer to the parent element
+ * @param {number} priority The priority of the left-left anchor constraint
+ * @param {Array} constraints The array that holds the constraints generated here
+ */
+View.prototype.setLeftAlignSS = function (view1, marginLeft, view2, priority, constraints) {
+    if (typeof marginLeft === 'number') {
+        constraints.push({
+            view1: view1,
+            attr1: 'left',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'left',    // see AutoLayout.Attribute
+            constant: marginLeft,
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (isNumber(marginLeft)) {//may be a number string
+        constraints.push({
+            view1: view1,
+            attr1: 'left',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'left',    // see AutoLayout.Attribute
+            constant: parseFloat(marginLeft),
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (endsWith(marginLeft, "px")) {
+        constraints.push({
+            view1: view1,
+            attr1: 'left',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'left',    // see AutoLayout.Attribute
+            constant: parseFloat(marginLeft),
+            multiplier: 1,
+            priority: priority
+        });
+    } else {
+        let isPct = endsWith(marginLeft, "%");
+
+        if (!isPct) {
+            throw 'margin-left can only be expressed in pixels, in percentage(%) or without units, on id: ' + view1;
+        }
+
+        let val = parseFloat(marginLeft) / 100.0;
+
+
+        let hiddenViewId = view1 + "_dummy_" + ULID.ulid();
+        if (view2 === 'parent') {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'left',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        } else {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: view2,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        }
+    }
+
+};
+
+
+
+/**
+ * Sets the left align constraint for a left-right(start-end) align situation...works with pixels, percents
+ * @param {string} view1 The view whose left is being constrained
+ * @param {*} marginLeft The left margin... supported units are px, % and no units(we assume px)
+ * @param {string} view2 The id of the view being constrained to, or parent to refer to the parent element
+ * @param {number} priority The priority of the left-right anchor constraint
+ * @param {Array} constraints The array that holds the constraints generated here
+ */
+View.prototype.setLeftAlignSE = function (view1, marginLeft, view2, priority, constraints) {
+    if (typeof marginLeft === 'number') {
+        constraints.push({
+            view1: view1,
+            attr1: 'left',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'right',    // see AutoLayout.Attribute
+            constant: marginLeft,
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (isNumber(marginLeft)) {//may be a number string
+        constraints.push({
+            view1: view1,
+            attr1: 'left',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'right',    // see AutoLayout.Attribute
+            constant: parseFloat(marginLeft),
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (endsWith(marginLeft, "px")) {
+        constraints.push({
+            view1: view1,
+            attr1: 'left',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'right',    // see AutoLayout.Attribute
+            constant: parseFloat(marginLeft),
+            multiplier: 1,
+            priority: priority
+        });
+    } else {
+        let isPct = endsWith(marginLeft, "%");
+
+        if (!isPct) {
+            throw 'margin-left can only be expressed in pixels, in percentage(%) or without units, on id: ' + view1;
+        }
+
+        let val = parseFloat(marginLeft) / 100.0;
+
+        let hiddenViewId = view1 + "_dummy_" + ULID.ulid();
+        if (view2 === 'parent') {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        } else {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: view2,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        }
+    }
+};
+
+
+
+/**
+ * Sets the right align constraint for a right-right(end-end) align situation...works with pixels, percents
+ * @param {string} view1 The view whose right is being constrained
+ * @param {*} marginRight The right margin... supported units are px, % and no units(we assume px)
+ * @param {string} view2 The id of the view being constrained to, or parent to refer to the parent element
+ * @param {number} priority The priority of the right-right anchor constraint
+ * @param {Array} constraints The array that holds the constraints generated here
+ */
+View.prototype.setRightAlignEE = function (view1, marginRight, view2, priority, constraints) {
+    if (typeof marginRight === 'number') {
+        constraints.push({
+            view1: view1,
+            attr1: 'right',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'right',    // see AutoLayout.Attribute
+            constant: -1 * marginRight,
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (isNumber(marginRight)) {//may be a number string
+        constraints.push({
+            view1: view1,
+            attr1: 'right',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'right',    // see AutoLayout.Attribute
+            constant: -1 * parseFloat(marginRight),
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (endsWith(marginRight, "px")) {
+        constraints.push({
+            view1: view1,
+            attr1: 'right',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'right',    // see AutoLayout.Attribute
+            constant: -1 * parseFloat(marginRight),
+            multiplier: 1,
+            priority: priority
+        });
+    } else {
+        let isPct = endsWith(marginRight, "%");
+
+        if (!isPct) {
+            throw 'margin-right can only be expressed in pixels, in percentage(%) or without units, on id: ' + view1;
+        }
+
+        let val = parseFloat(marginRight) / 100.0;
+
+        let hiddenViewId = view1 + "_dummy_" + ULID.ulid();
+        if (view2 === 'parent') {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'right',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'right',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'left',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        } else {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'right',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: view2,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'right',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'left',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        }
+    }
+
+};
+
+
+/**
+ * Sets the right align constraint for a right-left(end-start) align situation...works with pixels, percents
+ * @param {string} view1 The view whose right is being constrained
+ * @param {*} marginRight The right margin... supported units are px, % and no units(we assume px)
+ * @param {string} view2 The id of the view being constrained to, or parent to refer to the parent element
+ * @param {number} priority The priority of the right-left anchor constraint
+ * @param {Array} constraints The array that holds the constraints generated here
+ */
+View.prototype.setRightAlignES = function (view1, marginRight, view2, priority, constraints) {
+    if (typeof marginRight === 'number') {
+        constraints.push({
+            view1: view1,
+            attr1: 'right',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'left',    // see AutoLayout.Attribute
+            constant: -1 * marginRight,
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (isNumber(marginRight)) {//may be a number string
+        constraints.push({
+            view1: view1,
+            attr1: 'right',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'left',    // see AutoLayout.Attribute
+            constant: -1 * parseFloat(marginRight),
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (endsWith(marginRight, "px")) {
+        constraints.push({
+            view1: view1,
+            attr1: 'right',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'left',    // see AutoLayout.Attribute
+            constant: -1 * parseFloat(marginRight),
+            multiplier: 1,
+            priority: priority
+        });
+    } else {
+        let isPct = endsWith(marginRight, "%");
+
+        if (!isPct) {
+            throw 'margin-right can only be expressed in pixels, in percentage(%) or without units, on id: ' + view1;
+        }
+
+        let val = parseFloat(marginRight) / 100.0;
+
+        let hiddenViewId = view1 + "_dummy_" + ULID.ulid();
+        if (view2 === 'parent') {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'right',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'left',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'right',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'left',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        } else {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'right',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: view2,
+                attr2: 'left',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'right',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'left',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        }
+    }
+};
+
+
+
+/**
+ * Sets the top align constraint for a top-top align situation...works with pixels, percents
+ * @param {string} view1 The view whose top is being constrained
+ * @param {*} marginTop The top margin... supported units are px, % and no units(we assume px)
+ * @param {string} view2 The id of the view being constrained to, or parent to refer to the parent element
+ * @param {number} priority The priority of the top-top anchor constraint
+ * @param {Array} constraints The array that holds the constraints generated here
+ */
+View.prototype.setTopAlignTT = function (view1, marginTop, view2, priority, constraints) {
+    if (typeof marginTop === 'number') {
+        constraints.push({
+            view1: view1,
+            attr1: 'top',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'top',    // see AutoLayout.Attribute
+            constant: marginTop,
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (isNumber(marginTop)) {//may be a number string
+        constraints.push({
+            view1: view1,
+            attr1: 'top',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'top',    // see AutoLayout.Attribute
+            constant: parseFloat(marginTop),
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (endsWith(marginTop, "px")) {
+        constraints.push({
+            view1: view1,
+            attr1: 'top',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'top',    // see AutoLayout.Attribute
+            constant: parseFloat(marginTop),
+            multiplier: 1,
+            priority: priority
+        });
+    } else {
+        let isPct = endsWith(marginTop, "%");
+
+        if (!isPct) {
+            throw 'margin-top can only be expressed in pixels, in percentage(%) or without units, on id: ' + view1;
+        }
+
+        let val = parseFloat(marginTop) / 100.0;
+
+        if (!val) {
+            throw 'Invalid expression found for margin-top on id: ' + view1;
+        }
+
+        let hiddenViewId = view1 + "_dummy_" + ULID.ulid();
+        if (view2 === 'parent') {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'top',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'bottom',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        } else {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: view2,
+                attr2: 'top',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'bottom',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        }
+    }
+
+};
+
+
+
+/**
+ * Sets the top align constraint for a top-bottom align situation...works with pixels, percents
+ * @param {string} view1 The view whose top is being constrained
+ * @param {*} marginTop The top margin... supported units are px, % and no units(we assume px)
+ * @param {string} view2 The id of the view being constrained to, or parent to refer to the parent element
+ * @param {number} priority The priority of the top-bottom anchor constraint
+ * @param {Array} constraints The array that holds the constraints generated here
+ */
+View.prototype.setTopAlignTB = function (view1, marginTop, view2, priority, constraints) {
+    if (typeof marginTop === 'number') {
+        constraints.push({
+            view1: view1,
+            attr1: 'top',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'bottom',    // see AutoLayout.Attribute
+            constant: marginTop,
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (isNumber(marginTop)) {//may be a number string
+        constraints.push({
+            view1: view1,
+            attr1: 'top',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'bottom',    // see AutoLayout.Attribute
+            constant: parseFloat(marginTop),
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (endsWith(marginTop, "px")) {
+        constraints.push({
+            view1: view1,
+            attr1: 'top',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'bottom',    // see AutoLayout.Attribute
+            constant: parseFloat(marginTop),
+            multiplier: 1,
+            priority: priority
+        });
+    } else {
+        let isPct = endsWith(marginTop, "%");
+
+        if (!isPct) {
+            throw 'margin-top can only be expressed in pixels, in percentage(%) or without units, on id: ' + view1;
+        }
+
+        let val = parseFloat(marginTop) / 100.0;
+
+        if (!val) {
+            throw 'Invalid expression found for margin-top on id: ' + view1;
+        }
+
+        let hiddenViewId = view1 + "_dummy_" + ULID.ulid();
+        if (view2 === 'parent') {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'bottom',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'bottom',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        } else {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: view2,
+                attr2: 'bottom',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'bottom',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        }
+    }
+
+};
+
+
+
+/**
+ * Sets the bottom align constraint for a bottom-bottom align situation...works with pixels, percents
+ * @param {string} view1 The view whose bottom is being constrained
+ * @param {*} marginBottom The bottom margin... supported units are px, % and no units(we assume px)
+ * @param {string} view2 The id of the view being constrained to, or parent to refer to the parent element
+ * @param {number} priority The priority of the bottom-bottom anchor constraint
+ * @param {Array} constraints The array that holds the constraints generated here
+ */
+View.prototype.setBottomAlignBB = function (view1, marginBottom, view2, priority, constraints) {
+    if (typeof marginBottom === 'number') {
+        constraints.push({
+            view1: view1,
+            attr1: 'bottom',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'bottom',    // see AutoLayout.Attribute
+            constant: -1 * marginBottom,
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (isNumber(marginBottom)) {//may be a number string
+        constraints.push({
+            view1: view1,
+            attr1: 'bottom',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'bottom',    // see AutoLayout.Attribute
+            constant: -1 * parseFloat(marginBottom),
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (endsWith(marginBottom, "px")) {
+        constraints.push({
+            view1: view1,
+            attr1: 'bottom',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'bottom',    // see AutoLayout.Attribute
+            constant: -1 * parseFloat(marginBottom),
+            multiplier: 1,
+            priority: priority
+        });
+    } else {
+        let isPct = endsWith(marginBottom, "%");
+
+        if (!isPct) {
+            throw 'margin-bottom can only be expressed in pixels, in percentage(%) or without units, on id: ' + view1;
+        }
+
+        let val = parseFloat(marginBottom) / 100.0;
+
+        let hiddenViewId = view1 + "_dummy_" + ULID.ulid();
+        if (view2 === 'parent') {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'bottom',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'bottom',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'bottom',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'top',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        } else {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'bottom',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: view2,
+                attr2: 'bottom',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'bottom',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'top',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        }
+    }
+
+};
+
+
+/**
+ * Sets the bottom align constraint for a bottom-top align situation...works with pixels, percents
+ * @param {string} view1 The view whose bottom is being constrained
+ * @param {*} marginBottom The bottom margin... supported units are px, % and no units(we assume px)
+ * @param {string} view2 The id of the view being constrained to, or parent to refer to the parent element
+ * @param {number} priority The priority of the bottom-bottom anchor constraint
+ * @param {Array} constraints The array that holds the constraints generated here
+ */
+View.prototype.setBottomAlignBT = function (view1, marginBottom, view2, priority, constraints) {
+    if (typeof marginBottom === 'number') {
+        constraints.push({
+            view1: view1,
+            attr1: 'bottom',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'top',    // see AutoLayout.Attribute
+            constant: -1 * marginBottom,
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (isNumber(marginBottom)) {//may be a number string
+        constraints.push({
+            view1: view1,
+            attr1: 'bottom',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'top',    // see AutoLayout.Attribute
+            constant: -1 * parseFloat(marginBottom),
+            multiplier: 1,
+            priority: priority
+        });
+    } else if (endsWith(marginBottom, "px")) {
+        constraints.push({
+            view1: view1,
+            attr1: 'bottom',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: view2 === 'parent' ? null : view2,
+            attr2: 'top',    // see AutoLayout.Attribute
+            constant: -1 * parseFloat(marginBottom),
+            multiplier: 1,
+            priority: priority
+        });
+    } else {
+        let isPct = endsWith(marginBottom, "%");
+
+        if (!isPct) {
+            throw 'margin-bottom can only be expressed in pixels, in percentage(%) or without units, on id: ' + view1;
+        }
+
+        let val = parseFloat(marginBottom) / 100.0;
+
+        let hiddenViewId = view1 + "_dummy_" + ULID.ulid();
+        if (view2 === 'parent') {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'bottom',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'top',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'bottom',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'top',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        } else {
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'bottom',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: view2,
+                attr2: 'top',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'bottom',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'top',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+        }
+    }
+
 };
 
 View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid, minWid, maxHei, minHei) {
@@ -1454,7 +2210,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
                 relation: 'leq',   // see AutoLayout.Relation
                 view2: null,
                 attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
-                constant: maxWid,
+                constant: parseFloat(maxWid),
                 multiplier: 1,
                 priority: priorityMaxWid
             });
@@ -1505,7 +2261,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
                         view1: cid,
                         attr1: 'width',    // see AutoLayout.Attribute
                         relation: 'leq',   // see AutoLayout.Relation
-                        constant: parsedMaxWidth.number,
+                        constant: parseFloat(parsedMaxWidth.number),
                         view2: null,
                         attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
                         multiplier: 1,
@@ -1530,7 +2286,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
                         view2: null,
                         attr2: 'width',    // see AutoLayout.Attribute
                         constant: 0,
-                        multiplier: parsedMaxWidth.number, //em is already a multiplier
+                        multiplier: parseFloat(parsedMaxWidth.number), //em is already a multiplier
                         priority: priorityMaxWid
                     });
                 } else {
@@ -1561,7 +2317,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
                 relation: 'geq',   // see AutoLayout.Relation
                 view2: null,
                 attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
-                constant: minWid,
+                constant: parseFloat(minWid),
                 multiplier: 1,
                 priority: priorityMinWid
             });
@@ -1613,7 +2369,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
                         relation: 'geq',   // see AutoLayout.Relation
                         view2: null,
                         attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
-                        constant: parsedMinWidth.number,
+                        constant: parseFloat(parsedMinWidth.number),
                         multiplier: 1,
                         priority: priorityMinWid
                     });
@@ -1636,7 +2392,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
                         view2: null,
                         attr2: 'width',    // see AutoLayout.Attribute
                         constant: 0,
-                        multiplier: parsedMinWidth.number, //em is already a multiplier
+                        multiplier: parseFloat(parsedMinWidth.number), //em is already a multiplier
                         priority: priorityMinWid
                     });
                 } else {
@@ -1664,7 +2420,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
                 relation: 'leq',   // see AutoLayout.Relation
                 view2: null,
                 attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
-                constant: maxHei,
+                constant: parseFloat(maxHei),
                 multiplier: 1,
                 priority: priorityMaxHei
             });
@@ -1717,7 +2473,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
                         relation: 'leq',   // see AutoLayout.Relation
                         view2: null,
                         attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
-                        constant: parsedMaxHeight.number,
+                        constant: parseFloat(parsedMaxHeight.number),
                         multiplier: 1,
                         priority: priorityMaxHei
                     });
@@ -1740,7 +2496,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
                         view2: null,
                         attr2: 'height',    // see AutoLayout.Attribute
                         constant: 0,
-                        multiplier: parsedMaxHeight.number, //em is already a multiplier
+                        multiplier: parseFloat(parsedMaxHeight.number), //em is already a multiplier
                         priority: priorityMaxHei
                     });
                 } else {
@@ -1767,7 +2523,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
                 relation: 'geq',   // see AutoLayout.Relation
                 view2: null,
                 attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
-                constant: minHei,
+                constant: parseFloat(minHei),
                 multiplier: 1,
                 priority: priorityMinHei
             });
@@ -1820,7 +2576,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
                         relation: 'geq',   // see AutoLayout.Relation
                         view2: null,
                         attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
-                        constant: parsedMinHeight.number,
+                        constant: parseFloat(parsedMinHeight.number),
                         multiplier: 1,
                         priority: priorityMinHei
                     });
@@ -1843,7 +2599,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
                         view2: null,
                         attr2: 'height',    // see AutoLayout.Attribute
                         constant: 0,
-                        multiplier: parsedMinHeight.number, //em is already a multiplier
+                        multiplier: parseFloat(parsedMinHeight.number), //em is already a multiplier
                         priority: priorityMinHei
                     });
                 } else {
@@ -1857,7 +2613,7 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
 
     }
 
-}
+};
 /**
  * Sometimes the width or height may come as a relational quantity instead of being given as a number or a number with units.
  * Some examples are,
@@ -1865,17 +2621,17 @@ View.prototype.setSizeBoundariesConstraints = function (constraints, cid, maxWid
  * width=some_id.width*2
  * height=some_id.height*0.35
  * height=0.81*some_id.width.
- * 
+ *
  * We need to split this statements into tokens and extract information about the individual tokens.
- * 
- * To avoid the scanner splitting floating point numbers, we will change the floating point on 
+ *
+ * To avoid the scanner splitting floating point numbers, we will change the floating point on
  * some_id.width and some_id.height to % instead
  * and then we can safely split on the % and replace to floating point after the scan.
- * To optimize further, we could leave the % in place instead of replacing it back when done and deal with it as such in 
+ * To optimize further, we could leave the % in place instead of replacing it back when done and deal with it as such in
  * code that uses this. To do this, we introduce an optional `optimize` parameter, which if true, leaves the '%' in place,
  * but if false will change it back to the original '.'
  * Thinking premature optimization? dont sue me :)
- * @param {string} dim 
+ * @param {string} dim
  * @param {string} optimize
  * @returns {Array} an array containing the input split into relevant tokens
  */
@@ -1886,7 +2642,7 @@ function quickScan(dim, optimize) {
     hh = hh.replace(".width", "%width");
     hh = hh.replace(".height", "%height");
 
-    let tokens = new Scanner(hh, true, ["*", "+", "%"]).scan();
+    let tokens = new Scanner(hh, true, ["*", "+", "%","-"]).scan();
     if (optimize && optimize === true) {
         return tokens;
     }
@@ -1900,8 +2656,14 @@ function quickScan(dim, optimize) {
 
 View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
 
-    let i = -1;
-    let vid = '';
+    let mulInd = w.indexOf("*");
+    let addInd = w.indexOf("+");
+    let subInd = w.indexOf("-");
+    let dotInd = w.indexOf(".");
+    let parseObj;
+    let selectedDimensionForAttr2IsWidth;
+
+
     if (isNumber(w)) {
         w = typeof w === 'string' ? parseFloat(w) : w;
         constraints.push({
@@ -1914,6 +2676,49 @@ View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
             multiplier: 1,
             priority: priority
         });
+    } else if ((parseObj = parseNumberAndUnitsNoValidation(w, true)).number) {
+        let val = parseFloat(parseObj.number);
+        switch (parseObj.units) {
+            case CssSizeUnits.PX:
+                constraints.push({
+                    view1: id,
+                    attr1: 'width',    // see AutoLayout.Attribute
+                    relation: 'equ',   // see AutoLayout.Relation
+                    view2: null,
+                    attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                    constant: val,
+                    multiplier: 1,
+                    priority: priority
+                });
+                break;
+            case CssSizeUnits.EM:
+                constraints.push({
+                    view1: id,
+                    attr1: 'width',    // see AutoLayout.Attribute
+                    relation: 'equ',   // see AutoLayout.Relation
+                    view2: null,
+                    attr2: 'width',    // see AutoLayout.Attribute
+                    constant: 0,
+                    multiplier: val, //em is already a multiplier,
+                    priority: priority
+                });
+                break;
+            case CssSizeUnits.PCT:
+                constraints.push({
+                    view1: id,
+                    attr1: 'width',    // see AutoLayout.Attribute
+                    relation: 'equ',   // see AutoLayout.Relation
+                    view2: null,
+                    attr2: 'width',    // see AutoLayout.Attribute
+                    constant: 0,
+                    multiplier: val / 100.0,
+                    priority: priority
+                });
+                break;
+            default:
+                throw 'width value is bad on id: ' + id + ", bad value is: " + w
+        }
+
     } else if (w === 'height') {//width = height refers to the height of same element... so use this element's height for its width
         constraints.push({
             view1: id,
@@ -1937,22 +2742,22 @@ View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
             priority: priority
         });
     }
-    // width is a multiple of some other quantity...e.g width="2*elemId.width" or width="0.8*elemId.height" or width="2*elemId"
-    else if (w.indexOf("*") !== -1 && w.indexOf("+") !== -1) {
-        throw 'width can only compare using either `*` or `+` but not using both';
+    // width cannot be a combination of 2 operators * and - or + and - or + and *
+    else if ((mulInd !== -1 && addInd !== -1) || (addInd !== -1 && subInd !== -1) || (mulInd !== -1 && subInd !== -1)) {
+        throw 'width can only compare using one of `*` or `+` or `-`';
     }
-    else if (w.indexOf("*") !== -1 || w.indexOf("+") !== -1) {
+    else if (mulInd !== -1 || addInd !== -1 || subInd !== -1) {
         let tokens = quickScan(w, true);
         if (tokens.length !== 3 && tokens.length !== 5) {
-            throw 'invalid expression for width found on view.id=' + this.id;
+            throw 'invalid expression for width found on view.id=' + this.id + ", expression: " + w;
         }
         let mulIndex = tokens.indexOf("*");
         let sumIndex = tokens.indexOf("+");
+        let subIndex = tokens.indexOf("-");
 
 
         if (mulIndex !== -1) {
             let vid;
-            let selectedDimensionForAttr2IsWidth;
             let number;
             if (isNumber(number = tokens[0])) {//format is number*elemid or number*elemid.width or number*elemid.height
                 vid = tokens[2] === 'height' ? id : tokens[2];
@@ -1995,7 +2800,6 @@ View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
 
         } else if (sumIndex !== -1) {
             let vid;
-            let selectedDimensionForAttr2IsWidth;
             let number;
             if (isNumber(number = tokens[0])) {//format is number+elemid or number+elemid.width or number+elemid.height
                 vid = tokens[2] === 'height' ? id : tokens[2];
@@ -2036,71 +2840,139 @@ View.prototype.setWidthConstraints = function (constraints, id, w, priority) {
                 priority: priority
             });
 
+        } else if (subIndex !== -1) {
+            let vid;
+            let number;
+            if (isNumber(number = tokens[0])) {//format is number-elemid or number-elemid.width or number-elemid.height
+                throw '`value-elem[.width|height]` is not allowed, but `elem[.width|height]-value is allowed on ` view.id=' + cid + '... expression ' + w
+            }
+            else if (isNumber(number = tokens[tokens.length - 1])) {//format is elemid-number or width-number or elemid.width-number or elemid.height-number
+                vid = tokens[0] === 'height' ? id : tokens[0];
+                if (vid === 'width') {
+                    throw 'the width is not yet initialized';
+                }
+                if (tokens.length === 3) {
+                    //if the first token is width, then it refers to the height of the same element
+                    selectedDimensionForAttr2IsWidth = tokens[0] !== 'height';
+                } else if (tokens.length === 5) {
+                    selectedDimensionForAttr2IsWidth = tokens[2] === 'width';
+                } else {
+                    throw 'error in value specified for width on view.id=' + cid + '... expression ' + w
+                }
+            }
+
+            constraints.push({
+                view1: id,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: vid === 'parent' ? null : vid,
+                attr2: selectedDimensionForAttr2IsWidth ? "width" : "height",
+                constant: -1 * parseFloat(number),
+                multiplier: 1,
+                priority: priority
+            });
+
         }
-    } else {
-        let parsedWidth = parseNumberAndUnitsNoValidation(w, true);
-        if (parsedWidth.number) { // number exists, unit too must exist
-            if (parseInt(parsedWidth.number) === 0) {
-                parsedWidth.number = '100';
-                parsedWidth.units = '%';
-            }
-            if (parsedWidth.units === 'px') {
-                constraints.push({
-                    view1: id,
-                    attr1: 'width',    // see AutoLayout.Attribute
-                    relation: 'equ',   // see AutoLayout.Relation
-                    view2: null,
-                    attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
-                    constant: parseFloat(parsedWidth.number),
-                    multiplier: 1,
-                    priority: priority
-                });
-            } else if (parsedWidth.units === '%') {
-                constraints.push({
-                    view1: id,
-                    attr1: 'width',    // see AutoLayout.Attribute
-                    relation: 'equ',   // see AutoLayout.Relation
-                    view2: null,
-                    attr2: 'width',    // see AutoLayout.Attribute
-                    constant: 0,
-                    multiplier: parseFloat(parsedWidth.number) / 100.0,
-                    priority: priority
-                });
-            } else if (parsedWidth.units === 'em') {
-                constraints.push({
-                    view1: id,
-                    attr1: 'width',    // see AutoLayout.Attribute
-                    relation: 'equ',   // see AutoLayout.Relation
-                    view2: null,
-                    attr2: 'width',    // see AutoLayout.Attribute
-                    constant: 0,
-                    multiplier: parseFloat(parsedWidth.number), //em is already a multiplier,
-                    priority: priority
-                });
-            } else {
-                throw "Invalid values specified for the width units on view.id=" + id
-            }
+    } else if (mulInd === -1 && addInd === -1 && subInd === -1 && dotInd !== -1) {//test for width="some_id.width" or width="some_id.height"
+        let lhs = w.substring(0, dotInd);
+        let rhs = w.substring(dotInd + 1);
+        if (rhs === 'width') {
+            selectedDimensionForAttr2IsWidth = true;
+        } else if (rhs === 'height') {
+            selectedDimensionForAttr2IsWidth = false;
+        } else {
+            throw 'Strange expression found for width on id: ' + id + ', expression is: ' + w
+        }
+        let v2;
+        if (lhs === 'parent' || rhs === 'parent') {
+            v2 = null;
+        } else if (this.childrenIds.indexOf(lhs) !== -1) {
+            v2 = lhs; //you have the sibling!
+        } else {
+            throw 'Bad expression found for width on id: ' + id + ', expression is: ' + w
         }
 
+        constraints.push({
+            view1: id,
+            attr1: 'width',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: v2,
+            attr2: selectedDimensionForAttr2IsWidth ? "width" : "height",
+            constant: 0,
+            multiplier: 1,
+            priority: priority
+        });
+
+    } else {
+        console.log(parseObj);
+        throw 'invalid value for width on id: ' + id + ", bad value is: " + w;
     }
 
-}
+};
 View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
 
-    let i = -1;
-    let vid = '';
+    let mulInd = h.indexOf("*");
+    let addInd = h.indexOf("+");
+    let subInd = h.indexOf("-");
+    let dotInd = h.indexOf(".");
+    let  parseObj;
+    let selectedDimensionForAttr2IsHeight;
+
     if (isNumber(h)) {
         h = typeof h === 'string' ? parseFloat(h) : h;
         constraints.push({
             view1: id,
             attr1: 'height',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation    
+            relation: 'equ',   // see AutoLayout.Relation
             view2: null,
             attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
             constant: h,
             multiplier: 1,
             priority: priority
         });
+    } else if ((parseObj = parseNumberAndUnitsNoValidation(h, true)).number) {
+        let val = parseFloat(parseObj.number);
+        switch (parseObj.units) {
+            case CssSizeUnits.PX:
+                constraints.push({
+                    view1: id,
+                    attr1: 'height',    // see AutoLayout.Attribute
+                    relation: 'equ',   // see AutoLayout.Relation
+                    view2: null,
+                    attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                    constant: val,
+                    multiplier: 1,
+                    priority: priority
+                });
+                break;
+            case CssSizeUnits.EM:
+                constraints.push({
+                    view1: id,
+                    attr1: 'height',    // see AutoLayout.Attribute
+                    relation: 'equ',   // see AutoLayout.Relation
+                    view2: null,
+                    attr2: 'height',    // see AutoLayout.Attribute
+                    constant: 0,
+                    multiplier: val, //em is already a multiplier,
+                    priority: priority
+                });
+                break;
+            case CssSizeUnits.PCT:
+                constraints.push({
+                    view1: id,
+                    attr1: 'height',    // see AutoLayout.Attribute
+                    relation: 'equ',   // see AutoLayout.Relation
+                    view2: null,
+                    attr2: 'height',    // see AutoLayout.Attribute
+                    constant: 0,
+                    multiplier: val / 100.0,
+                    priority: priority
+                });
+                break;
+            default:
+                throw 'height value is bad on id: ' + id + ", bad value is: " + h
+        }
+
     } else if (h === 'width') {//height = width refers to the width of same element... so use this element's width for its height
         constraints.push({
             view1: id,
@@ -2124,11 +2996,11 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
             priority: priority
         });
     }
-    // width is a multiple of some other quantity...e.g width="2*elemId.width" or width="0.8*elemId.height" or width="2*elemId"
-    else if (h.indexOf("*") !== -1 && h.indexOf("+") !== -1) {
-        throw 'height can only compare using either `*` or `+` but not using both';
+    // width cannot be a combination of 2 operators * and - or + and - or + and *
+    else if ((mulInd !== -1 && addInd !== -1) || (addInd !== -1 && subInd !== -1) || (mulInd !== -1 && subInd !== -1)) {
+        throw 'width can only compare using one of `*` or `+` or `-`';
     }
-    else if (h.indexOf("*") !== -1 || h.indexOf("+") !== -1) {
+    else if (mulInd !== -1 || addInd !== -1 || subInd !== -1) {
         let tokens = quickScan(h, true);
 
         if (tokens.length !== 3 && tokens.length !== 5) {
@@ -2137,11 +3009,11 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
 
         let mulIndex = tokens.indexOf("*");
         let sumIndex = tokens.indexOf("+");
+        let subIndex = tokens.indexOf("-");
 
 
         if (mulIndex !== -1) {
             let vid;
-            let selectedDimensionForAttr2IsHeight;
             let number;
             if (isNumber(number = tokens[0])) {//format is number*elemid or number*width or number*elemid.width or number*elemid.height
                 vid = tokens[2] === 'width' ? id : tokens[2];
@@ -2149,8 +3021,8 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
                     throw 'the height is not yet initialized';
                 }
                 if (tokens.length === 3) {
-                 //if the first token is width, then it refers to the width of the same element
-                 selectedDimensionForAttr2IsHeight = tokens[2] !== 'width';
+                    //if the first token is width, then it refers to the width of the same element
+                    selectedDimensionForAttr2IsHeight = tokens[2] !== 'width';
                 } else if (tokens.length === 5) {
                     selectedDimensionForAttr2IsHeight = tokens[4] === 'height';
                 } else {
@@ -2185,7 +3057,6 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
 
         } else if (sumIndex !== -1) {
             let vid;
-            let selectedDimensionIsHeight;
             let number;
             if (isNumber(number = tokens[0])) {//format is number+elemid or number+elemid.width or number+elemid.height
                 vid = tokens[2] === 'width' ? id : tokens[2];
@@ -2193,10 +3064,10 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
                     throw 'the height is not yet initialized';
                 }
                 if (tokens.length === 3) {
-                     //if the first token is width, then it refers to the width of the same element
-                     selectedDimensionForAttr2IsHeight = tokens[2] !== 'width';
+                    //if the first token is width, then it refers to the width of the same element
+                    selectedDimensionForAttr2IsHeight = tokens[2] !== 'width';
                 } else if (tokens.length === 5) {
-                    selectedDimensionIsHeight = tokens[4] === 'height';
+                    selectedDimensionForAttr2IsHeight = tokens[4] === 'height';
                 } else {
                     throw 'error in value specified for height on view.id=' + cid + '... expression ' + h
                 }
@@ -2208,9 +3079,9 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
                 }
                 if (tokens.length === 3) {
                     //if the first token is width, then it refers to the width of the same element
-                    selectedDimensionIsHeight = tokens[0] !== 'width';
+                    selectedDimensionForAttr2IsHeight = tokens[0] !== 'width';
                 } else if (tokens.length === 5) {
-                    selectedDimensionIsHeight = tokens[2] === 'height';
+                    selectedDimensionForAttr2IsHeight = tokens[2] === 'height';
                 } else {
                     throw 'error in value specified for height on view.id=' + cid + '... expression ' + h
                 }
@@ -2221,61 +3092,82 @@ View.prototype.setHeightConstraints = function (constraints, id, h, priority) {
                 attr1: 'height',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: vid === 'parent' ? null : vid,
-                attr2: selectedDimensionIsHeight ? "height" : "width",
+                attr2: selectedDimensionForAttr2IsHeight ? "height" : "width",
                 constant: parseFloat(number),
                 multiplier: 1,
                 priority: priority
             });
 
+        }else if (subIndex !== -1) {
+            let vid;
+            let number;
+            if (isNumber(number = tokens[0])) {
+                //format is number-elemid or number-elemid.width or number-elemid.height
+                throw '`value-elem[.width|height]` is not allowed, but `elem[.width|height]-value is allowed on ` view.id=' + cid + '... expression ' + w
+            }
+
+            else if (isNumber(number = tokens[tokens.length - 1])) {//format is elemid+number or elemid.width+number or elemid.height+number
+                vid = tokens[0] === 'width' ? id : tokens[0];
+                if (vid === 'height') {
+                    throw 'the height is not yet initialized';
+                }
+                if (tokens.length === 3) {
+                    //if the first token is width, then it refers to the width of the same element
+                    selectedDimensionForAttr2IsHeight = tokens[0] !== 'width';
+                } else if (tokens.length === 5) {
+                    selectedDimensionForAttr2IsHeight = tokens[2] === 'height';
+                } else {
+                    throw 'error in value specified for height on view.id=' + cid + '... expression ' + h
+                }
+            }
+
+            constraints.push({
+                view1: id,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: vid === 'parent' ? null : vid,
+                attr2: selectedDimensionForAttr2IsHeight ? "height" : "width",
+                constant: -1*parseFloat(number),
+                multiplier: 1,
+                priority: priority
+            });
+
         }
-    } else {
-        let parsedHeight = parseNumberAndUnitsNoValidation(h, true);
-        if (parsedHeight.number) { // number exists, unit too must exist
-            if (parseInt(parsedHeight.number) === 0) {
-                parsedHeight.number = '100';
-                parsedHeight.units = '%';
-            }
-            if (parsedHeight.units === 'px') {
-                constraints.push({
-                    view1: id,
-                    attr1: 'height',    // see AutoLayout.Attribute
-                    relation: 'equ',   // see AutoLayout.Relation
-                    view2: null,
-                    attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
-                    constant: parseFloat(parsedHeight.number),
-                    multiplier: 1,
-                    priority: priority
-                });
-            } else if (parsedHeight.units === '%') {
-                constraints.push({
-                    view1: id,
-                    attr1: 'height',    // see AutoLayout.Attribute
-                    relation: 'equ',   // see AutoLayout.Relation
-                    view2: null,
-                    attr2: 'height',    // see AutoLayout.Attribute
-                    constant: 0,
-                    multiplier: parseFloat(parsedHeight.number) / 100.0,
-                    priority: priority
-                });
-            } else if (parsedHeight.units === 'em') {
-                constraints.push({
-                    view1: id,
-                    attr1: 'height',    // see AutoLayout.Attribute
-                    relation: 'equ',   // see AutoLayout.Relation
-                    view2: null,
-                    attr2: 'height',    // see AutoLayout.Attribute
-                    constant: 0,
-                    multiplier: parseFloat(parsedHeight.number), //em is already a multiplier,
-                    priority: priority
-                });
-            } else {
-                throw "Invalid values specified for the height units on view.id=" + id
-            }
+    } else if (mulInd === -1 && addInd === -1 && dotInd !== -1) {//test for width="some_id.width" or width="some_id.height"
+        let lhs = h.substring(0, dotInd);
+        let rhs = h.substring(dotInd + 1);
+        if (rhs === 'height') {
+            selectedDimensionForAttr2IsHeight = true;
+        } else if (rhs === 'width') {
+            selectedDimensionForAttr2IsHeight = false;
+        } else {
+            throw 'Strange expression found for height on id: ' + id + ', expression is: ' + h
+        }
+        let v2;
+        if (lhs === 'parent' || rhs === 'parent') {
+            v2 = null;
+        } else if (this.childrenIds.indexOf(lhs) !== -1) {
+            v2 = lhs; //you have the sibling!
+        } else {
+            throw 'Bad expression found for height on id: ' + id + ', expression is: ' + h
         }
 
+        constraints.push({
+            view1: id,
+            attr1: 'height',    // see AutoLayout.Attribute
+            relation: 'equ',   // see AutoLayout.Relation
+            view2: v2,
+            attr2: selectedDimensionForAttr2IsHeight ? "height" : "width",
+            constant: 0,
+            multiplier: 1,
+            priority: priority
+        });
+
+    } else {
+        throw 'invalid value for height on id: ' + id + ", bad value is: " + h;
     }
 
-}
+};
 
 
 function isHTMLTagName(tagName) {
@@ -2346,7 +3238,7 @@ View.prototype.toHTML = function () {
  * @param {type} node The xml node
  * @returns {undefined}
  */
-View.prototype.createElement = function (node) {
+View.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('div');
     let id = node.getAttribute(attrKeys.id);
     this.htmlElement.id = id;
@@ -2354,7 +3246,6 @@ View.prototype.createElement = function (node) {
     if (attributeNotEmpty(name)) {
         this.htmlElement.setAttribute(attrKeys.name, name);
     }
-
 
     useAutomaticBackgrounds(this, node);
 
@@ -2592,7 +3483,7 @@ function CheckBox(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-CheckBox.prototype.createElement = function (node) {
+CheckBox.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('input');
     this.htmlElement.type = 'checkbox';
     let id = node.getAttribute(attrKeys.id);
@@ -2618,7 +3509,7 @@ function Button(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-Button.prototype.createElement = function (node) {
+Button.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('input');
     this.style.addStyleElementCss('text-align: center;');
     let id = node.getAttribute(attrKeys.id);
@@ -2656,7 +3547,7 @@ function ImageButton(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-ImageButton.prototype.createElement = function (node) {
+ImageButton.prototype.createElement = function (wkspc, node) {
 
     this.htmlElement = document.createElement('input');
     this.htmlElement.type = 'button';
@@ -2665,7 +3556,7 @@ ImageButton.prototype.createElement = function (node) {
     this.style.addStyleElementCss('background-position: center;');
     this.style.addStyleElementCss('background-size: contain;');
     this.style.addStyleElementCss('background-origin: content-box;');
-    this.style.addStyleElementCss('background-image: url(\'' + getImagePath(node.getAttribute(attrKeys.src)) + '\');');
+    this.style.addStyleElementCss('background-image: url(\'' + getImagePath(node.getAttribute(attrKeys.src), !wkspc.isLibsLayout()) + '\');');
     let id = node.getAttribute(attrKeys.id);
     this.htmlElement.id = id;
     let value = node.getAttribute(attrKeys.value);
@@ -2694,7 +3585,7 @@ function NativeTable(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-NativeTable.prototype.createElement = function (node) {
+NativeTable.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('table');
     this.assignId();
     let name = node.getAttribute(attrKeys.name);
@@ -2794,7 +3685,7 @@ function CustomTableView(wkspc, node) {
 }
 
 
-CustomTableView.prototype.createElement = function (node) {
+CustomTableView.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
     let name = node.getAttribute(attrKeys.name);
@@ -2814,7 +3705,7 @@ CustomTableView.prototype.createElement = function (node) {
     let title = node.getAttribute(attrKeys.title);
     let showBorders = node.getAttribute(attrKeys.showBorders);
     let pagingEnabled = node.getAttribute(attrKeys.pagingEnabled);
-    let icon = PATH_TO_IMAGES + node.getAttribute(attrKeys.src);
+    let icon = PATH_TO_USER_IMAGES + node.getAttribute(attrKeys.src);
     let cellPadding = node.getAttribute(attrKeys.cellPadding);
     let headerPadding = node.getAttribute(attrKeys.headerPadding);
     let fontSize = node.getAttribute(attrKeys.fontSize);
@@ -2984,7 +3875,7 @@ function InputTableView(wkspc, node) {
     CustomTableView.call(this, wkspc, node);
 }
 
-InputTableView.prototype.createElement = function (node) {
+InputTableView.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
     let name = node.getAttribute(attrKeys.name);
@@ -3004,7 +3895,7 @@ InputTableView.prototype.createElement = function (node) {
     let title = node.getAttribute(attrKeys.title);
     let showBorders = node.getAttribute(attrKeys.showBorders);
     let pagingEnabled = node.getAttribute(attrKeys.pagingEnabled);
-    let icon = PATH_TO_IMAGES + node.getAttribute(attrKeys.src);
+    let icon = PATH_TO_USER_IMAGES + node.getAttribute(attrKeys.src);
     let cellPadding = node.getAttribute(attrKeys.cellPadding);
     let headerPadding = node.getAttribute(attrKeys.headerPadding);
     let fontSize = node.getAttribute(attrKeys.fontSize);
@@ -3205,7 +4096,7 @@ function GrowableTableView(wkspc, node) {
 }
 
 
-GrowableTableView.prototype.createElement = function (node) {
+GrowableTableView.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
     let name = node.getAttribute(attrKeys.name);
@@ -3224,7 +4115,7 @@ GrowableTableView.prototype.createElement = function (node) {
     let title = node.getAttribute(attrKeys.title);
     let showBorders = node.getAttribute(attrKeys.showBorders);
     let pagingEnabled = node.getAttribute(attrKeys.pagingEnabled);
-    let icon = PATH_TO_IMAGES + node.getAttribute(attrKeys.src);
+    let icon = PATH_TO_USER_IMAGES + node.getAttribute(attrKeys.src);
     let cellPadding = node.getAttribute(attrKeys.cellPadding);
     let headerPadding = node.getAttribute(attrKeys.headerPadding);
     let fontSize = node.getAttribute(attrKeys.fontSize);
@@ -3430,7 +4321,7 @@ function SearchableTableView(wkspc, node) {
     GrowableTableView.call(this, wkspc, node);
 }
 
-SearchableTableView.prototype.createElement = function (node) {
+SearchableTableView.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
     this.style.addStyleElementCss('overflow: auto;');
@@ -3450,7 +4341,7 @@ SearchableTableView.prototype.createElement = function (node) {
     let title = node.getAttribute(attrKeys.title);
     let showBorders = node.getAttribute(attrKeys.showBorders);
     let pagingEnabled = node.getAttribute(attrKeys.pagingEnabled);
-    let icon = PATH_TO_IMAGES + node.getAttribute(attrKeys.src);
+    let icon = PATH_TO_USER_IMAGES + node.getAttribute(attrKeys.src);
     let cellPadding = node.getAttribute(attrKeys.cellPadding);
     let headerPadding = node.getAttribute(attrKeys.headerPadding);
     let fontSize = node.getAttribute(attrKeys.fontSize);
@@ -3669,7 +4560,7 @@ function TextField(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-TextField.prototype.createElement = function (node) {
+TextField.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('input');
     let id = node.getAttribute(attrKeys.id);
     this.htmlElement.id = id;
@@ -3721,7 +4612,7 @@ function ProgressBar(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-ProgressBar.prototype.createElement = function (node) {
+ProgressBar.prototype.createElement = function (wkspc, node) {
 
     let id = node.getAttribute(attrKeys.id);
     let val = node.getAttribute(attrKeys.value);
@@ -3774,7 +4665,7 @@ function TextArea(wkspc, node) {
  *
  * @param {Node} node
  */
-TextArea.prototype.createElement = function (node) {
+TextArea.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('textarea');
     let id = node.getAttribute(attrKeys.id);
     let maxLength = node.getAttribute(attrKeys.maxLength);
@@ -3836,7 +4727,7 @@ function DropDown(wkspc, node) {
 }
 
 
-DropDown.prototype.createElement = function (node) {
+DropDown.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('SELECT');
     let items = node.getAttribute(attrKeys.items);
     items = items.replace(/\n|\r/g, ''); //remove new lines
@@ -3879,6 +4770,23 @@ DropDown.prototype.selectIndex = function (index) {
     }
 };
 /**
+ * Set the selected value on the drop down if it exists on it.
+ * @param value The value to set the dropdown to.
+ * @return {number|*}
+ */
+DropDown.prototype.setValue = function (value) {
+    if(value){
+        let index = -1;
+        for(let i=0;i<this.htmlElement.options.length; i++){
+            if(this.htmlElement.options[i].innerText === value){
+                this.htmlElement.selectedIndex = i;
+                return i;
+            }
+        }
+    }
+    return -1;
+};
+/**
  * @param {Workspace} wkspc
  * @param {type} node key-value object
  * @returns {undefined}
@@ -3887,7 +4795,7 @@ function NativeList(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-NativeList.prototype.createElement = function (node) {
+NativeList.prototype.createElement = function (wkspc, node) {
 
     let listType = node.getAttribute(attrKeys.listType);
     if (attributeEmpty(listType)) {
@@ -4023,7 +4931,7 @@ ListView.prototype.setData = function (items) {
         throw new Error('Please set an array of items to display in the list');
     }
 };
-ListView.prototype.createElement = function (node) {
+ListView.prototype.createElement = function (wkspc, node) {
 
     let cellSpacing = node.getAttribute(attrKeys.cellSpacing);
     if (attributeEmpty(cellSpacing)) {
@@ -4132,7 +5040,7 @@ function HorizontalListView(wkspc, node) {
     ListView.call(this, wkspc, node);
 }
 
-HorizontalListView.prototype.createElement = function (node) {
+HorizontalListView.prototype.createElement = function (wkspc, node) {
 
 
     let minCellWidth = node.getAttribute(attrKeys.minCellWidth);
@@ -4248,7 +5156,7 @@ function GridView(wkspc, node) {
     ListView.call(this, wkspc, node);
 }
 
-GridView.prototype.createElement = function (node) {
+GridView.prototype.createElement = function (wkspc, node) {
 
     this.htmlElement = document.createElement("ul");
     this.style.addStyleElementCss('list-style-position: inside;');
@@ -4395,7 +5303,7 @@ function MultiLineLabel(wkspc, node) {
 }
 
 
-MultiLineLabel.prototype.createElement = function (node) {
+MultiLineLabel.prototype.createElement = function (wkspc, node) {
 
     let id = node.getAttribute(attrKeys.id);
     let text = node.getAttribute(attrKeys.text);
@@ -4533,7 +5441,7 @@ function IconLabelView(wkspc, node) {
 }
 
 
-IconLabelView.prototype.createElement = function (node) {
+IconLabelView.prototype.createElement = function (wkspc, node) {
 
     let id = node.getAttribute(attrKeys.id);
     let text = node.getAttribute(attrKeys.text);
@@ -4615,7 +5523,7 @@ IconLabelView.prototype.createElement = function (node) {
         padding: padding
     };
     if (attributeNotEmpty(src)) {
-        this.options[attrKeys.src] = getImagePath(node.getAttribute(attrKeys.src));
+        this.options[attrKeys.src] = getImagePath(node.getAttribute(attrKeys.src), !wkspc.isLibsLayout());
     }
     this.assignId();
     let font = new Font(fontStyle, parseFontSize.number, fontName, parseFontSize.units);
@@ -4645,7 +5553,7 @@ function Label(wkspc, node) {
 }
 
 
-Label.prototype.createElement = function (node) {
+Label.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('span');
     let text = node.getAttribute(attrKeys.text);
     let value = node.getAttribute(attrKeys.value);
@@ -4699,6 +5607,11 @@ Label.prototype.createElement = function (node) {
     this.assignId();
     this.calculateWrapContentSizes(node);
 };
+Label.prototype.setText = function (text) {
+    if (typeof text === 'string') {
+        this.htmlElement.textContent = text;
+    }
+};
 
 /**
  * @param {Workspace} wkspc
@@ -4710,7 +5623,7 @@ function Paragraph(wkspc, node) {
 }
 
 
-Paragraph.prototype.createElement = function (node) {
+Paragraph.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('p');
     this.style.addStyleElementCss('overflow: hidden;');
     this.style.addStyleElementCss('text-overflow: ellipsis;');
@@ -4738,7 +5651,7 @@ function HyperLink(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-HyperLink.prototype.createElement = function (node) {
+HyperLink.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('a');
 
 
@@ -4774,7 +5687,7 @@ function CanvasView(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-CanvasView.prototype.createElement = function (node) {
+CanvasView.prototype.createElement = function (wkspc, node) {
     let width = node.getAttribute(attrKeys.width);
     let height = node.getAttribute(attrKeys.height);
     if (attributeEmpty(width)) {
@@ -4814,7 +5727,7 @@ function ClockView(wkspc, node) {
 }
 
 
-ClockView.prototype.createElement = function (node) {
+ClockView.prototype.createElement = function (wkspc, node) {
 
     let outerColor = node.getAttribute(attrKeys.clockOuterColor);
     let middleColor = node.getAttribute(attrKeys.clockMiddleColor);
@@ -4901,7 +5814,7 @@ function RadioGroup(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-RadioGroup.prototype.createElement = function (node) {
+RadioGroup.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
     let name = node.getAttribute(attrKeys.name);
@@ -4921,7 +5834,7 @@ function Radio(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-Radio.prototype.createElement = function (node) {
+Radio.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('input');
     this.htmlElement.setAttribute("type", "radio");
     let name = node.getAttribute(attrKeys.name);
@@ -4948,7 +5861,7 @@ function TabView(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-TabView.prototype.createElement = function (node) {
+TabView.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('canvas');
     let name = node.getAttribute(attrKeys.name);
     if (attributeNotEmpty(name)) {
@@ -5056,7 +5969,7 @@ TabView.prototype.createElement = function (node) {
         fontSize: fontSize, //The font size
         iconSize: iconSize, // The height of the tab icons, where used
         sizeUnits: sizeUnits, //The size units to be used for the font and the border radius; e.g CssSizeUnits.EM or CssSizeUnits.PX or CssSizeUnits.PT
-        fontStyle: fontStyle, // e.g bold or italic or italic bold or 
+        fontStyle: fontStyle, // e.g bold or italic or italic bold or
         tabItems: tabItems,
         onTabChanged: function (newIndex, oldIndex) {
 
@@ -5082,9 +5995,9 @@ function ImageView(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-ImageView.prototype.createElement = function (node) {
+ImageView.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('img');
-    this.htmlElement.src = getImagePath(node.getAttribute(attrKeys.src));
+    this.htmlElement.src = getImagePath(node.getAttribute(attrKeys.src), !wkspc.isLibsLayout());
     this.htmlElement.alt = node.getAttribute(attrKeys.alt);
     let name = node.getAttribute(attrKeys.name);
     if (attributeNotEmpty(name)) {
@@ -5104,7 +6017,7 @@ function Separator(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-Separator.prototype.createElement = function (node) {
+Separator.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('div');
     this.assignId();
     this.calculateWrapContentSizes(node);
@@ -5132,7 +6045,7 @@ function Guideline(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-Guideline.prototype.createElement = function (node) {
+Guideline.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('div');
     this.htmlElement.style.backgroundColor = 'red';
     this.assignId();
@@ -5152,12 +6065,14 @@ Guideline.prototype.calculateWrapContentSizes = function (node) {
         this.wrapHeight = '1';
     }
 };
-Guideline.prototype.makeVFL = function () {
+
+Guideline.prototype.layoutGuide = function (constraints) {
     const orientation = this.refIds.get(attrKeys.orientation);
     if (!orientation || orientation === '') {
         throw 'Please specify the orientation of the Guideline whose id is `' + this.id + '`';
     }
 
+    let id = this.id;
     let guidePct = this.refIds.get(attrKeys.layout_constraintGuide_percent);
     let guideBegin = this.refIds.get(attrKeys.layout_constraintGuide_begin);
     let guideEnd = this.refIds.get(attrKeys.layout_constraintGuide_end);
@@ -5168,7 +6083,6 @@ Guideline.prototype.makeVFL = function () {
     }
 
     let val = 0;
-    let vfl = new StringBuffer();
 
     if (!isEmpty(guidePct)) {
         if (!isEmpty(guideBegin) || !isEmpty(guideEnd)) {
@@ -5176,25 +6090,128 @@ Guideline.prototype.makeVFL = function () {
         }
 
         if (endsWith(guidePct, '%')) {
-            if (isNaN(val = parseInt(guidePct))) {
+            if (isNaN(val = parseFloat(guidePct))) {
                 throw 'Please specify a floating point number between 0 and 1 to signify 0 - 100% of width';
             }
-            val += '%';
         } else if (isNaN(val = parseFloat(guidePct))) {
             throw 'Please specify a floating point number between 0 and 1 to signify 0 - 100% of width';
         } else {
-            if (val >= 1) {
-                val = '100%';
-            } else {
-                val *= 100;
-                val += '%';
+            if (val > 1) {
+                throw 'The guide percentage may not be greater than 1';
+            } else if (val < 0) {
+                throw 'The guide percentage may not be less than 0';
             }
         }
 
         if (orientation === orientations.VERTICAL) {
-            vfl.append('H:|-' + val + '-[' + this.id + '(1)]\nV:|[' + this.id + ']-|');
+            //vfl.append('H:|-' + val + '-[' + this.id + '(1)]\nV:|[' + this.id + ']-|');
+            constraints.push({
+                view1: id,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: "height",
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                constant: 0.1,
+                multiplier: 1,
+                priority: 1000
+            });
+
+            let hiddenViewId = id + "_dummy_" + ULID.ulid();
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'left',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'width',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
+
         } else if (orientation === orientations.HORIZONTAL) {
-            vfl.append('H:|[' + this.id + ']|\nV:|-' + val + '-[' + this.id + '(1)]');
+            // vfl.append('H:|[' + this.id + ']|\nV:|-' + val + '-[' + this.id + '(1)]');
+            constraints.push({
+                view1: id,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: "width",
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                constant: 0.1,
+                multiplier: 1,
+                priority: 1000
+            });
+
+            let hiddenViewId = id + "_dummy_" + ULID.ulid();
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'top',    // see AutoLayout.Attribute
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: hiddenViewId,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'height',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: val,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: hiddenViewId,
+                attr2: 'bottom',    // see AutoLayout.Attribute
+                constant: 1,
+                multiplier: 1,
+                priority: 1000
+            });
         }
 
     }
@@ -5204,17 +6221,11 @@ Guideline.prototype.makeVFL = function () {
             throw 'Conflicting guide constraints! only one of `guide_percent`, `guide_begin` and `guide_end` should be set!'
         }
 
-        if (endsWith(guideBegin, "%")) {
+        if (isNumber(guideBegin) || (endsWith(guideBegin, "px") && isNumber(parseInt(guideBegin)))) {
+            guideBegin = parseFloat(guideBegin);
+        } else {
             throw "`guide_begin` must be a unitless number or be specified in pixels"
         }
-
-        let parsed = parseNumberAndUnits(guideBegin);
-
-        if (!isEmpty(parsed.units) && parsed.units != 'px') {
-            throw "`guide_begin` must be a unitless number or be specified in pixels"
-        }
-
-        guideBegin = parsed.number;
 
         if (isNaN(guideBegin)) {
             throw "please specify a number for `guide_begin`"
@@ -5224,9 +6235,74 @@ Guideline.prototype.makeVFL = function () {
 
 
         if (orientation === orientations.VERTICAL) {
-            vfl.append('H:|-' + val + '-[' + this.id + '(1)]\nV:|[' + this.id + ']-|');
+            // vfl.append('H:|-' + val + '-[' + this.id + '(1)]\nV:|[' + this.id + ']-|');
+
+            constraints.push({
+                view1: id,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: "height",
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                constant: 0.1,
+                multiplier: 1,
+                priority: 1000
+            });
+
+            constraints.push({
+                view1: id,
+                attr1: 'left',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'left',    // see AutoLayout.Attribute
+                constant: val,
+                multiplier: 1,
+                priority: 1000
+            });
+
         } else if (orientation === orientations.HORIZONTAL) {
-            vfl.append('H:|[' + this.id + ']|\nV:|-' + val + '-[' + this.id + '(1)]');
+            // vfl.append('H:|[' + this.id + ']|\nV:|-' + val + '-[' + this.id + '(1)]');
+            constraints.push({
+                view1: id,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: "width",
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                constant: 0.1,
+                multiplier: 1,
+                priority: 1000
+            });
+
+            constraints.push({
+                view1: id,
+                attr1: 'top',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'top',    // see AutoLayout.Attribute
+                constant: val,
+                multiplier: 1,
+                priority: 1000
+            });
+
         }
 
     }
@@ -5236,17 +6312,12 @@ Guideline.prototype.makeVFL = function () {
             throw 'Conflicting guide constraints! only one of `guide_percent`, `guide_begin` and `guide_end` should be set!'
         }
 
-        if (endsWith(guideEnd, "%")) {
+        if (isNumber(guideEnd) || (endsWith(guideEnd, "px") && isNumber(parseInt(guideEnd)))) {
+            guideEnd = parseFloat(guideEnd);
+        } else {
             throw "`guide_end` must be a unitless number or be specified in pixels"
         }
 
-        let parsed = parseNumberAndUnits(guideEnd);
-
-        if (!isEmpty(parsed.units) && parsed.units != 'px') {
-            throw "`guide_end` must be a unitless number or be specified in pixels"
-        }
-
-        guideEnd = parsed.number;
 
         if (isNaN(guideEnd)) {
             throw "please specify a number for `guide_end`"
@@ -5256,17 +6327,78 @@ Guideline.prototype.makeVFL = function () {
 
 
         if (orientation === orientations.VERTICAL) {
-            vfl.append('H:|-0-[' + this.id + '(1)]-' + val + '-|\nV:|[' + this.id + ']-0-|');
+            // vfl.append('H:|-0-[' + this.id + '(1)]-' + val + '-|\nV:|[' + this.id + ']-0-|');
+
+            constraints.push({
+                view1: id,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: "height",
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                constant: 0.1,
+                multiplier: 1,
+                priority: 1000
+            });
+
+            constraints.push({
+                view1: id,
+                attr1: 'right',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'right',    // see AutoLayout.Attribute
+                constant: -val,
+                multiplier: 1,
+                priority: 1000
+            });
+
         } else if (orientation === orientations.HORIZONTAL) {
-            vfl.append('H:|[' + this.id + ']|\nV:|-0-[' + this.id + '(1)]-' + val + '-|');
+            // vfl.append('H:|[' + this.id + ']|\nV:|-' + val + '-[' + this.id + '(1)]');
+            constraints.push({
+                view1: id,
+                attr1: 'width',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: "width",
+                constant: 0,
+                multiplier: 1,
+                priority: 1000
+            });
+            constraints.push({
+                view1: id,
+                attr1: 'height',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: AutoLayout.Attribute.NOTANATTRIBUTE,
+                constant: 0.1,
+                multiplier: 1,
+                priority: 1000
+            });
+
+            constraints.push({
+                view1: id,
+                attr1: 'bottom',    // see AutoLayout.Attribute
+                relation: 'equ',   // see AutoLayout.Relation
+                view2: null,
+                attr2: 'bottom',    // see AutoLayout.Attribute
+                constant: -val,
+                multiplier: 1,
+                priority: 1000
+            });
+
         }
 
     }
 
-
-
-
-    return vfl.toString();
 };
 /**
  *
@@ -5296,7 +6428,7 @@ function IncludedView(wkspc, node) {
 }
 
 
-IncludedView.prototype.createElement = function (node) {
+IncludedView.prototype.createElement = function (wkspc, node) {
 
     this.htmlElement = document.createElement('div');
     let id = node.getAttribute(attrKeys.id);
@@ -5332,7 +6464,7 @@ function FormView(wkspc, node) {
  rel: "rel",
  acceptCharset: "accept-charset",
  */
-FormView.prototype.createElement = function (node) {
+FormView.prototype.createElement = function (wkspc, node) {
     let form = document.createElement('form');
     let id = node.getAttribute(attrKeys.id);
     let action = node.getAttribute(attrKeys.action);
@@ -5391,7 +6523,7 @@ function VideoView(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-VideoView.prototype.createElement = function (node) {
+VideoView.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('video');
     let id = node.getAttribute(attrKeys.id);
     if (attributeEmpty(id)) {
@@ -5510,7 +6642,7 @@ function AudioView(wkspc, node) {
     View.call(this, wkspc, node);
 }
 
-AudioView.prototype.createElement = function (node) {
+AudioView.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('audio');
     let id = node.getAttribute(attrKeys.id);
     if (attributeEmpty(id)) {
