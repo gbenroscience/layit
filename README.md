@@ -13,7 +13,7 @@ This project already works, but is currently under development and new ui widget
 You can see an example site [here](https://gbenroscience.github.io/layitdemo/file.html), showing layit being used to position things with ease(ignore the design, please)
 
 
-##Welcome to Layit v0.1.0
+##Welcome to Layit v0.1.1
 
 
 ### What's new?
@@ -24,7 +24,7 @@ The best things come in small packages... small packages as in, the changes here
 1. **_layit_**'s layout system now uses raw constraints instead of `VFL/EVFL`(Visual Format Language/Extended Visual Format Language).
 The former system was defining layout relationships using `VFL` and then feeding the `VFL` to the autolayout library.
 The library then parses the `VFL` and generates raw constraints which are applied to the views. For complex layouts, this means that the library generate lots of `VFL` strings which the underlying autolayout library would then need
-to parse. The rendering hence takes a hit. In this new version, **layit** gains speed by generating raw constraints from the xml layouts, which are then passed
+to parse. The rendering hence takes a hit. <br>In this new version, **layit** gains speed by generating raw constraints from the xml layouts, which are then passed
 to autolayout.js.
 
 2. The folder structure has been changed to fit better with project development structure realities. 
