@@ -5,8 +5,8 @@ Layouts on steroids with android-style xml constraint-layouts on the web, backed
 
 **Integrates seamlessly with Electron, thereby allowing you to use android style ConstraintLayout for designing desktop UI!**<br>
 **Added support for listadapters and forms**<br>
-**Added support for TabViews**
-**Added Canvas based text-labels, MultiLineLabel and IconLabelView**
+**Added support for TabViews**<br>
+**Added Canvas based text-labels, MultiLineLabel and IconLabelView**<br>
 
 This project already works, but is currently under development and new ui widgets are been added to it.
 
@@ -19,7 +19,7 @@ You can see an example site [here](https://gbenroscience.github.io/layitdemo/fil
 ### What's new?
 
 
-The best things come in small packages.
+The best things come in small packages... small packages as in, the changes here are not visible per se, but are implementation changes mostly.
 
 1. **_layit_**'s layout system now uses raw constraints instead of `VFL/EVFL`(Visual Format Language/Extended Visual Format Language).
 The former system was defining layout relationships using `VFL` and then feeding the `VFL` to the autolayout library.
