@@ -148,7 +148,7 @@ The constraint properties with long names have been renamed to shorter forms to 
 
 These properties are used to specify the size of the view. 
 Here are perfectly valid ways to specify the width of a view:
-
+```
 1. width="80px"  //sets the width in pixels
 2. width="50%"   // sets the width as a percentage of its parent's width
 3. width="80"    //sets the width in pixels
@@ -172,7 +172,7 @@ Here are perfectly valid ways to specify the width of a view:
 21. width="some_id.height+32"// sets the view's width to be 32 pixels plus the height of `some_id`
 22. width="some_id.width-120"// sets the view's width to be the width of `some_id` minus 120 pixels
 23. width="some_id.height-32"// sets the view's width to be the height of `some_id` minus 120 pixels
-
+```
 These same rules apply to the height also. Note that division operation is not supported, only multiplication, addition and subtraction.
 
 Be careful not to use values which have not been initialized.
