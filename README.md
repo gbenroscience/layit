@@ -536,7 +536,7 @@ So the cell design must be a layout defined in a single layout file with no incl
 
 Say you have this layout file, called `listcell.xml` describing what a cell should look like:
 
-```
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <ConstraintLayout
         width="120px"
