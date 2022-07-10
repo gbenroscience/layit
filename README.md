@@ -67,7 +67,7 @@ When you create a `html` file in your web project, depending on your code organi
     </body>
 </html>
 ```
-Thhis fetches an xml layout called `test.xml` from the `layouts` sub-folder in your `layitres` folder and use it as the ui definition for the current html page.
+This fetches an xml layout called `test.xml` from the `layouts` sub-folder in your `layitres` folder and use it as the ui definition for the current html page.
 
 
 
