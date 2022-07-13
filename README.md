@@ -8,12 +8,12 @@ Layouts on steroids with android-style xml constraint-layouts on the web, backed
 **Added support for TabViews**
 **Added Canvas based text-labels, MultiLineLabel and IconLabelView**
 
-This project already works, but is currently under development and new ui widgets are been added to it.
+This project works, and is under continuous development as new ui widgets are being added to it.
 
 You can see an example site [here](https://gbenroscience.github.io/layitdemo/file.html), showing layit being used to position things with ease(ignore the design, please)
 
 
-## Welcome to Layit v0.1.0
+## Welcome to Layit v0.1.1
 
 
 ### What's new?
