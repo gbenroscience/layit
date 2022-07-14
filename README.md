@@ -8,12 +8,12 @@ Layouts on steroids with android-style xml constraint-layouts on the web, backed
 **Added support for TabViews**
 **Added Canvas based text-labels, MultiLineLabel and IconLabelView**
 
-This project already works, but is currently under development and new ui widgets are been added to it.
+This project works, and is under continuous development as new ui widgets are being added to it.
 
 You can see an example site [here](https://gbenroscience.github.io/layitdemo/file.html), showing layit being used to position things with ease(ignore the design, please)
 
 
-##Welcome to Layit v0.1.0
+## Welcome to Layit v0.1.1
 
 
 ### What's new?
@@ -67,7 +67,7 @@ When you create a `html` file in your web project, depending on your code organi
     </body>
 </html>
 ```
-Thhis fetches an xml layout called `test.xml` from the `layouts` sub-folder in your `layitres` folder and use it as the ui definition for the current html page.
+This fetches an xml layout called `test.xml` from the `layouts` sub-folder in your `layitres` folder and use it as the ui definition for the current html page.
 
 
 
@@ -536,7 +536,7 @@ So the cell design must be a layout defined in a single layout file with no incl
 
 Say you have this layout file, called `listcell.xml` describing what a cell should look like:
 
-```
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <ConstraintLayout
         width="120px"
