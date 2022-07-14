@@ -1297,7 +1297,7 @@ View.prototype.setLeftAlignSS = function (view1, marginLeft, view2, priority, co
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'left',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -1328,7 +1328,7 @@ View.prototype.setLeftAlignSS = function (view1, marginLeft, view2, priority, co
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'left',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -1418,7 +1418,7 @@ View.prototype.setLeftAlignSE = function (view1, marginLeft, view2, priority, co
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'left',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -1449,7 +1449,7 @@ View.prototype.setLeftAlignSE = function (view1, marginLeft, view2, priority, co
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'left',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -1538,7 +1538,7 @@ View.prototype.setRightAlignEE = function (view1, marginRight, view2, priority, 
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'right',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -1569,7 +1569,7 @@ View.prototype.setRightAlignEE = function (view1, marginRight, view2, priority, 
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'right',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -1658,7 +1658,7 @@ View.prototype.setRightAlignES = function (view1, marginRight, view2, priority, 
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'right',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -1689,7 +1689,7 @@ View.prototype.setRightAlignES = function (view1, marginRight, view2, priority, 
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'right',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -1782,7 +1782,7 @@ View.prototype.setTopAlignTT = function (view1, marginTop, view2, priority, cons
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'top',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -1813,7 +1813,7 @@ View.prototype.setTopAlignTT = function (view1, marginTop, view2, priority, cons
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'top',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -1907,7 +1907,7 @@ View.prototype.setTopAlignTB = function (view1, marginTop, view2, priority, cons
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'top',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -1938,7 +1938,7 @@ View.prototype.setTopAlignTB = function (view1, marginTop, view2, priority, cons
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'top',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -2028,7 +2028,7 @@ View.prototype.setBottomAlignBB = function (view1, marginBottom, view2, priority
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'bottom',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -2059,7 +2059,7 @@ View.prototype.setBottomAlignBB = function (view1, marginBottom, view2, priority
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'bottom',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -2148,7 +2148,7 @@ View.prototype.setBottomAlignBT = function (view1, marginBottom, view2, priority
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'bottom',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -2179,7 +2179,7 @@ View.prototype.setBottomAlignBT = function (view1, marginBottom, view2, priority
                 priority: 1000
             });
             constraints.push({
-                view1: id,
+                view1: view1,
                 attr1: 'bottom',    // see AutoLayout.Attribute
                 relation: 'equ',   // see AutoLayout.Relation
                 view2: hiddenViewId,
@@ -6491,14 +6491,19 @@ FormView.prototype.calculateWrapContentSizes = function (node) {
 };
 /**
  *
- * @param {type} wkspc
- * @param {type} node
+ * @param {Workspace} wkspc
+ * @param {HTMLElement} node
  * @returns {VideoView}
  */
 function VideoView(wkspc, node) {
     View.call(this, wkspc, node);
 }
-
+/**
+ *
+ * @param {Workspace} wkspc
+ * @param {HTMLElement} node
+ * @returns {VideoView}
+ */
 VideoView.prototype.createElement = function (wkspc, node) {
     this.htmlElement = document.createElement('video');
     let id = node.getAttribute(attrKeys.id);
