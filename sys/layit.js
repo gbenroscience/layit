@@ -1,4 +1,4 @@
-/* 
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -55,7 +55,7 @@ if (!Number.isInteger) {
  * which is used for a popup view. Another might be used to parse a layout file loaded dynamically with ajax and whose parsed content
  * will be shown on a div or other item.
  * So a page may have several workspaces.
- * 
+ *
  * Workspaces accomplish their work using background loaders(using the fetch API and workers) and Parser objects.
  * The key to the workspaces Map is the workspace id, and its value is the workspace itself
  * @type Map
@@ -82,7 +82,6 @@ const nativeScripts = [
     SCRIPTS_BASE + 'sys/ext/resizesensor.js',
     SCRIPTS_BASE + 'sys/ext/autolayout.js',
     SCRIPTS_BASE + 'sys/ext/map-poly.js',
-    SCRIPTS_BASE + 'sys/ext/fetch-poly.js',
     SCRIPTS_BASE + 'sys/ext/promise-poly.js',
     SCRIPTS_BASE + 'sys/ext/canvas-poly.js',
     SCRIPTS_BASE + 'sys/ext/ulid.js',
@@ -123,7 +122,9 @@ const nativeScripts = [
     SCRIPTS_BASE + 'libs/ui/tables/searchabletable.js'
 ];
 
-
+if(!window.fetch){
+    nativeScripts.push(SCRIPTS_BASE + 'sys/ext/fetch-poly.js');
+}
 
 if (!HTMLCanvasElement.prototype.toBlob) {
     console.log("Your browser does not support Canvas.toBlob...loading polyfill!");
@@ -134,8 +135,8 @@ let workspaces = new Map();
 
 
 /**
- * 
- * 
+ *
+ *
  * This method will help fetch this workspace from the cache if it has been previously created, or create a new one if not.
  * The Workspace options:
  {
@@ -143,14 +144,14 @@ let workspaces = new Map();
  bindingElemId: 'id_of_element_layout_will_be_attached_to',
  xmlContent: 'You do not wish to load the xml from the supplied layout name. So supply the xml here directly'.
  onLayoutLoaded: function(layoutName, xmlContent){}... This callback is fired everytime the worker threads successfully
- load a certain layout. Do nothing or as little as posssible in it, so as not to slow down the layout loading and parsing
+ load a certain layout. Do nothing or as little as possible in it, so as not to slow down the layout loading and parsing
  process, which will affect the rendering speed of your UI. You have been warned:)
  onComplete: 'A function to run when the layout has been parsed and loaded',
  isTemplate: true If true, the layout being loaded is to be used as a layout cell in a list, grid, or a table(not yet implemented)
  }
- 
- 
- * 
+
+
+ *
  * 1. The layout name...e.g anon.xml, may be a dummy name!
  * 2. The html id of the DOM element that the generated html layout will be attached to
  * 3. The xml content of the specified layout, and lastly. If this field is specified, the function will not load the xml from
@@ -159,14 +160,14 @@ let workspaces = new Map();
  * load a certain layout. Do nothing or as little as posssible in it, so as not to slow down the layout loading and parsing
  * process, which will affect the rendering speed of your UI. You have been warned:)
  * 5. A callback function to run when the xml document has been parsed into html.
- * 6. This specifies that the xml laout being loaded is to be reused in a sequential layout like a list, a grid or a table.
- * 
+ * 6. This specifies that the xml layout being loaded is to be reused in a sequential layout like a list, a grid or a table.
+ *
  * The <code>xmlContent</code> options is important because, a user may have generated some xml dynamically and wish to load it on the interface.
  * This dummy content of course has no file representation in the layouts folder. So we need the user to supply a unique file name that we may use to
  * identify this xml.
- * 
- * 
- * 
+ *
+ *
+ *
  * @param {Object} options An object that defines the properties needed to load the workspace
  * @returns {Workspace}
  */
@@ -209,7 +210,7 @@ function getWorkspace(options) {
  * or a number.
  * For example:
  * isNumber('2') will return true as will isNumber(2).
- * But isNumber('2a') will return false 
+ * But isNumber('2a') will return false
  * @param {string|Number} number
  * @returns {Boolean}
  */
@@ -226,7 +227,7 @@ document.currentScript = document.currentScript || (function () {
 
 
 /**
- * 
+ *
  * Creates a new Workspace.
  * This method will help fetch this workspace from the cache if it has been previously created, or create a new one if not.
  * The Workspace options:
@@ -240,10 +241,10 @@ document.currentScript = document.currentScript || (function () {
  onComplete: 'A function to run when the layout has been parsed and loaded',
  isTemplate: true If true, the layout being loaded is to be used as a layout cell in a list, grid, or a table(not yet implemented)
  }
- 
- 
- * 
- * 1. The layout name...e.g test.xml, may be a dummy name! 
+
+
+ *
+ * 1. The layout name...e.g test.xml, may be a dummy name!
  * 2. The html id of the DOM element that the generated html layout will be attached to
  * 3. The xml content of the specified layout, and lastly. If this field is specified, the function will not load the xml from
  * the path, but will instead use the specified xml.
@@ -252,13 +253,13 @@ document.currentScript = document.currentScript || (function () {
  * process, which will affect the rendering speed of your UI. You have been warned:)
  * 5. A callback function to run when the xml document has been parsed into html.
  * 6. This specifies that the xml laout being loaded is to be reused in a sequential layout like a list, a grid or a table.
- * 
+ *
  * The <code>xmlContent</code> options is important because, a user may have generated some xml dynamically and wish to load it on the interface.
  * This dummy content of course has no file representation in the layouts folder. So we need the user to supply a unique file name that we may use to
  * identify this xml.
- * 
- * 
- * 
+ *
+ *
+ *
  * @param {Object} options An object that defines the properties needed to load the workspace
  * @returns {Workspace}
  */
@@ -370,7 +371,7 @@ function Workspace(options) {
 
 
 /**
- * @param {Workspace} workspace 
+ * @param {Workspace} workspace
  * @param {type} xml The xml being parsed
  * @param {type} parentId The id of the view that hosts the resultant parsed xml layout, usually applies to included views
  * @returns {Parser}
@@ -472,7 +473,7 @@ function getUrls() {
         //check if script.src ends with layit.js
         if (src.lastIndexOf(ender) === fullLen - endLen) {
             let scriptsURL = src.substring(0, fullLen - endLen);
-            
+
             //let projectURL = scriptsURL.substring(0, scriptsURL.length - "layit/".length);
             let projectURL = scriptsURL.substring(0, scriptsURL.lastIndexOf("/", scriptsURL.length - 2)+1);
             return [projectURL, scriptsURL];
@@ -608,7 +609,7 @@ function loadScripts(scripts, onload) {
 }
 
 /**
- * 
+ *
  * @param {type} rootLayoutName The name of the layout
  * @param {type} xmlContent The xmlcontent(Optional), if the Workspace constructor specified any xml content
  * @param {type} onPreStart A function to call before loading of any xml files start
@@ -706,7 +707,7 @@ Workspace.prototype.findHtmlViewById = function (viewId) {
     return null;
 };
 /**
- * 
+ *
  * @param {string} viewId
  * @returns {View|undefined}
  */
@@ -715,7 +716,7 @@ Workspace.prototype.findViewById = function (viewId) {
 };
 
 Workspace.prototype.isLibsLayout = function (){
-  return (this.layoutName.indexOf(NATIVE_LAYOUTS_FOLDER_FILE_PREFIX) === 0);
+    return (this.layoutName.indexOf(NATIVE_LAYOUTS_FOLDER_FILE_PREFIX) === 0);
 };
 /**
  *
@@ -775,7 +776,7 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
 
         case xmlKeys.imports:
             //if (this === wkspc.rootParser) {
-            let files = node.getAttribute(attrKeys.files);      
+            let files = node.getAttribute(attrKeys.files);
             let scripts = parseImports(files, !wkspc.isLibsLayout());
             loadScripts(scripts, function () {
                 let controllerName = node.getAttribute(attrKeys.controller);
@@ -1053,18 +1054,18 @@ Parser.prototype.buildUI = function (wkspc) {
             let id = wkspc.systemRootId;
             autoLayout(undefined, layoutRootOnBindingElement(null, id));
         }
-            if (baseRoot.nodeName.toLowerCase() === 'li' || baseRoot.nodeName.toLowerCase() === 'td' || baseRoot.nodeName === 'th') {
-                //layout the template view on its li|td|th
-                //autoLayout(baseRoot, this.rootView.templateConstraints); // using vfl
-                autoLayout(baseRoot, this.rootView.layoutSelf(wkspc));
-            } else {
-                // layout the root layout on the baseRoot(the element we are attaching the xml layout to)
-                //autoLayout(baseRoot, ['HV:|-0-[' + this.rootView.htmlElement.id + ']-0-|']);
-                autoLayout(baseRoot, /*layoutRootOnBindingElement(null, this.rootView.id)*/ this.rootView.layoutSelf(wkspc));
-            }
-        
+        if (baseRoot.nodeName.toLowerCase() === 'li' || baseRoot.nodeName.toLowerCase() === 'td' || baseRoot.nodeName === 'th') {
+            //layout the template view on its li|td|th
+            //autoLayout(baseRoot, this.rootView.templateConstraints); // using vfl
+            autoLayout(baseRoot, this.rootView.layoutSelf(wkspc));
+        } else {
+            // layout the root layout on the baseRoot(the element we are attaching the xml layout to)
+            //autoLayout(baseRoot, ['HV:|-0-[' + this.rootView.htmlElement.id + ']-0-|']);
+            autoLayout(baseRoot, /*layoutRootOnBindingElement(null, this.rootView.id)*/ this.rootView.layoutSelf(wkspc));
+        }
 
-  
+
+
 
 
         /**
@@ -1088,15 +1089,15 @@ Parser.prototype.buildUI = function (wkspc) {
             //layout the xml of an included layout with respect to its root
             /**
              * An include holds the child constraints of its included layout
-             * in trust for it; lol! Use the constraints to layout the 
+             * in trust for it; lol! Use the constraints to layout the
              * included layout's children on the included layout's root.
              */
             //autoLayout(rootChild.htmlElement, include.constraints); //using vfl
-            
+
             autoLayout(rootChild.htmlElement, rootChild.layoutChildren(wkspc));
         });
 
-        //layout generated views on their lis        
+        //layout generated views on their lis
 
 
         compounds.forEach(function (child) {
@@ -1130,43 +1131,43 @@ function layoutRootOnBindingElement(bindingElemId, rootChildID){
     if(typeof rootChildID !== "string" || rootChildID.length === 0){
         throw 'Invalid rootChildId';
     }
-return [{
-            view1: rootChildID,
-            attr1: 'centerX',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: bindingElemId,
-            attr2: 'centerX',    // see AutoLayout.Attribute
-            constant: 0,
-            multiplier: 1,
-            priority: AutoLayout.Priority.REQUIRED
-        }, {
-            view1: rootChildID,
-            attr1: 'centerY',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: bindingElemId,
-            attr2: 'centerY',    // see AutoLayout.Attribute
-            constant: 0,
-            multiplier: 1,
-            priority: AutoLayout.Priority.REQUIRED
-        },{
-            view1: rootChildID,
-            attr1: 'width',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: bindingElemId,
-            attr2: "width",
-            constant: 0,
-            multiplier: 1,
-            priority: AutoLayout.Priority.REQUIRED
-        },{
-            view1: rootChildID,
-            attr1: 'height',    // see AutoLayout.Attribute
-            relation: 'equ',   // see AutoLayout.Relation
-            view2: bindingElemId,
-            attr2: "height",
-            constant: 0,
-            multiplier: 1,
-            priority: AutoLayout.Priority.REQUIRED
-        }
+    return [{
+        view1: rootChildID,
+        attr1: 'centerX',    // see AutoLayout.Attribute
+        relation: 'equ',   // see AutoLayout.Relation
+        view2: bindingElemId,
+        attr2: 'centerX',    // see AutoLayout.Attribute
+        constant: 0,
+        multiplier: 1,
+        priority: AutoLayout.Priority.REQUIRED
+    }, {
+        view1: rootChildID,
+        attr1: 'centerY',    // see AutoLayout.Attribute
+        relation: 'equ',   // see AutoLayout.Relation
+        view2: bindingElemId,
+        attr2: 'centerY',    // see AutoLayout.Attribute
+        constant: 0,
+        multiplier: 1,
+        priority: AutoLayout.Priority.REQUIRED
+    },{
+        view1: rootChildID,
+        attr1: 'width',    // see AutoLayout.Attribute
+        relation: 'equ',   // see AutoLayout.Relation
+        view2: bindingElemId,
+        attr2: "width",
+        constant: 0,
+        multiplier: 1,
+        priority: AutoLayout.Priority.REQUIRED
+    },{
+        view1: rootChildID,
+        attr1: 'height',    // see AutoLayout.Attribute
+        relation: 'equ',   // see AutoLayout.Relation
+        view2: bindingElemId,
+        attr2: "height",
+        constant: 0,
+        multiplier: 1,
+        priority: AutoLayout.Priority.REQUIRED
+    }
     ];
 }
 
@@ -1182,20 +1183,20 @@ return [{
  * @param {boolean} isVisualFormat If true, the connstraints array contains visual format strings, if not, it contains raw constraints
  */
 function autoLayout(parentElm, constraints) {
-    
+
     let isVisualFormat = constraints && isOneDimArray(constraints) && constraints.length > 0 && typeof constraints[0] === "string";
     let isOptionsFormat = constraints && isOneDimArray(constraints) && ((constraints.length > 0 && typeof constraints[0] === "object") || constraints.length === 0);
 
     let AutoLayout = window.AutoLayout;
     let view = new AutoLayout.View();
-        if (isVisualFormat === true) {
-            view.addConstraints(AutoLayout.VisualFormat.parse(constraints, { extended: true }));
-        } else if(isOptionsFormat) {
-            view.addConstraints(constraints);
-        }else{
-            throw 'Invalid parameters passed to autoLayout! no layout constraints specified';
-        }
-    
+    if (isVisualFormat === true) {
+        view.addConstraints(AutoLayout.VisualFormat.parse(constraints, { extended: true }));
+    } else if(isOptionsFormat) {
+        view.addConstraints(constraints);
+    }else{
+        throw 'Invalid parameters passed to autoLayout! no layout constraints specified';
+    }
+
     let elements = {};
 
     for (let key in view.subViews) {
@@ -1368,7 +1369,7 @@ function baseLauncher() {
  * Runs a workspace based on the file name supplied by the user and the id of the element that the layout should be attached to.
  * @param {string} fileName
  * @param {string} elemId
- * @param {string} templateData A json string containing information to pass into the xml layout 
+ * @param {string} templateData A json string containing information to pass into the xml layout
  * @returns {undefined}
  */
 function launcher(fileName, elemId, templateData) {
