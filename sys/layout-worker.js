@@ -24,12 +24,7 @@ onmessage = function (e) {
 function loadFile(layoutFile) {
 
     const prefix = layoutFile.indexOf(NATIVE_LAYOUTS_FOLDER_FILE_PREFIX) === 0 ? PATH_TO_LIBS_LAYOUTS_FOLDER : PATH_TO_LAYOUTS_FOLDER;
-
     layoutFile = prefix + layoutFile;
-
-   // console.log("layout........: ", layoutFile);
-
-
     fetch(layoutFile, {
         credentials: 'same-origin'
     }).then(function (response) {
@@ -39,9 +34,7 @@ function loadFile(layoutFile) {
     }).then(function (xmlLayout) {
         // console.log(xmlLayout);
         let data = {};
-
         data.content = xmlLayout;
-
         postMessage(data);
 
     }).catch(function (err) {

@@ -18,8 +18,9 @@ function ViewController(wid) {
 /**
  * Don't try to access your views here please.
  * The views may not be ready yet! 
- * This only signifies that your ViewController has been created.
- * @param {WorkSpace} wkspc The workspace
+ * This only signifies that your ViewController has been created... not your views
+ * All the scripts imported in this controller's xml layout have also been fully loaded
+ * @param {Workspace} wkspc The workspace
  * @returns {undefined}
  */
 ViewController.prototype.onCreate = function(wkspc){
@@ -28,11 +29,37 @@ ViewController.prototype.onCreate = function(wkspc){
 
 /**
  * You may now begin to use your views.
- * @param {WorkSpace} wkspc The workspace
+ * @param {Workspace} wkspc The workspace
  * @returns {undefined}
  */
 ViewController.prototype.onViewsAttached = function(wkspc){
-    
+
+};
+/**
+ * The scripts referenced in this controller's xml have been loaded...
+ * @param {Workspace} wkspc The workspace
+ * @returns {undefined}
+ */
+ViewController.prototype.onScriptsReady = function(wkspc){
+
+};
+
+/**
+ * All Views have been attached and all scripts loaded...
+ * @param {Workspace} wkspc The workspace
+ * @returns {undefined}
+ */
+ViewController.prototype.onViewsReady = function(wkspc){
+
+};
+
+/**
+ * You may now begin to use your views.
+ * @param {Workspace} wkspc The workspace
+ * @returns {undefined}
+ */
+ViewController.prototype.onResume = function(wkspc){
+
 };
 
 /**

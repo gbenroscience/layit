@@ -302,35 +302,62 @@ function TestController(workspace){
  * Don't try to access your views here please.
  * The views may or may not be ready yet! 
  * This only signifies that your ViewController has been created.
- * @param {string} wid The workspace id
+ * @param {Workspace} wkspc The workspace
  * @returns {undefined}
  */
-TestController.prototype.onCreate = function(wid){
-     ViewController.prototype.onCreate.call(this, wid);
+TestController.prototype.onCreate = function(wkspc){
+     ViewController.prototype.onCreate.call(this, wkspc);
 //Your code goes below here
 };
 
+
 /**
- * You may now begin to use your views.
+ * Your views are ready to use...
+ * But there is no guarantee that all scripts have been loaded!
+ * So DONT!
  * @param {string} wid The workspace id
  * @returns {undefined}
  */
 TestController.prototype.onViewsAttached = function(wid){
-         ViewController.prototype.onViewsAttached.call(this, wid);
+   ViewController.prototype.onViewsAttached.call(this, wid);
+};
+
+/**
+ * All scripts have loaded. By experimentation, all your views too
+ * have loaded, but proceed at your own risk.
+ * ONLY USE onViewsReady
+ * @param {Workspace} wkspc The workspace
+ * @returns {undefined}
+ */
+TestController.prototype.onScriptsReady = function(wkspc){
+   ViewController.prototype.onScriptsReady.call(this, wid);
+};
+
+/**
+ * All scripts and views have fully loaded!
+ * Write stuff to your heart's content here...
+ * @param {Workspace} wkspc The workspace
+ * @returns {undefined}
+ */
+TestController.prototype.onViewsReady = function(wkspc){
+   ViewController.prototype.onViewsReady.call(this, wkspc);
 //Your code goes below here
 
 //e.g let view = this.findHtmlViewById('site_title');
- 
+
 
 };
+
 ```
 
 For now, the `ViewController` has only 2 implemented lifecycle methods; these are:
 `onCreate` and `onViewsAttached`.
 
 1. `onCreate` is fired when the ViewController has been successfully instantiated by the JS runtime. Do not try to access your UI Elements within this method!
-  They may or may not be created yet!
+   They may or may not be created yet!
 2. `onViewsAttached` This is fired when all your ui elements have been successfully created and attached to the `DOM`. You may freely access them from within this method.
+3. `onScriptsReady` This is fired when all the scripts imported in your xml have been loaded.
+4. `onViewsReady` This is fired when `layit`  is done building your UI and loading all scripts. You may fully interact with your UI and your scripts here.
 
 Your `ViewController` has also inherited some methods from the base viewcontroller which it may use to locate html elements in the DOM.
 

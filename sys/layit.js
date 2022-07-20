@@ -47,7 +47,6 @@ if (!Number.isInteger) {
 })([Element.prototype, CharacterData.prototype, DocumentType.prototype].filter(Boolean));
 
 
-
 /**
  * All workspaces loaded for this page.
  * Each workspace has the ability to parse a root xml layout which may have several included layouts.
@@ -122,7 +121,7 @@ const nativeScripts = [
     SCRIPTS_BASE + 'libs/ui/tables/searchabletable.js'
 ];
 
-if(!window.fetch){
+if (!window.fetch) {
     nativeScripts.push(SCRIPTS_BASE + 'sys/ext/fetch-poly.js');
 }
 
@@ -133,6 +132,50 @@ if (!HTMLCanvasElement.prototype.toBlob) {
 
 let workspaces = new Map();
 
+
+function goToView(viewName) {
+    // before you want to change the view, you have to change window.location.hash.
+    // it allows you to go back to the previous view with the back button.
+    // so use this function to change your view instead of directly do the job.
+    // page parameter is your key to understand what view must be load after this.
+
+    window.location.hash = page
+}
+
+function loadView(viewName) {
+    // change dom here based on viewName, for example:
+
+    switch (viewName) {
+        case 'index':
+            document.getElementById('result').style.display = 'none'
+            document.getElementById('index').style.display = 'block'
+            break
+        case 'result':
+            document.getElementById('index').style.display = 'none'
+            document.getElementById('result').style.display = 'block'
+            break
+        default:
+            document.write('404')
+    }
+}
+
+window.addEventListener('hashchange', (event) => {
+    // oh, the hash is changed! it means we should do our job.
+    const viewName = window.location.hash.replace('#', '') || 'index'
+
+    // load that view
+    loadView(viewName)
+})
+
+
+// load requested view at start.
+if (!window.location.hash) {
+    // go to default view if there is no request.
+    goToView('index')
+} else {
+    // load requested view.
+    loadView(window.location.hash.replace('#', ''))
+}
 
 /**
  *
@@ -184,13 +227,15 @@ function getWorkspace(options) {
     if (options.bindingElemId && typeof options.bindingElemId === 'string' && options.bindingElemId.length !== 0) {
         bindingElemId = options.bindingElemId;
     }
-    let spaceId = bindingElemId + '_' + rootLayoutName;
+    let spaceId = bindingElemId + '_' + rootLayoutName.replace(".", "_");
     let space = workspaces.get(spaceId);
+    console.log(space ? "found workspace!" : "needs new workspace");
     if (!space) {
         return new Workspace(options);
     }
 
-    let onComplete = function (rootView) { };
+    let onComplete = function (rootView) {
+    };
     if (options.onComplete) {
         if (typeof options.onComplete === 'function') {
             onComplete = options.onComplete;
@@ -205,6 +250,7 @@ function getWorkspace(options) {
     }
     return space;
 }
+
 /**
  * This function returns true if the supplied param is a number string
  * or a number.
@@ -223,7 +269,6 @@ document.currentScript = document.currentScript || (function () {
     var scripts = document.getElementsByTagName('script');
     return scripts[scripts.length - 1];
 })();
-
 
 
 /**
@@ -311,7 +356,8 @@ function Workspace(options) {
     }
 
 
-    this.onComplete = function (rootView) { };
+    this.onComplete = function (rootView) {
+    };
 
     if (options.onComplete) {
         if (typeof options.onComplete === 'function') {
@@ -354,9 +400,32 @@ function Workspace(options) {
     this.deadEnds = 0;
     this.rootXml = null;
     /**
-     * The ViewController that can be used with the view.
+     * Counts the [found] imported scripts in xml for all views in this work space
+     * @type {number}
      */
-    this.controller = null;
+    this.foundScripts = 0;
+    /**
+     * Counts the successfully loaded scripts in xml for all views in this work space
+     * @type {number}
+     */
+    this.loadedScripts = 0;
+
+
+    /**
+     * All ViewControllers created by the layouts in this workspace
+     * @type {Map<any, any>}
+     */
+    this.controllers = new Map();
+    /**
+     * Tracks when the buildUI method has been successfully executed
+     * @type {boolean}
+     */
+    this.renderComplete = false;
+    /**
+     * Tracks when the ViewController#onViewsReady method has been fired already
+     * @type {boolean}
+     */
+    this.viewsReadyFired = false;
 
     workspaces.set(this.id, this);
 
@@ -413,6 +482,13 @@ function Parser(workspace, xml, parentId) {
      */
     this.doneParsing = false;
     this.errorOccured = false;
+    /**
+     * Set this  to true to tell the framework
+     * that the onViewsAttached event has been fired once already,
+     * so that multiple loadScripts() functions wont fire it in their callbacks.
+     * @type {boolean}
+     */
+    this.firedAttachedViews = false;
     if (!workspace.rootParser) {
         workspace.rootParser = this;
     }
@@ -475,7 +551,7 @@ function getUrls() {
             let scriptsURL = src.substring(0, fullLen - endLen);
 
             //let projectURL = scriptsURL.substring(0, scriptsURL.length - "layit/".length);
-            let projectURL = scriptsURL.substring(0, scriptsURL.lastIndexOf("/", scriptsURL.length - 2)+1);
+            let projectURL = scriptsURL.substring(0, scriptsURL.lastIndexOf("/", scriptsURL.length - 2) + 1);
             return [projectURL, scriptsURL];
         }
     }
@@ -524,6 +600,7 @@ Workspace.prototype.setContentView = function (layoutFileName, xmlContent) {
 
 
     let self = this;
+
     /**
      * Recursively loads all the scripts natively used by the compiler, so that the user wont be stressed with this.
      * The user only needs load this file(layit.js) on their html page, in order to use this library.
@@ -566,7 +643,6 @@ Workspace.prototype.setContentView = function (layoutFileName, xmlContent) {
             });
 
 
-
         }
     }
 
@@ -580,6 +656,7 @@ function loadScripts(scripts, onload) {
     if (typeof onload !== 'function') {
         throw new Error('Please supply a function callback for the second argument.');
     }
+
     function loadAt(i) {
         if (typeof i !== 'number') {
             throw new Error('Please supply a number for the load index');
@@ -597,7 +674,6 @@ function loadScripts(scripts, onload) {
             } else {
                 loadAt(i + 1);
             }
-
         } else {
             console.log('User imported scripts fully loaded');
             onload();
@@ -605,7 +681,6 @@ function loadScripts(scripts, onload) {
     }
 
     loadAt(0);
-
 }
 
 /**
@@ -696,7 +771,6 @@ Workspace.prototype.prefetchAllLayouts = function (rootLayoutName, xmlContent, o
     }
 
 
-
 };
 
 Workspace.prototype.findHtmlViewById = function (viewId) {
@@ -715,9 +789,10 @@ Workspace.prototype.findViewById = function (viewId) {
     return this.viewMap.get(viewId);
 };
 
-Workspace.prototype.isLibsLayout = function (){
+Workspace.prototype.isLibsLayout = function () {
     return (this.layoutName.indexOf(NATIVE_LAYOUTS_FOLDER_FILE_PREFIX) === 0);
 };
+
 /**
  *
  * @param {string} xml The xml ui text to parse
@@ -739,6 +814,11 @@ function doXmlParse(xml) {
     return xmlDoc;
 }
 
+/**
+ *
+ * @param {Workspace} wkspc The parent Workspace
+ * @param {Node} node The xml node being processed
+ */
 Parser.prototype.nodeProcessor = function (wkspc, node) {
     //use node.parentNode to access the parent of this node
 
@@ -770,25 +850,50 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
             break;
         case xmlKeys.include:
             view = new IncludedView(wkspc, node);
-
-
             break;
-
         case xmlKeys.imports:
             //if (this === wkspc.rootParser) {
             let files = node.getAttribute(attrKeys.files);
             let scripts = parseImports(files, !wkspc.isLibsLayout());
+            wkspc.foundScripts++;
             loadScripts(scripts, function () {
+                wkspc.loadedScripts++;
                 let controllerName = node.getAttribute(attrKeys.controller);
                 if (typeof controllerName === 'string' && controllerName.length > 0) {
                     let viewController = new window[controllerName](wkspc.id);
 
                     if (viewController && viewController instanceof ViewController) {
-                        wkspc.controller = viewController;
-                        wkspc.controller.onCreate(wkspc);
-                        if (wkspc.rootParser.doneParsing === true) {
-                            wkspc.controller.onViewsAttached(wkspc);
+                        wkspc.controllers.set(this.layoutName, viewController);
+                        viewController.onCreate(wkspc);
+
+                        //UI building has not necessarily finished, but all ui files have been parsed,
+                        // this process has kicked off the loading of all imported scripts.
+                        // So wkspc.foundScripts already stores the number of scripts imported...
+                        // Hence, if wkspc.foundScripts === wkspc.loadedScripts then all scripts have been loaded
+                        if (wkspc.rootParser.doneParsing === true && wkspc.rootParser.errorOccured === false) {
+                            if (wkspc.foundScripts === wkspc.loadedScripts) {
+                                wkspc.controllers.forEach(function (controller, id) {
+                                    controller.onScriptsReady(wkspc);
+                                });
+                            }
                         }
+
+
+                        //UI building has finished... this process has kicked off the loading of all imported scripts,
+                        // So wkspc.foundScripts already stores the number of scripts imported...
+                        // Hence, if wkspc.foundScripts === wkspc.loadedScripts then all scripts have been loaded
+                        if (wkspc.renderComplete === true) {
+                            // now, check if all the imported scripts have successfully loaded
+                            if (wkspc.foundScripts === wkspc.loadedScripts) {
+                                if (wkspc.viewsReadyFired === false) {
+                                    wkspc.viewsReadyFired = true;
+                                    wkspc.controllers.forEach(function (controller, id) {
+                                        controller.onViewsReady(wkspc);
+                                    });
+                                }
+                            }
+                        }
+
                     } else {
                         throw new Error("Couldn't initialize ViewController...");
                     }
@@ -960,18 +1065,20 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
 
     }
 
+    this.doneParsing = true;
+    this.errorOccured = false;
 
     if (view) {
         if (view.topLevel === true) {
             this.buildUI(wkspc);
         }
     }
-
-    this.doneParsing = true;
-    this.errorOccured = false;
 };
 
-
+/**
+ *
+ * @param {Workspace} wkspc
+ */
 Parser.prototype.buildUI = function (wkspc) {
 
     injectButtonDefaults: {
@@ -998,7 +1105,6 @@ Parser.prototype.buildUI = function (wkspc) {
             wkspc.allStyles.push(inputShadowRemoveStyle);
         }
     }
-
 
 
     let compounds = [];
@@ -1034,13 +1140,13 @@ Parser.prototype.buildUI = function (wkspc) {
     makeDefaultPositioningDivs: {
 
         let baseRoot = null;
-        let rootDiv = null;
         if (wkspc.systemRootId === BODY_ID) {
-            rootDiv = document.createElement('div');
-            rootDiv.setAttribute(attrKeys.id, wkspc.systemRootId);
-            document.body.appendChild(rootDiv);
-            baseRoot = rootDiv;
+            //baseRoot is to be rendered as the page, create a div and attach it to document.body.
+            baseRoot = document.createElement('div');
+            baseRoot.setAttribute(attrKeys.id, wkspc.systemRootId);
+            document.body.appendChild(baseRoot);
         } else {
+            // baseRoot must be an existing view in the DOM, then... so render into it
             baseRoot = document.getElementById(wkspc.systemRootId);
         }
 
@@ -1063,9 +1169,6 @@ Parser.prototype.buildUI = function (wkspc) {
             //autoLayout(baseRoot, ['HV:|-0-[' + this.rootView.htmlElement.id + ']-0-|']);
             autoLayout(baseRoot, /*layoutRootOnBindingElement(null, this.rootView.id)*/ this.rootView.layoutSelf(wkspc));
         }
-
-
-
 
 
         /**
@@ -1103,20 +1206,33 @@ Parser.prototype.buildUI = function (wkspc) {
         compounds.forEach(function (child) {
             child.runView();
         });
-
     }
 
-    if (wkspc.controller && wkspc.controller instanceof ViewController) {
-        wkspc.controller.onResume(wkspc);
+    wkspc.renderComplete = true;
+    //imported scripts finished loading before UI was fully built!
+    wkspc.controllers.forEach(function (controller, id) {
+        controller.onViewsAttached(wkspc);
+    });
+    // all scripts imported in xml have been fully loaded, so...
+    if (wkspc.foundScripts === wkspc.loadedScripts) {
+        //imported scripts finished loading before UI was fully built!
+        if (wkspc.viewsReadyFired === false) {
+            wkspc.viewsReadyFired = true;
+            wkspc.controllers.forEach(function (controller, id) {
+                //The UI has been fully built... the imported scripts defined in xml have also fully loaded
+                controller.onViewsReady(wkspc);
+            });
+        }
+    }//imported scripts have not yet finished loading but UI building is done!
+    else {
     }
 
     if (wkspc.onComplete) {
         wkspc.onComplete(this.rootView);
     }
 
-    //  console.log('UI construction logic done...', wkspc.viewMap.size);
-
 };
+
 /**
  * Generates constraints needed to layout the root element of any layout on the physical DOM
  * element on which it is to be bound.
@@ -1124,11 +1240,11 @@ Parser.prototype.buildUI = function (wkspc) {
  * @param {string} rootChildID The id of the root element of the xml layout
  * @returns an array of raw constraints to use in the layout
  */
-function layoutRootOnBindingElement(bindingElemId, rootChildID){
-    if(typeof bindingElemId !== 'string' && bindingElemId){
-        throw 'Invalid bindingElemId...bindingElemId: '+bindingElemId;
+function layoutRootOnBindingElement(bindingElemId, rootChildID) {
+    if (typeof bindingElemId !== 'string' && bindingElemId) {
+        throw 'Invalid bindingElemId...bindingElemId: ' + bindingElemId;
     }
-    if(typeof rootChildID !== "string" || rootChildID.length === 0){
+    if (typeof rootChildID !== "string" || rootChildID.length === 0) {
         throw 'Invalid rootChildId';
     }
     return [{
@@ -1149,7 +1265,7 @@ function layoutRootOnBindingElement(bindingElemId, rootChildID){
         constant: 0,
         multiplier: 1,
         priority: AutoLayout.Priority.REQUIRED
-    },{
+    }, {
         view1: rootChildID,
         attr1: 'width',    // see AutoLayout.Attribute
         relation: 'equ',   // see AutoLayout.Relation
@@ -1158,7 +1274,7 @@ function layoutRootOnBindingElement(bindingElemId, rootChildID){
         constant: 0,
         multiplier: 1,
         priority: AutoLayout.Priority.REQUIRED
-    },{
+    }, {
         view1: rootChildID,
         attr1: 'height',    // see AutoLayout.Attribute
         relation: 'equ',   // see AutoLayout.Relation
@@ -1180,7 +1296,6 @@ function layoutRootOnBindingElement(bindingElemId, rootChildID){
  *
  * @param {Element} parentElm Parent DOM element
  * @param {String|Array} constraints Either an array of raw constraints or  an array of one or more visual format strings
- * @param {boolean} isVisualFormat If true, the connstraints array contains visual format strings, if not, it contains raw constraints
  */
 function autoLayout(parentElm, constraints) {
 
@@ -1190,10 +1305,10 @@ function autoLayout(parentElm, constraints) {
     let AutoLayout = window.AutoLayout;
     let view = new AutoLayout.View();
     if (isVisualFormat === true) {
-        view.addConstraints(AutoLayout.VisualFormat.parse(constraints, { extended: true }));
-    } else if(isOptionsFormat) {
+        view.addConstraints(AutoLayout.VisualFormat.parse(constraints, {extended: true}));
+    } else if (isOptionsFormat) {
         view.addConstraints(constraints);
-    }else{
+    } else {
         throw 'Invalid parameters passed to autoLayout! no layout constraints specified';
     }
 
@@ -1344,6 +1459,7 @@ function isScriptLoaded(scriptURL) {
     return null;
 }
 
+
 /**
  * Runs a default workspace based on the file name supplied by the user on the layit.js script tag in the html file.
  * @returns {undefined}
@@ -1389,7 +1505,11 @@ function launcher(fileName, elemId, templateData) {
                         if (templateData.length > 0) {
                             try {
                                 let data = JSON.parse(templateData);
-                                workspace = new Workspace({ layoutName: fileName, bindingElemId: elemId, templateData: data });
+                                workspace = new Workspace({
+                                    layoutName: fileName,
+                                    bindingElemId: elemId,
+                                    templateData: data
+                                });
                             } catch (err) {
                                 throw new Error('Template data specified but is not valid JSON!...' + templateData);
                             }
@@ -1397,12 +1517,16 @@ function launcher(fileName, elemId, templateData) {
                             throw new Error('Template data specified but has no content');
                         }
                     } else if (typeof templateData === 'object') {
-                        workspace = new Workspace({ layoutName: fileName, bindingElemId: elemId, templateData: templateData });
+                        workspace = new Workspace({
+                            layoutName: fileName,
+                            bindingElemId: elemId,
+                            templateData: templateData
+                        });
                     } else {
                         throw new Error('Template data specified but its type is invalid');
                     }
                 } else {
-                    workspace = new Workspace({ layoutName: fileName, bindingElemId: elemId });
+                    workspace = new Workspace({layoutName: fileName, bindingElemId: elemId});
                 }
             } else {
                 throw new Error('Invalid xml file specified in data-launcher attribute of `layit.js` script tag.');
