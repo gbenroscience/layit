@@ -18,6 +18,12 @@ You can see an example site [here](https://gbenroscience.github.io/layitdemo/fil
 
 ### What's new?
 
+As of release tag **_v0.1.4_**, `layit` now supports single page applications. 
+Specify `data-pageType="spa"` on the script tag that loads `layit.js` in your html file. 
+It takes 2 values: `"spa"` or `"mpa"`. If you do not specify the `data-pageType` attribute, it defaults to "mpa": i.e. the normal usage. When in `spa` mode, use the global `goToView('view_name.xml')` function to switch to various workspaces. Preload those workspaces if you will by using the `data-pages` attribute on the script tag that loads `layit.js`.
+This will look like: `data-pages="index.xml,login.xml,register.xml,dashboard.xml"` etc.
+   `onResume` and `onPause` callbacks have been added for the sake of `SPAs`. When you switch to a `ViewController`, the `onResume` callback is fired. When you switch to another, the `onPause` callback is fired on the one we are moving away from.
+
 
 The best things come in small packages.
 
