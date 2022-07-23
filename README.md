@@ -13,7 +13,7 @@ This project works, and is under continuous development as new ui widgets are be
 You can see an example site [here](https://gbenroscience.github.io/layitdemo/file.html), showing layit being used to position things with ease(ignore the design, please)
 
 
-## Welcome to Layit v0.1.1
+## Welcome to Layit v0.1.4
 
 
 ### What's new?
