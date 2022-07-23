@@ -28,17 +28,6 @@ ViewController.prototype.onCreate = function(wkspc){
 };
 
 /**
- * When used in a SPA(Single Page Application), the app will switch between various
- * ViewControllers. When a ViewController is opened(switched to), the onResume callback is called.
- * @param {Workspace} wkspc The workspace
- * @returns {undefined}
- */
-ViewController.prototype.onResume = function(wkspc){
-    ViewController.prototype.onResume.call(this, wkspc);
-
-};
-
-/**
  * You may now begin to use your views.
  * @param {Workspace} wkspc The workspace
  * @returns {undefined}
@@ -65,7 +54,8 @@ ViewController.prototype.onViewsReady = function(wkspc){
 };
 
 /**
- * You may now begin to use your views.
+ * When used in a SPA(Single Page Application), the app will switch between various
+ * ViewControllers. When a ViewController is opened(switched to), the onResume callback is called.
  * @param {Workspace} wkspc The workspace
  * @returns {undefined}
  */
@@ -73,6 +63,15 @@ ViewController.prototype.onResume = function(wkspc){
 
 };
 
+/**
+ * When used in a SPA(Single Page Application), the app will switch between various
+ * ViewControllers. When we switch from this ViewController to another, the onPause callback is called.
+ * @param {Workspace} wkspc The workspace
+ * @returns {undefined}
+ */
+ViewController.prototype.onPause = function(wkspc){
+
+};
 /**
  * Not yet implemented
  * @param {WorkSpace} wkspc The workspace

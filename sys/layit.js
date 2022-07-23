@@ -205,10 +205,16 @@ NavRecord.prototype.loadView = function (viewName) {
                wkspc.show();
                wkspc.current = true;
                foundCurrent = true;
+               wkspc.controllers.forEach(function (controller, id) {
+                   controller.onResume(wkspc);
+               });
            }else{
                if(wkspc.isMainPage()){
                    wkspc.hide();
                    wkspc.current = false;
+                   wkspc.controllers.forEach(function (controller, id) {
+                       controller.onPause(wkspc);
+                   });
                }
            }
         });
@@ -220,14 +226,16 @@ NavRecord.prototype.loadView = function (viewName) {
                 bindingElemId: BODY_ID,
                 currentPage: true,
                 onComplete: function (rootView) {
-
+                    wkspc.controllers.forEach(function (controller, id) {
+                        controller.onResume(wkspc);
+                    });
                 }
             });
         }
     }
 }
 
-const hashChange = (event) => {
+const hashChange = function (e) {
     // hash changed! do navigation.
     const viewName = window.location.hash.replace('#', '');
     // load that view
@@ -1726,7 +1734,7 @@ function launcher(fileName, elemId, templateData, pages) {
                                     bindingElemId: elemId,
                                     templateData: data,
                                     onComplete: function (rootView) {
-                                        loadWorkspaces(pages, () => {
+                                        loadWorkspaces(pages, function (){
                                             console.log('preload all workspaces...success');
                                         });
                                     }
@@ -1743,7 +1751,7 @@ function launcher(fileName, elemId, templateData, pages) {
                             bindingElemId: elemId,
                             templateData: templateData,
                             onComplete: function (rootView) {
-                                loadWorkspaces(pages, () => {
+                                loadWorkspaces(pages, function () {
                                     console.log('preload all workspaces...success');
                                 });
                             }
@@ -1756,7 +1764,7 @@ function launcher(fileName, elemId, templateData, pages) {
                         layoutName: fileName,
                         bindingElemId: elemId,
                         onComplete: function (rootView) {
-                            loadWorkspaces(pages, () => {
+                            loadWorkspaces(pages, function () {
                                 console.log('preload all workspaces...success');
                             });
                         }
