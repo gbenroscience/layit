@@ -36,8 +36,7 @@ var popupZIndex = 1000;
 function Popup(options) {
 
     if (!options) {
-        console.log("No options specified for creating this popup");
-        return;
+        throw new Error("No options specified for creating this popup");
     }
     if (!options.id || typeof options.id !== 'string') {
         throw new Error("Hi! You have not specified a value for options.layitId! Popup cannot be created");

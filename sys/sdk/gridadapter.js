@@ -45,7 +45,6 @@ GridAdapter.prototype.fetchPrototypeCells = function (list, callback) {
                 self.protoClassName = rootView.id;
                 updateOrCreateSelectorInStyleSheet(styleSheet, style);
 
-
                 index++;
                 if (index < itemViews.length) {
                     load(index);

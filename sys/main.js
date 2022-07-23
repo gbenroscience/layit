@@ -574,7 +574,6 @@ function View(wkspc, node, parentId) {
         throw 'The view id cannot be an empty string!';
     }
 
-    console.log('id: ', this.id);
     this.createElement(wkspc, node);
 
     if (this.width === sizes.WRAP_CONTENT) {
@@ -3378,6 +3377,15 @@ View.prototype.calculateWrapContentSizes = function (node) {
     }
 
 };
+
+View.prototype.hide = function (){
+     this.htmlElement.style.display = 'none';
+};
+
+View.prototype.show = function (){
+    this.htmlElement.style.display = 'block';
+};
+
 CheckBox.prototype = Object.create(View.prototype);
 CheckBox.prototype.constructor = CheckBox;
 Button.prototype = Object.create(View.prototype);
@@ -6384,8 +6392,7 @@ Guideline.prototype.layoutGuide = function (constraints) {
  */
 function IncludedView(wkspc, node) {
     View.call(this, wkspc, node);
-    let rawLayoutName = node.getAttribute(attrKeys.layout);
-    let layout = rawLayoutName;
+    let layout = node.getAttribute(attrKeys.layout);
     if (!layout || typeof layout !== 'string') {
         throw 'An included layout must be the name of a valid xml file in the `' + PATH_TO_LAYOUTS_FOLDER + '` folder';
     }
@@ -6393,14 +6400,8 @@ function IncludedView(wkspc, node) {
     if (layout.substring(len - 4) !== '.xml') {
         layout += '.xml';
     }
-    /**
-     * Notifies an include of the constraints that it needs to apply to the root element of the linked document
-     * @type {string[]}
-     */
-    this.directChildConstraints = [];
-    let xmlLayout = wkspc.xmlIncludes.get(layout);
-    let mp = new Parser(wkspc, xmlLayout, this.id);
-    this.constraints = mp.constraints;
+    let mp = new Parser(wkspc,layout, this.id);
+    //this.constraints = mp.constraints;
 }
 
 

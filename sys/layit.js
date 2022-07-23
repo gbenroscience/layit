@@ -5,7 +5,6 @@
  */
 
 /* global PATH_TO_UI_SCRIPTS, xmlKeys, attrKeys, DISABLE_INPUT_SHADOW, PATH_TO_COMPILER_SCRIPTS, ViewController, HTMLCanvasElement, CharacterData, DocumentType, Element, IncludedView, Mustache */
-
 if (!Number.isNaN) {
     Number.isNaN = Number.isNaN || function isNaN(input) {
         return typeof input === 'number' && input !== input;
@@ -66,6 +65,15 @@ if (!Number.isInteger) {
  * @type String
  */
 const BODY_ID = 'html_main';
+let BASE_ROOT = null;
+
+
+const APP_TYPE_CONST = {
+    SPA: "spa",
+    MPA: "mpa"
+};
+
+let APP_TYPE = APP_TYPE_CONST.MPA;
 
 let urls = getUrls();
 
@@ -131,51 +139,119 @@ if (!HTMLCanvasElement.prototype.toBlob) {
 }
 
 let workspaces = new Map();
+let navObj = new NavRecord();
 
-
-function goToView(viewName) {
-    // before you want to change the view, you have to change window.location.hash.
-    // it allows you to go back to the previous view with the back button.
-    // so use this function to change your view instead of directly do the job.
-    // page parameter is your key to understand what view must be load after this.
-
-    window.location.hash = page
+/**
+ * Applies only to layouts that are the main page layout!
+ * @param layoutName The name of the layout...e.g. index.xml
+ * @return {string} the id for retrieving the Workspace from the workspaces Map
+ */
+function spaceIdForMainPages(layoutName) {
+    return spaceId(BODY_ID, layoutName);
 }
 
-function loadView(viewName) {
-    // change dom here based on viewName, for example:
 
-    switch (viewName) {
-        case 'index':
-            document.getElementById('result').style.display = 'none'
-            document.getElementById('index').style.display = 'block'
-            break
-        case 'result':
-            document.getElementById('index').style.display = 'none'
-            document.getElementById('result').style.display = 'block'
-            break
-        default:
-            document.write('404')
+/**
+ * Applies to all layouts; whether main page layouts or layouts attached to some other element.
+ * @param bindingElemId The id of the element that the layout will bind to.
+ * @param layoutName The name of the layout...e.g. index.xml
+ * @return {string}
+ */
+function spaceId(bindingElemId, layoutName) {
+    return bindingElemId + '_' + layoutName.replace(".", "_");
+}
+
+/**
+ * Keeps a record of the previous and current names of the views being opened
+ * @constructor
+ */
+function NavRecord() {
+    this.prevViewName = "";
+    this.newViewName = "";
+}
+
+/**
+ *
+ * @param viewName This is the spaceId used to fetch the rootView[of the workspace] from the workspaces map... e.g index.xml
+ */
+function goToView(viewName) {
+    if (APP_TYPE === APP_TYPE_CONST.SPA) {
+        let currentViewName = window.location.hash ? window.location.hash.replace('#', '') : '';
+        navObj.prevViewName = currentViewName;
+        navObj.newViewName = viewName;
+        // before you want to change the view, you have to change window.location.hash.
+        // it allows you to go back to the previous view with the back button.
+        // so use this function to change your view instead of directly do the job.
+        // page parameter is your key to understand what view must be load after this.
+        window.location.hash = "#" + viewName;
     }
 }
 
-window.addEventListener('hashchange', (event) => {
-    // oh, the hash is changed! it means we should do our job.
-    const viewName = window.location.hash.replace('#', '') || 'index'
+/**
+ *
+ * @param viewName This is the spaceId used to fetch the rootView[of the workspace] from the workspaces map... e.g index.xml
+ * @return true if the view was found among the workspaces and loaded and false if the view was not found.
+ */
+NavRecord.prototype.loadView = function (viewName) {
+    if (APP_TYPE === APP_TYPE_CONST.SPA) {
 
-    // load that view
-    loadView(viewName)
-})
+        let vn = spaceIdForMainPages(viewName);
+        // change DOM here based on viewName, for example:
+        let currentViewName = this.prevViewName;//   window.location.hash ? window.location.hash.substring(1) : null;
 
+        let foundCurrent = false;
+        workspaces.forEach(function (wkspc, id) {
+           if(id === vn){
+               wkspc.show();
+               wkspc.current = true;
+               foundCurrent = true;
+           }else{
+               if(wkspc.isMainPage()){
+                   wkspc.hide();
+                   wkspc.current = false;
+               }
+           }
+        });
 
-// load requested view at start.
-if (!window.location.hash) {
-    // go to default view if there is no request.
-    goToView('index')
-} else {
-    // load requested view.
-    loadView(window.location.hash.replace('#', ''))
+        let wkspc = workspaces.get(vn);//remove the #
+        if (!foundCurrent) {
+            wkspc = getWorkspace({
+                layoutName: viewName,
+                bindingElemId: BODY_ID,
+                currentPage: true,
+                onComplete: function (rootView) {
+
+                }
+            });
+        }
+    }
 }
+
+const hashChange = (event) => {
+    // hash changed! do navigation.
+    const viewName = window.location.hash.replace('#', '');
+    // load that view
+    navObj.loadView(viewName);
+};
+/**
+ * Resize functions make the  underlying autolayout library to refresh the dom structure and
+ * it makes all the generated divs to be displayed which does not reflect the true state of the
+ * workspaces again... so remind the DOM of the true state of the workspaces
+ */
+const restoreDOMVisibilityState = function () {
+    workspaces.forEach(function (wkspc, key) {
+        if(wkspc.isMainPage()){
+            if(wkspc.current === false){
+                wkspc.hide();
+            }else{
+                wkspc.show();
+            }
+        }
+    });
+}
+
+window.addEventListener('hashchange', hashChange);
+
 
 /**
  *
@@ -220,7 +296,7 @@ function getWorkspace(options) {
     if (options.layoutName && typeof options.layoutName === 'string') {
         rootLayoutName = options.layoutName;
     } else {
-        throw new Error('Please supply the root layout name! even if you are supplying your xmlcontent directly, specify a dummy layout name for it! we need it to create a unique id for your layout');
+        throw new Error('Please supply the root layout name! even if you are supplying your xml content directly, specify a dummy layout name for it! we need it to create a unique id for your layout');
     }
 
     let bindingElemId = BODY_ID;
@@ -230,6 +306,8 @@ function getWorkspace(options) {
     let spaceId = bindingElemId + '_' + rootLayoutName.replace(".", "_");
     let space = workspaces.get(spaceId);
     console.log(space ? "found workspace!" : "needs new workspace");
+
+
     if (!space) {
         return new Workspace(options);
     }
@@ -248,6 +326,7 @@ function getWorkspace(options) {
     if (onComplete) {
         onComplete();
     }
+
     return space;
 }
 
@@ -281,10 +360,12 @@ document.currentScript = document.currentScript || (function () {
  bindingElemId: 'id_of_element_layout_will_be_attached_to',
  xmlContent: 'You do not wish to load the xml from the supplied layout name. So supply the xml here directly'.
  onLayoutLoaded: function(layoutName, xmlContent){}... This callback is fired everytime the worker threads successfully
- load a certain layout. Do nothing or as little as posssible in it, so as not to slow down the layout loading and parsing
+ load a certain layout. Do nothing or as little as possible in it, so as not to slow down the layout loading and parsing
  process, which will affect the rendering speed of your UI. You have been warned:)
  onComplete: 'A function to run when the layout has been parsed and loaded',
  isTemplate: true If true, the layout being loaded is to be used as a layout cell in a list, grid, or a table(not yet implemented)
+ currentPage: true|false,  this matters if the page is of type SPA. If not it is always true. When it is an SPA page,
+ this informs the workspace whether it will be rendered immediately it has been loaded or not.
  }
 
 
@@ -356,18 +437,42 @@ function Workspace(options) {
     }
 
 
-    this.onComplete = function (rootView) {
+    /**
+     * This field is important if the app is of type APP_TYPE_CONST#SPA.
+     * It means that the workspace is  the one currently being rendered in the browser.
+     * @type {boolean}
+     */
+    this.current = true;
+    if (typeof options.currentPage === "boolean") {
+        this.current = options.currentPage;
+    }
+
+
+    let onComplete = function (rootView) {
     };
 
     if (options.onComplete) {
         if (typeof options.onComplete === 'function') {
-            this.onComplete = options.onComplete;
-        } else if (options.onComplete.length !== 1) {
-            throw new Error('The onComplete callback must take one parameter... the rootView of the expanded document');
+            onComplete = options.onComplete;
         } else {
             throw new Error('If you are supplying this callback, then it must be a function!');
         }
+        if (options.onComplete.length !== 1) {
+            throw new Error('The onComplete callback must take one parameter... the rootView of the expanded document');
+        }
     }
+
+    let fileName = this.layoutName;
+    this.onComplete = function (rootView) {
+        if (APP_TYPE === APP_TYPE_CONST.SPA) {
+            window.addEventListener('hashchange', function () {
+            });
+            window.location.hash = fileName;
+            window.addEventListener('hashchange', hashChange);
+        }
+        onComplete(rootView);
+    };
+
     if (options.onLayoutLoaded) {
         if (typeof options.onLayoutLoaded === 'function') {
             this.onLayoutLoaded = options.onLayoutLoaded;
@@ -387,14 +492,15 @@ function Workspace(options) {
         }
     }
 
-    this.id = this.systemRootId + '_' + this.layoutName.replace(".", "_");//This is the workspace id.
+    this.id = spaceId(this.systemRootId, this.layoutName);//This is the workspace id.
 
     this.viewMap = new Map();
     this.allStyles = [];
     this.xmlIncludes = new Map();
     this.workersMap = new Map();
     this.rootCount = 0;
-    this.rootParser = null;
+    this.parsers = [];
+    //this.rootParser = null;
     this.layoutCount = 0;
     this.loadedCount = 0;
     this.deadEnds = 0;
@@ -427,8 +533,15 @@ function Workspace(options) {
      */
     this.viewsReadyFired = false;
 
-    workspaces.set(this.id, this);
+    /**
+     * This field is important if the app is of type APP_TYPE_CONST#SPA.
+     * It means that the workspace Parser's buildUI method has been called
+     * before...i.e it has been rendered fully, previously
+     * @type {boolean}
+     */
+    this.hasBeenRenderedBefore = false;
 
+    workspaces.set(this.id, this);
 
     if (xmlContent) {
         this.setContentView(this.layoutName, xmlContent);
@@ -440,21 +553,18 @@ function Workspace(options) {
 
 
 /**
- * @param {Workspace} workspace
- * @param {type} xml The xml being parsed
- * @param {type} parentId The id of the view that hosts the resultant parsed xml layout, usually applies to included views
+ * @param {Workspace} workspace The workspace
+ * @param {string} layoutName The name of the layout being parsed
+ * @param {string} parentId The id of the view that hosts the resultant parsed xml layout, usually applies to included views
  * @returns {Parser}
  */
-function Parser(workspace, xml, parentId) {
-
-    if (isEmpty(xml)) {
-        throw 'Your xml layout was not supplied... xml = ' + xml + ", parent-id = " + parentId;
-    }
+function Parser(workspace, layoutName, parentId) {
 
     if (workspace.templateData) {//RCN: 2015483397
         xml = Mustache.render(xml, workspace.templateData);
     }
 
+    this.layoutName = layoutName;
     this.constraints = [];
     this.html = new StringBuffer('');
     this.parentId = parentId && typeof parentId === "string" && parentId.length > 0 ? parentId : '';//needed for includes.
@@ -482,20 +592,38 @@ function Parser(workspace, xml, parentId) {
      */
     this.doneParsing = false;
     this.errorOccured = false;
-    /**
-     * Set this  to true to tell the framework
-     * that the onViewsAttached event has been fired once already,
-     * so that multiple loadScripts() functions wont fire it in their callbacks.
-     * @type {boolean}
-     */
-    this.firedAttachedViews = false;
-    if (!workspace.rootParser) {
-        workspace.rootParser = this;
+    workspace.parsers.push(this);
+
+    let xml = workspace.fetchPreloadedXml(layoutName);
+    // disable initial rendering for invisible pages, so we can safely load them in the background
+    // without triggering their lifecycle methods.
+    if (workspace.current === true) {
+        this.nodeProcessor(workspace, new NodeMaker(xml).rootNode);
     }
 
-    this.nodeProcessor(workspace, new NodeMaker(xml).rootNode);
-
 }
+
+/**
+ * Runs this parser again.
+ * This will be useful in the case the workspace was created but was not rendered...perhaps because we are in an SPA
+ * and the workspace is not yet to be rendered, or for any other similar reason that involves preloading the workspace
+ * @param {Workspace} wkspc
+ */
+Parser.prototype.reRun = function (wkspc){
+    if(!wkspc){
+        throw 'cant run a parser without knowing its invoking workspace';
+    }
+    if(wkspc.constructor.name !== 'Workspace'){
+        throw 'invoking context must be a Workspace!';
+    }
+
+    if(wkspc.parsers.indexOf(this) === -1){
+        throw 'this parser was never registered with the given Workspace';
+    }
+
+    let xml = wkspc.fetchPreloadedXml(this.layoutName);
+    this.nodeProcessor(wkspc, new NodeMaker(xml).rootNode);
+};
 
 
 function NodeMaker(xml) {
@@ -571,15 +699,31 @@ function getImagePath(layitSrc, isFromUserImages) {
     return (isFromUserImages ? PATH_TO_USER_IMAGES : PATH_TO_LIB_IMAGES) + layitSrc;
 }
 
-
+/**
+ * Loads the pre-fetched xml comtent of the given layout name from cache
+ * @param layoutName The layout name...e.g. index.xml
+ */
+Workspace.prototype.fetchPreloadedXml = function (layoutName){
+    let layout = layoutName;
+    if (!layout || typeof layout !== 'string') {
+        throw 'A layout must be the name of a valid xml file in the `' + PATH_TO_LAYOUTS_FOLDER + '` folder';
+    }
+    let len = layout.length;
+    if (layout.substring(len - 4) !== '.xml') {
+        layout += '.xml';
+    }
+    return this.xmlIncludes.get(layout);
+};
+Workspace.prototype.rootParser = function () {
+    return this.parsers[0];
+};
 /**
  * The root view is the root of the expanded xml layout, not the view that the layout was attached to!
  * @returns {undefined}
  */
 Workspace.prototype.rootView = function () {
-    //let id = 'root_html_main_test_xml_1';
-    //"root_menu_x_id_side_menux_frame_popup_xml_1"
-    return this.viewMap.get('root_' + this.id + "_1");
+    //return this.viewMap.get('root_' + this.id + "_1"); // this is correct
+    return this.rootParser().rootView; // but this is far better optimized for speed.
 };
 
 Workspace.prototype.resetLoaderIndices = function () {
@@ -596,9 +740,34 @@ Workspace.prototype.resetAllIndices = function () {
     this.resetLoaderIndices();
 };
 
+Workspace.prototype.show = function () {
+    if(this.hasBeenRenderedBefore){
+        let root = this.rootView();
+        if(!root){
+            throw 'a serious error has occurred';
+        }
+        root.show();
+    }else{
+        this.rootParser().reRun(this);//edit here
+    }
+};
+Workspace.prototype.hide = function (){
+    if(this.hasBeenRenderedBefore === true){
+        this.rootView().hide();
+    }else{
+        //is not even showing anyway!
+    }
+};
+/**
+ * Only workspaces that render as the main page are bound to html_main
+ * @return {boolean}
+ */
+Workspace.prototype.isMainPage = function () {
+    return this.systemRootId === BODY_ID;
+}
+
+
 Workspace.prototype.setContentView = function (layoutFileName, xmlContent) {
-
-
     let self = this;
 
     /**
@@ -629,13 +798,10 @@ Workspace.prototype.setContentView = function (layoutFileName, xmlContent) {
             console.log('Compiler Scripts Fully Loaded... xmlContent: ', xmlContent);
 
             self.prefetchAllLayouts(layoutFileName, xmlContent, function () {
-                console.log('Resetting engine parameters...');
                 self.resetAllIndices();
-                console.log('Now loading layout and associated layouts(included layouts)');
             }, function (xml) {
-                console.log('Loaded layout and ' + (self.xmlIncludes.size - 1) + ' included layouts');
                 if (xml.length > 0) {
-                    let parser = new Parser(self, xml, null);
+                    let parser = new Parser(self, layoutFileName, null);
                     console.log('Parsed loaded file!');
                 } else {
                     console.log('Awaiting loaded file!');
@@ -681,6 +847,53 @@ function loadScripts(scripts, onload) {
     }
 
     loadAt(0);
+}
+
+
+function loadWorkspaces(pages, onload) {
+    if (!pages) {
+        throw new Error("Please supply the array of pages to load.")
+    }
+    if (!isOneDimArray(pages)) {
+        throw new Error("A one dimensional array of page names must be supplied...found: " + pages);
+    }
+    if (pages.length === 0) {
+        return;
+    }
+    if (onload) {
+        //if onload is specified, it better be a function!
+        if (typeof onload !== 'function') {
+            throw new Error('Please if you must supply a callback, it has to be a function!. We will run it when all the workspaces...i.e.' + pages + ' have been loaded');
+        }
+    }
+
+    function loadSpace(i) {
+        if (typeof i !== 'number') {
+            throw new Error('Please supply a number for the load index');
+        }
+        if (i < pages.length) {
+            let spaceId = spaceIdForMainPages(pages[i]);
+            if (!workspaces.has(spaceId)) {
+                new Workspace({
+                    layoutName: pages[i],
+                    bindingElemId: BODY_ID,
+                    templateData: null,
+                    currentPage: false,
+                    onComplete: function (rootView) {
+                        loadSpace(i + 1);
+                    }
+                });
+            } else {
+                loadSpace(i + 1);
+            }
+        } else {
+            if (onload) {
+                onload();
+            }
+        }
+    }
+
+    loadSpace(0);
 }
 
 /**
@@ -825,6 +1038,7 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
     //process it
     let view = null;
     const nodeName = node.nodeName;
+    let self = this;
     switch (nodeName) {
         case xmlKeys.root:
             let nodeId = node.getAttribute(attrKeys.id);
@@ -863,21 +1077,21 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
                     let viewController = new window[controllerName](wkspc.id);
 
                     if (viewController && viewController instanceof ViewController) {
-                        wkspc.controllers.set(this.layoutName, viewController);
+                        wkspc.controllers.set(self.layoutName, viewController);
                         viewController.onCreate(wkspc);
 
                         //UI building has not necessarily finished, but all ui files have been parsed,
                         // this process has kicked off the loading of all imported scripts.
                         // So wkspc.foundScripts already stores the number of scripts imported...
                         // Hence, if wkspc.foundScripts === wkspc.loadedScripts then all scripts have been loaded
-                        if (wkspc.rootParser.doneParsing === true && wkspc.rootParser.errorOccured === false) {
+                        let rootParser = wkspc.rootParser();
+                        if (rootParser.doneParsing === true && rootParser.errorOccured === false) {
                             if (wkspc.foundScripts === wkspc.loadedScripts) {
                                 wkspc.controllers.forEach(function (controller, id) {
                                     controller.onScriptsReady(wkspc);
                                 });
                             }
                         }
-
 
                         //UI building has finished... this process has kicked off the loading of all imported scripts,
                         // So wkspc.foundScripts already stores the number of scripts imported...
@@ -1080,7 +1294,7 @@ Parser.prototype.nodeProcessor = function (wkspc, node) {
  * @param {Workspace} wkspc
  */
 Parser.prototype.buildUI = function (wkspc) {
-
+    wkspc.hasBeenRenderedBefore = true;
     injectButtonDefaults: {
         let defBtnStyle = new Style("input[type='button']:hover", []);
         defBtnStyle.addStyleElement('cursor', 'pointer');
@@ -1110,12 +1324,9 @@ Parser.prototype.buildUI = function (wkspc) {
     let compounds = [];
     let includes = [];
     wkspc.viewMap.forEach(function (view, id) {
-
-
         if (view instanceof IncludedView) {
             includes.push(view);
         }
-
         for (let i = 0; i < view.childrenIds.length; i++) {
             let childId = view.childrenIds[i];
             let child = wkspc.viewMap.get(childId);
@@ -1123,16 +1334,12 @@ Parser.prototype.buildUI = function (wkspc) {
                 //popup views will not be shown by default. They are launched by the user with some action
                 continue;
             }
-
             view.htmlElement.appendChild(child.htmlElement);
-
             if (child.runView) {
                 compounds.push(child);
             }
-
         }
     });
-
 
     this.html = this.rootView.toHTML();
     updateOrCreateSelectorsInStyleSheet(styleSheet, wkspc.allStyles);
@@ -1141,10 +1348,15 @@ Parser.prototype.buildUI = function (wkspc) {
 
         let baseRoot = null;
         if (wkspc.systemRootId === BODY_ID) {
-            //baseRoot is to be rendered as the page, create a div and attach it to document.body.
-            baseRoot = document.createElement('div');
-            baseRoot.setAttribute(attrKeys.id, wkspc.systemRootId);
-            document.body.appendChild(baseRoot);
+            if (BASE_ROOT) {
+                baseRoot = BASE_ROOT;
+            } else {
+                //baseRoot is to be rendered as the page, create a div and attach it to document.body.
+                BASE_ROOT = document.createElement('div');
+                BASE_ROOT.setAttribute(attrKeys.id, BODY_ID);
+                document.body.appendChild(BASE_ROOT);
+                baseRoot = BASE_ROOT;
+            }
         } else {
             // baseRoot must be an existing view in the DOM, then... so render into it
             baseRoot = document.getElementById(wkspc.systemRootId);
@@ -1152,31 +1364,16 @@ Parser.prototype.buildUI = function (wkspc) {
 
         baseRoot.appendChild(this.rootView.htmlElement);
 
-
-        //If the baseRoot is the dynamically created and attached to document.body, then specify its own constraints on the page
+        //If the baseRoot is dynamically created and attached to document.body, then specify its own constraints on the page
         if (wkspc.systemRootId === BODY_ID) {
             // main layout
-            //autoLayout(undefined, ['HV:|-0-[' + wkspc.systemRootId + ']-0-|']);
-            let id = wkspc.systemRootId;
-            autoLayout(undefined, layoutRootOnBindingElement(null, id));
-        }
-        if (baseRoot.nodeName.toLowerCase() === 'li' || baseRoot.nodeName.toLowerCase() === 'td' || baseRoot.nodeName === 'th') {
-            //layout the template view on its li|td|th
-            //autoLayout(baseRoot, this.rootView.templateConstraints); // using vfl
-            autoLayout(baseRoot, this.rootView.layoutSelf(wkspc));
-        } else {
-            // layout the root layout on the baseRoot(the element we are attaching the xml layout to)
-            //autoLayout(baseRoot, ['HV:|-0-[' + this.rootView.htmlElement.id + ']-0-|']);
-            autoLayout(baseRoot, /*layoutRootOnBindingElement(null, this.rootView.id)*/ this.rootView.layoutSelf(wkspc));
+            autoLayout(undefined, layoutRootOnBindingElement(null, wkspc.systemRootId));
         }
 
+        // layout the root layout on the baseRoot(the element we are attaching the xml layout to)
+        autoLayout(baseRoot, this.rootView.layoutSelf(wkspc));
 
-        /**
-         * Save the parser constraints here in case they are needed later
-         */
-        this.rootView.constraints = this.constraints;
         // layout the xml layout with respect to its rootview
-        // autoLayout(this.rootView.htmlElement, this.constraints); //using vfl
         autoLayout(this.rootView.htmlElement, this.rootView.layoutChildren(wkspc));
 
 
@@ -1187,16 +1384,13 @@ Parser.prototype.buildUI = function (wkspc) {
              * Lay out an included layout on its parent include using constraints found in the
              * include.directChildConstraints array
              */
-            //autoLayout(include.htmlElement, include.directChildConstraints);//using vfl
             autoLayout(include.htmlElement, rootChild.layoutSelf(wkspc));
             //layout the xml of an included layout with respect to its root
             /**
-             * An include holds the child constraints of its included layout
+             * A include holds the child constraints of its included layout
              * in trust for it; lol! Use the constraints to layout the
              * included layout's children on the included layout's root.
              */
-            //autoLayout(rootChild.htmlElement, include.constraints); //using vfl
-
             autoLayout(rootChild.htmlElement, rootChild.layoutChildren(wkspc));
         });
 
@@ -1225,12 +1419,12 @@ Parser.prototype.buildUI = function (wkspc) {
         }
     }//imported scripts have not yet finished loading but UI building is done!
     else {
+        // scripts still being loaded
     }
 
     if (wkspc.onComplete) {
         wkspc.onComplete(this.rootView);
     }
-
 };
 
 /**
@@ -1328,7 +1522,6 @@ function autoLayout(parentElm, constraints) {
             let vertScrollBarShowing = parentElm.scrollHeight > parentElm.clientHeight;
             let windowWidth = (vertScrollBarShowing ? window.innerWidth - getScrollBarWidth() : window.innerWidth);
             let windowHeight = (horScrollBarShowing ? window.innerHeight - getScrollBarWidth() : window.innerHeight);
-
             view.setSize(parentElm ? parentElm.clientWidth : windowWidth, parentElm ? parentElm.clientHeight : windowHeight - 1);
         } else {
             view.setSize(parentElm ? parentElm.clientWidth : window.innerWidth, parentElm ? parentElm.clientHeight : window.innerHeight - 1);
@@ -1344,6 +1537,9 @@ function autoLayout(parentElm, constraints) {
     };
 
     window.addEventListener('resize', updateLayout);
+    window.removeEventListener('resize', restoreDOMVisibilityState);
+    window.addEventListener('resize', restoreDOMVisibilityState);
+
     if (parentElm && parentElm.getAttribute(attrKeys.id) === BODY_ID) {
         let rs = new ResizeSensor(parentElm, function () {
             //is scroll visible
@@ -1467,6 +1663,23 @@ function isScriptLoaded(scriptURL) {
 function baseLauncher() {
     let templateJson = document.currentScript.getAttribute('data-template');
     let fileName = document.currentScript.getAttribute('data-launcher');
+    let pages = document.currentScript.getAttribute('data-pages');
+    let arr = [];
+    //spa or mpa
+    let pageType = document.currentScript.getAttribute('data-pageType');
+    APP_TYPE = pageType ? ((pageType === APP_TYPE_CONST.MPA || pageType === APP_TYPE_CONST.SPA) ? pageType : APP_TYPE_CONST.MPA) : APP_TYPE_CONST.MPA;
+
+    //A comma separated list of page names.."a.xml, b.xml"
+    if (APP_TYPE === APP_TYPE_CONST.SPA) {
+        if (pages) {
+            pages = pages.replace(" ", "");
+            arr = pages.split(",");
+            if (arr.indexOf(fileName) === -1) {
+                arr.unshift(fileName);
+            }
+        }
+    }
+
     let dataType = document.currentScript.getAttribute('data-type');//json-raw | json-b64
 
     if (dataType) {
@@ -1477,8 +1690,10 @@ function baseLauncher() {
         }
     }
 
-    if (fileName && typeof fileName === 'string' && fileName.length > 0)
-        launcher(fileName, BODY_ID, templateJson);
+    if (fileName && typeof fileName === 'string' && fileName.length > 0) {
+        launcher(fileName, BODY_ID, templateJson, arr);
+    }
+
 }
 
 /**
@@ -1486,9 +1701,10 @@ function baseLauncher() {
  * @param {string} fileName
  * @param {string} elemId
  * @param {string} templateData A json string containing information to pass into the xml layout
+ * @param {string[]} pages An array of layout names to preload as workspaces
  * @returns {undefined}
  */
-function launcher(fileName, elemId, templateData) {
+function launcher(fileName, elemId, templateData, pages) {
 
     if (elemId && typeof elemId === 'string' && elemId.length > 0) {
         if (fileName && typeof fileName === 'string' && fileName.length > 0) {
@@ -1505,10 +1721,15 @@ function launcher(fileName, elemId, templateData) {
                         if (templateData.length > 0) {
                             try {
                                 let data = JSON.parse(templateData);
-                                workspace = new Workspace({
+                                new Workspace({
                                     layoutName: fileName,
                                     bindingElemId: elemId,
-                                    templateData: data
+                                    templateData: data,
+                                    onComplete: function (rootView) {
+                                        loadWorkspaces(pages, () => {
+                                            console.log('preload all workspaces...success');
+                                        });
+                                    }
                                 });
                             } catch (err) {
                                 throw new Error('Template data specified but is not valid JSON!...' + templateData);
@@ -1517,16 +1738,29 @@ function launcher(fileName, elemId, templateData) {
                             throw new Error('Template data specified but has no content');
                         }
                     } else if (typeof templateData === 'object') {
-                        workspace = new Workspace({
+                        new Workspace({
                             layoutName: fileName,
                             bindingElemId: elemId,
-                            templateData: templateData
+                            templateData: templateData,
+                            onComplete: function (rootView) {
+                                loadWorkspaces(pages, () => {
+                                    console.log('preload all workspaces...success');
+                                });
+                            }
                         });
                     } else {
                         throw new Error('Template data specified but its type is invalid');
                     }
                 } else {
-                    workspace = new Workspace({layoutName: fileName, bindingElemId: elemId});
+                    new Workspace({
+                        layoutName: fileName,
+                        bindingElemId: elemId,
+                        onComplete: function (rootView) {
+                            loadWorkspaces(pages, () => {
+                                console.log('preload all workspaces...success');
+                            });
+                        }
+                    });
                 }
             } else {
                 throw new Error('Invalid xml file specified in data-launcher attribute of `layit.js` script tag.');

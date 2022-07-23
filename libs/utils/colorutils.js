@@ -184,7 +184,6 @@ function darkenColor(color, percent) {
         }
 
     } else {
-        console.log(color);
         throw new Error("Invalid hexadecimal color format!... input: color = " + color + " , percent = " + percent);
     }
 

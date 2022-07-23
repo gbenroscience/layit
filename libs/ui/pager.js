@@ -31,9 +31,8 @@
 function Pager(options) {
     this.validObject = true;
     if (typeof options.id === 'undefined') {
-        console.log("Please specify the pager id.");
         this.validObject = false;
-        return;
+        throw "Please specify the pager id.";
     } else {
         this.id = options.id;
     }

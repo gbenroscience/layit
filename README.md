@@ -323,9 +323,9 @@ TestController.prototype.onViewsAttached = function(wid){
 };
 
 /**
- * All scripts have loaded. By experimentation, all your views too
+ * All scripts have loaded. By observation, all your views too
  * have loaded, but proceed at your own risk.
- * ONLY USE onViewsReady
+ * Your code is 100% safe to use only in onViewsReady
  * @param {Workspace} wkspc The workspace
  * @returns {undefined}
  */
