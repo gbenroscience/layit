@@ -1673,6 +1673,13 @@ function isScriptLoaded(scriptURL) {
 function baseLauncher() {
     let templateJson = document.currentScript.getAttribute('data-template');
     let fileName = document.currentScript.getAttribute('data-launcher');
+    /**
+     * Check if the user has specified a hash i.e. the request is coming from a url, so override the default fileName
+     * specified in the data-launcher.
+     */
+    if(window.location.hash && window.location.hash.length > 0){
+        fileName = window.location.hash.substring(1);
+    }
     let pages = document.currentScript.getAttribute('data-pages');
     let arr = [];
     //spa or mpa
