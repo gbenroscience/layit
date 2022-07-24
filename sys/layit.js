@@ -311,30 +311,16 @@ function getWorkspace(options) {
     if (options.bindingElemId && typeof options.bindingElemId === 'string' && options.bindingElemId.length !== 0) {
         bindingElemId = options.bindingElemId;
     }
-    let spaceId = bindingElemId + '_' + rootLayoutName.replace(".", "_");
-    let space = workspaces.get(spaceId);
+
+    let spaceID = this.spaceId(bindingElemId, rootLayoutName);//This is the workspace id.
+    let space = workspaces.get(spaceID);
     console.log(space ? "found workspace!" : "needs new workspace");
 
 
     if (!space) {
         return new Workspace(options);
     }
-
-    let onComplete = function (rootView) {
-    };
-    if (options.onComplete) {
-        if (typeof options.onComplete === 'function') {
-            onComplete = options.onComplete;
-        } else if (options.onComplete.length !== 1) {
-            throw new Error('The onComplete callback must take one parameter... the rootView of the expanded document');
-        } else {
-            throw new Error('If you are supplying this callback, then it must be a function!');
-        }
-    }
-    if (onComplete) {
-        onComplete();
-    }
-
+    space.onComplete();
     return space;
 }
 
