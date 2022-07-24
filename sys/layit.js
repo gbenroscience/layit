@@ -155,12 +155,34 @@ let boundSpaces = function (bindingElemId) {
     return spaces;
 };
 
-function deleteWorkspace(wid) {
+/**
+ * Deletes the workspace totally.
+ * The workspace will need to be re-downloaded and then whitelisted... by calling navRecord.whitelistView(),
+ * before it can be used agaiin.
+ * @param wid The workspace id
+ * @return {boolean}
+ */
+function hardDeleteWorkspace(wid) {
     let w = workspaces.get(wid);
     if (w && w.isMainPage()) {
         navObj.blacklistView(w.layoutName);
     }
     return workspaces.delete(wid);
+}
+
+
+/**
+ * Blacklists the workspace so that navigations cannot load it any longer.
+ * To make it available again, simply call navRecord.whitelistView(),
+ * before it can be used agaiin.
+ * @param wid The workspace id
+ * @return {boolean}
+ */
+function softDeleteWorkspace(wid) {
+    let w = workspaces.get(wid);
+    if (w && w.isMainPage()) {
+        navObj.blacklistView(w.layoutName);
+    }
 }
 
 let navObj = new NavRecord();
@@ -314,9 +336,6 @@ const restoreDOMVisibilityState = function () {
     });
 }
 
-window.addEventListener('hashchange', hashChange);
-
-
 /**
  *
  *
@@ -330,7 +349,7 @@ window.addEventListener('hashchange', hashChange);
  load a certain layout. Do nothing or as little as possible in it, so as not to slow down the layout loading and parsing
  process, which will affect the rendering speed of your UI. You have been warned:)
  onComplete: 'A function to run when the layout has been parsed and loaded',
- isTemplate: true If true, the layout being loaded is to be used as a layout cell in a list, grid, or a table(not yet implemented)
+ isTemplate: true. If true, the layout being loaded is to be used as a layout cell in a list, grid, or a table(not yet implemented)
  }
 
 
