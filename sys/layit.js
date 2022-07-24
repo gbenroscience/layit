@@ -139,6 +139,22 @@ if (!HTMLCanvasElement.prototype.toBlob) {
 }
 
 let workspaces = new Map();
+/**
+ * Locate all workspaces that are bound to a given element
+ * @param bindingElemId The id of the parent element
+ * @return {Workspace[]} An array of  all workspaces bound to this element
+ */
+let boundSpaces = function (bindingElemId){
+    let spaces = [];
+  workspaces.forEach(function (wkspc, id) {
+      if(startsWith(id, bindingElemId+"_")){
+          spaces.push(wkspc);
+      }
+  });
+
+  return spaces;
+};
+
 let navObj = new NavRecord();
 
 /**
