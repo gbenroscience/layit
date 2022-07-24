@@ -144,16 +144,24 @@ let workspaces = new Map();
  * @param bindingElemId The id of the parent element
  * @return {Workspace[]} An array of  all workspaces bound to this element
  */
-let boundSpaces = function (bindingElemId){
+let boundSpaces = function (bindingElemId) {
     let spaces = [];
-  workspaces.forEach(function (wkspc, id) {
-      if(startsWith(id, bindingElemId+"_")){
-          spaces.push(wkspc);
-      }
-  });
+    workspaces.forEach(function (wkspc, id) {
+        if (startsWith(id, bindingElemId + "_")) {
+            spaces.push(wkspc);
+        }
+    });
 
-  return spaces;
+    return spaces;
 };
+
+function deleteWorkspace(wid) {
+    let w = workspaces.get(wid);
+    if (w && w.isMainPage()) {
+        navObj.blacklistView(w.layoutName);
+    }
+    return workspaces.delete(wid);
+}
 
 let navObj = new NavRecord();
 
@@ -184,24 +192,35 @@ function spaceId(bindingElemId, layoutName) {
 function NavRecord() {
     this.prevViewName = "";
     this.newViewName = "";
+    /**
+     * Store the name of deleted workspace layout files here.
+     * @type {string[]}
+     */
+    this.deletedViewNames = [];
 }
 
 /**
- *
- * @param viewName This is the spaceId used to fetch the rootView[of the workspace] from the workspaces map... e.g index.xml
+ * Adds a view to the list of deleted views.
+ * This view will then be skipped during navigation.
+ * @param viewName The name of the view
  */
-function goToView(viewName) {
-    if (APP_TYPE === APP_TYPE_CONST.SPA) {
-        let currentViewName = window.location.hash ? window.location.hash.replace('#', '') : '';
-        navObj.prevViewName = currentViewName;
-        navObj.newViewName = viewName;
-        // before you want to change the view, you have to change window.location.hash.
-        // it allows you to go back to the previous view with the back button.
-        // so use this function to change your view instead of directly do the job.
-        // page parameter is your key to understand what view must be load after this.
-        window.location.hash = "#" + viewName;
+NavRecord.prototype.blacklistView = function (viewName) {
+    this.deletedViewNames.push(viewName);
+};
+/**
+ * Removes the view name from the list of deleted views so the browser will stop skipping it
+ * @param viewName The name of the view to stop the browser from skipping.
+ */
+NavRecord.prototype.whitelistView = function (viewName) {
+    let i = this.deletedViewNames.indexOf(viewName);
+    if (i !== -1) {
+        this.deletedViewNames.splice(i, 1);
     }
-}
+};
+NavRecord.prototype.hasDeletedView = function (viewName) {
+    return this.deletedViewNames.indexOf(viewName) !== -1;
+};
+
 
 /**
  *
@@ -217,25 +236,25 @@ NavRecord.prototype.loadView = function (viewName) {
 
         let foundCurrent = false;
         workspaces.forEach(function (wkspc, id) {
-           if(id === vn){
-               wkspc.show();
-               wkspc.current = true;
-               foundCurrent = true;
-               wkspc.controllers.forEach(function (controller, id) {
-                   controller.onResume(wkspc);
-               });
-           }else{
-               if(wkspc.isMainPage()){
-                   wkspc.hide();
-                   wkspc.current = false;
-                   wkspc.controllers.forEach(function (controller, id) {
-                       controller.onPause(wkspc);
-                   });
-               }
-           }
+            if (id === vn) {
+                wkspc.show();
+                wkspc.current = true;
+                foundCurrent = true;
+                wkspc.controllers.forEach(function (controller, id) {
+                    controller.onResume(wkspc);
+                });
+            } else {
+                if (wkspc.isMainPage()) {
+                    wkspc.hide();
+                    wkspc.current = false;
+                    wkspc.controllers.forEach(function (controller, id) {
+                        controller.onPause(wkspc);
+                    });
+                }
+            }
         });
 
-        let wkspc = workspaces.get(vn);//remove the #
+        let wkspc = workspaces.get(vn);
         if (!foundCurrent) {
             wkspc = getWorkspace({
                 layoutName: viewName,
@@ -249,7 +268,28 @@ NavRecord.prototype.loadView = function (viewName) {
             });
         }
     }
+};
+
+/**
+ *
+ * @param viewName This is the spaceId used to fetch the rootView[of the workspace] from the workspaces map... e.g index.xml
+ */
+function goToView(viewName) {
+    if (APP_TYPE === APP_TYPE_CONST.SPA) {
+        if (!navObj.hasDeletedView(viewName)) {
+            let currentViewName = window.location.hash ? window.location.hash.replace('#', '') : '';
+            navObj.prevViewName = currentViewName;
+            navObj.newViewName = viewName;
+            // before you change the view, you have to change window.location.hash
+            // This allows you go back to the previous view with the back button.
+            // So use this function to change your view instead of directly doing the job.
+            window.location.hash = "#" + viewName;
+        } else {
+            // The view is not available. Its workspace has been deleted.
+        }
+    }
 }
+
 
 const hashChange = function (e) {
     // hash changed! do navigation.
@@ -264,10 +304,10 @@ const hashChange = function (e) {
  */
 const restoreDOMVisibilityState = function () {
     workspaces.forEach(function (wkspc, key) {
-        if(wkspc.isMainPage()){
-            if(wkspc.current === false){
+        if (wkspc.isMainPage()) {
+            if (wkspc.current === false) {
                 wkspc.hide();
-            }else{
+            } else {
                 wkspc.show();
             }
         }
@@ -619,15 +659,15 @@ function Parser(workspace, layoutName, parentId) {
  * and the workspace is not yet to be rendered, or for any other similar reason that involves preloading the workspace
  * @param {Workspace} wkspc
  */
-Parser.prototype.reRun = function (wkspc){
-    if(!wkspc){
+Parser.prototype.reRun = function (wkspc) {
+    if (!wkspc) {
         throw 'cant run a parser without knowing its invoking workspace';
     }
-    if(wkspc.constructor.name !== 'Workspace'){
+    if (wkspc.constructor.name !== 'Workspace') {
         throw 'invoking context must be a Workspace!';
     }
 
-    if(wkspc.parsers.indexOf(this) === -1){
+    if (wkspc.parsers.indexOf(this) === -1) {
         throw 'this parser was never registered with the given Workspace';
     }
 
@@ -713,7 +753,7 @@ function getImagePath(layitSrc, isFromUserImages) {
  * Loads the pre-fetched xml comtent of the given layout name from cache
  * @param layoutName The layout name...e.g. index.xml
  */
-Workspace.prototype.fetchPreloadedXml = function (layoutName){
+Workspace.prototype.fetchPreloadedXml = function (layoutName) {
     let layout = layoutName;
     if (!layout || typeof layout !== 'string') {
         throw 'A layout must be the name of a valid xml file in the `' + PATH_TO_LAYOUTS_FOLDER + '` folder';
@@ -751,20 +791,20 @@ Workspace.prototype.resetAllIndices = function () {
 };
 
 Workspace.prototype.show = function () {
-    if(this.hasBeenRenderedBefore){
+    if (this.hasBeenRenderedBefore) {
         let root = this.rootView();
-        if(!root){
+        if (!root) {
             throw 'a serious error has occurred';
         }
         root.show();
-    }else{
+    } else {
         this.rootParser().reRun(this);//edit here
     }
 };
-Workspace.prototype.hide = function (){
-    if(this.hasBeenRenderedBefore === true){
+Workspace.prototype.hide = function () {
+    if (this.hasBeenRenderedBefore === true) {
         this.rootView().hide();
-    }else{
+    } else {
         //is not even showing anyway!
     }
 };
@@ -1677,7 +1717,7 @@ function baseLauncher() {
      * Check if the user has specified a hash i.e. the request is coming from a url, so override the default fileName
      * specified in the data-launcher.
      */
-    if(window.location.hash && window.location.hash.length > 0){
+    if (window.location.hash && window.location.hash.length > 0) {
         fileName = window.location.hash.substring(1);
     }
     let pages = document.currentScript.getAttribute('data-pages');
@@ -1743,7 +1783,7 @@ function launcher(fileName, elemId, templateData, pages) {
                                     bindingElemId: elemId,
                                     templateData: data,
                                     onComplete: function (rootView) {
-                                        loadWorkspaces(pages, function (){
+                                        loadWorkspaces(pages, function () {
                                             console.log('preload all workspaces...success');
                                         });
                                     }
