@@ -568,6 +568,7 @@ function Workspace(options) {
  */
 function Parser(workspace, layoutName, parentId) {
 
+    let xml = workspace.fetchPreloadedXml(layoutName);
     if (workspace.templateData) {//RCN: 2015483397
         xml = Mustache.render(xml, workspace.templateData);
     }
@@ -602,7 +603,6 @@ function Parser(workspace, layoutName, parentId) {
     this.errorOccured = false;
     workspace.parsers.push(this);
 
-    let xml = workspace.fetchPreloadedXml(layoutName);
     // disable initial rendering for invisible pages, so we can safely load them in the background
     // without triggering their lifecycle methods.
     if (workspace.current === true) {
