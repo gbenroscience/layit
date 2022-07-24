@@ -320,7 +320,7 @@ function getWorkspace(options) {
     if (!space) {
         return new Workspace(options);
     }
-    space.onComplete();
+    space.onComplete(space.rootView());
     return space;
 }
 
