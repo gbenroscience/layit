@@ -326,13 +326,11 @@ const hashChange = function (e) {
  */
 const restoreDOMVisibilityState = function () {
     workspaces.forEach(function (wkspc, key) {
-        if (wkspc.isMainPage()) {
             if (wkspc.current === false) {
                 wkspc.hide();
             } else {
                 wkspc.show();
             }
-        }
     });
 }
 
